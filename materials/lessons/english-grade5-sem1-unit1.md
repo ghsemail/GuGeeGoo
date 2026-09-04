@@ -4,6 +4,46 @@
 
 ---
 
+## 课文 · Get Ready
+
+There are different kinds of food.
+We can put them into five food groups.
+Let's meet them.
+
+Here comes the vegetable group.
+Potatoes, carrots and tomatoes are smiling at us.
+
+Next is the fruit group.
+Apples, bananas, oranges and grapes all say hello.
+Vegetables and fruit are very important.
+Fill half your plate with them every day.
+
+Now we see the grain group.
+Rice, noodles and bread.
+They give us energy to run, jump and play.
+
+Here come meat, fish, eggs and beans.
+They help us grow strong and tall.
+
+And last is the dairy group.
+Look! They are milk and cheese.
+They are good for our bones and teeth.
+
+Try to eat food from the five food groups every day.
+A healthy body starts with healthy food.
+
+### 课文要点：五大食物类别
+
+| 类别 | 代表食物 | 作用 |
+|------|----------|------|
+| vegetable group（蔬菜类） | potatoes, carrots, tomatoes | 与水果一起占餐盘一半 |
+| fruit group（水果类） | apples, bananas, oranges, grapes | 与蔬菜一起占餐盘一半 |
+| grain group（谷物类） | rice, noodles, bread | 提供能量，让人跑、跳、玩 |
+| meat / protein（肉类/蛋白质） | meat, fish, eggs, beans | 帮助长高、变强壮 |
+| dairy group（乳制品类） | milk, cheese | 对骨骼和牙齿有益 |
+
+---
+
 ## 核心词块
 
 ### 食物（Food）
@@ -99,6 +139,7 @@
 
 本单元围绕 **健康饮食** 展开，重点掌握：
 
+- 五大食物类别（vegetable, fruit, grain, meat/protein, dairy）
 - 食物相关词汇与短语
 - 用 `should / shouldn't` 和 `Don't ...` 给出饮食建议
 - 合理饮食、保持健康等表达
