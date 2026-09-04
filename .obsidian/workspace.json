@@ -4,17 +4,19 @@
     "type": "split",
     "children": [
       {
-        "id": "acab8d709beaafa0",
+        "id": "a2618d9e242f0201",
         "type": "tabs",
         "children": [
           {
-            "id": "740edd9bcd935e56",
+            "id": "e1584f4b257a9411",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "新标签页"
+              "type": "pdf",
+              "state": {
+                "file": "materials/英语/五年级/exercises/unit1-day1.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "unit1-day1"
             }
           }
         ]
@@ -95,6 +97,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "materials/英语/五年级/exercises/unit1-day1.pdf",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -113,6 +116,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "materials/英语/五年级/exercises/unit1-day1.pdf",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -155,6 +159,7 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "materials/英语/五年级/exercises/unit1-day1.pdf",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -181,21 +186,23 @@
       "bases:新建数据库": false
     }
   },
-  "active": "cd3a936a4fcefa14",
+  "active": "e1584f4b257a9411",
   "lastOpenFiles": [
+    "materials/英语/五年级/lessons/english-grade5-sem1-unit1.md",
+    "materials/英语/五年级/exercises/unit1-day1-answers.pdf",
+    "materials/英语/五年级/exercises/unit1-day1.pdf",
+    "materials/英语/五年级/exercises/unit1-day1-answers.html",
+    "materials/英语/五年级/exercises/unit1-day1.md",
+    "materials/英语/五年级/exercises/unit1-day1.html",
+    "materials/英语/五年级/exercises/unit1-day1-answers.md",
     "planning/progress.md",
     "planning/roadmap.md",
     "assets/templates",
     "assets/images",
     "assets",
-    "materials/英语/五年级/lessons/english-grade5-sem1-unit1.md",
     "materials/英语/五年级/printables",
     "materials/英语/五年级/lessons",
     "materials/英语/五年级/exercises",
-    "materials/英语/五年级",
-    "materials/英语",
-    "materials",
-    "planning/lesson-plans",
     "人工智能/五年级/planning/roadmap.md",
     "英语/五年级/materials/lessons/english-grade5-sem1-unit1.md",
     "英语/五年级/planning/progress.md",
