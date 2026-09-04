@@ -4,37 +4,38 @@
 
 ## 目录结构
 
-所有内容按 **学科 → 年级** 分类：
+一级按 **功能** 分类，内部再按 **学科 → 年级** 组织：
 
 ```
 GuGeeGoo/
-├── 语文/
-│   ├── 一年级/
-│   ├── 二年级/
-│   └── ...
-├── 数学/
-├── 英语/
-├── 科学/
-└── 人工智能/
+├── planning/                    # 家长端：教案、路线图、进度
+│   ├── roadmap.md
+│   ├── progress.md
+│   └── lesson-plans/
+│       └── 英语/五年级/...
+│
+├── materials/                   # 给景源看的学习材料
+│   └── 英语/五年级/
+│       ├── lessons/
+│       ├── exercises/
+│       └── printables/
+│
+└── assets/                      # 插图、模板等素材
+    ├── images/
+    └── templates/
 ```
 
-每个年级目录下包含：
-
-| 子目录 | 用途 |
-|--------|------|
-| `planning/` | 家长端：教案、路线图、进度记录 |
-| `materials/` | 给景源看的学习材料（课程、练习、打印件） |
-| `code/` | 演示程序、可玩可改版、小工具 |
-| `assets/` | 插图、模板等素材 |
+> `code/` 目录暂不创建，需要时再添加。
 
 ## 使用方式
 
-1. 进入对应学科和年级目录（如 `英语/五年级/`）
-2. 在 `planning/` 查看教案和进度
-3. 将学习材料放入 `materials/`，代码放入 `code/`
-4. 需要新学科或新年级时，按同样结构新建目录
+1. 在 `planning/` 查看总路线图和进度
+2. 教案放入 `planning/lesson-plans/<学科>/<年级>/`
+3. 学习材料放入 `materials/<学科>/<年级>/`
+4. 新学科或新年级按需新建子目录，不预建空壳
 
 ## 当前内容
 
-- `英语/五年级/materials/lessons/` — 英语五年级上 Unit 1
-- `人工智能/五年级/planning/roadmap.md` — AI 学习路线图
+- `materials/英语/五年级/lessons/english-grade5-sem1-unit1.md` — 英语五年级上 Unit 1
+- `planning/roadmap.md` — 学习路线图
+- `planning/progress.md` — 学习进度

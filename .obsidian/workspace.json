@@ -181,24 +181,24 @@
       "bases:新建数据库": false
     }
   },
-  "active": "740edd9bcd935e56",
+  "active": "cd3a936a4fcefa14",
   "lastOpenFiles": [
-    "语文/六年级/planning/lesson-plans",
-    "语文/六年级/materials/printables",
-    "语文/六年级/materials/exercises",
-    "语文/六年级/materials/lessons",
-    "语文/六年级/code/tools",
-    "语文/六年级/code/play-and-tweak",
-    "语文/六年级/code/demos",
-    "语文/六年级/assets/images",
-    "语文/六年级/assets/templates",
-    "语文/六年级/planning",
-    "语文/六年级/materials",
+    "planning/progress.md",
+    "planning/roadmap.md",
+    "assets/templates",
+    "assets/images",
+    "assets",
+    "materials/英语/五年级/lessons/english-grade5-sem1-unit1.md",
+    "materials/英语/五年级/printables",
+    "materials/英语/五年级/lessons",
+    "materials/英语/五年级/exercises",
+    "materials/英语/五年级",
+    "materials/英语",
+    "materials",
+    "planning/lesson-plans",
     "人工智能/五年级/planning/roadmap.md",
     "英语/五年级/materials/lessons/english-grade5-sem1-unit1.md",
     "英语/五年级/planning/progress.md",
-    "planning/roadmap.md",
-    "planning/progress.md",
     "materials/lessons/english-grade5-sem1-unit1.md"
   ]
 }
