@@ -93,7 +93,7 @@
 | 日期 | 练习 | 针对薄弱点 | 结果 | 备注 |
 |------|------|------------|------|------|
 | 2026-09-05 | Unit 1 Day 1 作业 | — | 见上方首次发现 | 基线测评 |
-| 2026-09-05 | Unit 1 Day 2 巩固练 | WP-001～004 | 待完成 | `materials/exercises/english-grade5-sem1-unit1-day2.md` |
+| 2026-09-05 | Unit 1 Day 2 巩固练 | WP-001～004 | 待完成 | `materials/英语/五年级/exercises/unit1-day2.pdf`（答案：`unit1-day2-answers.pdf`） |
 
 ---
 
