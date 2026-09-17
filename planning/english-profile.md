@@ -27,7 +27,7 @@
 | 典型错题 | `food group` → **food groups**；`fruit and vegetable` → **fruit and vegetables** |
 | 关联课文 | *five food groups*；*Vegetables and fruit are very important.* |
 | 状态 | **薄弱** |
-| 巩固记录 | Day 2-1～2-8 分日巩固（待完成） |
+| 巩固记录 | Day 2-1～2-4 分日巩固（待完成） |
 
 **掌握标准：** 复数相关填空/改错连续 2 次全对。
 
@@ -42,7 +42,7 @@
 | 典型错题 | `allot of` → **a lot of** |
 | 易混说明 | allot = 分配；a lot of = 大量的（三个词，中间有空格） |
 | 状态 | **薄弱** |
-| 巩固记录 | Day 2-1～2-8 分日巩固（待完成） |
+| 巩固记录 | Day 2-1～2-4 分日巩固（待完成） |
 
 **掌握标准：** a lot of 相关题连续 2 次全对。
 
@@ -57,7 +57,7 @@
 | 典型问题 | 意思会选，但 `shouldn't` 缩写书写不规范 |
 | 对比 | should（应该）↔ shouldn't（不应该，含撇号 'nt） |
 | 状态 | **薄弱** |
-| 巩固记录 | Day 2-1～2-8 分日巩固（待完成） |
+| 巩固记录 | Day 2-1～2-4 分日巩固（待完成） |
 
 **掌握标准：** shouldn't 填空连续 2 次全对。
 
@@ -72,7 +72,7 @@
 | 典型问题 | 拿东西场景更常用 **take too much**；吃东西用 **eat too much** |
 | 课文例句 | *Don't take too much!* |
 | 状态 | **薄弱** |
-| 巩固记录 | Day 2-1～2-8 分日巩固（待完成） |
+| 巩固记录 | Day 2-1～2-4 分日巩固（待完成） |
 
 **掌握标准：** 场景选择题连续 2 次全对。
 
@@ -94,14 +94,10 @@
 |------|------|------------|------|------|
 | 2026-09-05 | Unit 1 Day 1 作业 | — | 见上方首次发现 | 基线测评 |
 | 2026-09-05 | Unit 1 Day 2 巩固练（完整版） | WP-001～004 | 已拆分 | 见下方分日安排 |
-| — | Day 2-1 | WP-001、WP-003 | 待完成 | `unit1-day2-part1.html` |
-| — | Day 2-2 | WP-004、WP-001、WP-002 | 待完成 | `unit1-day2-part2.html` |
-| — | Day 2-3 | WP-002、WP-003 | 待完成 | `unit1-day2-part3.html` |
-| — | Day 2-4 | WP-003、WP-004 | 待完成 | `unit1-day2-part4.html` |
-| — | Day 2-5 | WP-001、WP-003、WP-004 | 待完成 | `unit1-day2-part5.html` |
-| — | Day 2-6 | WP-001、WP-002、WP-004 | 待完成 | `unit1-day2-part6.html` |
-| — | Day 2-7 | WP-004 | 待完成 | `unit1-day2-part7.html` |
-| — | Day 2-8 | WP-001、WP-002、WP-003 | 待完成 | `unit1-day2-part8.html` |
+| — | Day 2-1 | WP-001、WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part1.html` |
+| — | Day 2-2 | WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part2.html` |
+| — | Day 2-3 | WP-001、WP-003、WP-004 | 待完成 | `unit1-day2-part3.html` |
+| — | Day 2-4 | WP-001、WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part4.html` |
 
 ---
 
@@ -110,4 +106,4 @@
 | 日期 | 操作 |
 |------|------|
 | 2026-09-05 | 建档；根据 Day 1 作业录入 4 项薄弱点、3 项已掌握 |
-| 2026-09-17 | Day 2 巩固练拆分为 8 份（每天 3～4 题） |
+| 2026-09-17 | Day 2 巩固练拆分为 4 份（每天 7～8 题） |

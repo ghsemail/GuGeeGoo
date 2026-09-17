@@ -1,7 +1,7 @@
 # Unit 1 · Day 2 巩固练习 · 分日安排
 
 > 顾景源 · 五年级上英语 · 针对 Day 1 错题专项巩固  
-> **原 29 题已拆分为 8 份，每天 3～4 题，约 8 天完成。**
+> **原 29 题已拆分为 4 份，每天 1 份（7～8 题），约 4 天完成。**
 
 ---
 
@@ -9,14 +9,10 @@
 
 | 份数 | 文件名 | 题数 | 题型 | 针对薄弱点 |
 |------|--------|------|------|------------|
-| Day 2-1 | `unit1-day2-part1.html` | 4 | 改错题 | WP-001 复数、WP-003 shouldn't |
-| Day 2-2 | `unit1-day2-part2.html` | 4 | 改错 + 短语填空 | WP-004 take/eat、WP-001、WP-002 |
-| Day 2-3 | `unit1-day2-part3.html` | 4 | 短语 + 语法填空 | WP-002 a lot of、WP-003 |
-| Day 2-4 | `unit1-day2-part4.html` | 3 | 语法填空 | WP-003、WP-004 |
-| Day 2-5 | `unit1-day2-part5.html` | 4 | 选词填空 | WP-001、WP-003、WP-004 |
-| Day 2-6 | `unit1-day2-part6.html` | 3 | 选词 + 情景选择 | WP-001、WP-002、WP-004 |
-| Day 2-7 | `unit1-day2-part7.html` | 3 | 情景选择 | WP-004 take/eat |
-| Day 2-8 | `unit1-day2-part8.html` | 4 | 拼写专练 | WP-001、WP-002、WP-003 |
+| Day 2-1 | `unit1-day2-part1.html` | 7 | 改错题 + 短语填空 | WP-001 复数、WP-002 a lot of、WP-003 shouldn't、WP-004 take |
+| Day 2-2 | `unit1-day2-part2.html` | 7 | 短语填空 + 语法填空 | WP-002 a lot of、WP-003 shouldn't、WP-004 take/eat |
+| Day 2-3 | `unit1-day2-part3.html` | 7 | 语法填空 + 选词填空 | WP-001 复数、WP-003 shouldn't、WP-004 eat |
+| Day 2-4 | `unit1-day2-part4.html` | 8 | 情景选择 + 拼写专练 | WP-004 take/eat、WP-001、WP-002、WP-003 |
 
 **路径：** `materials/英语/五年级/exercises/`  
 **答案：** 每份对应 `unit1-day2-partN-answers.html`（家长专用）
