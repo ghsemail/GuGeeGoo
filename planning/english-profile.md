@@ -113,3 +113,4 @@
 | 2026-09-17 | Day 2 分日练习合并为 4 页 PDF（`unit1-day2.pdf`） |
 | 2026-09-17 | Day 2 答案合并为单份 PDF（`unit1-day2-answers.pdf`） |
 | 2026-09-17 | 建立 mistake-book；Day 2-1 批改录入（Q4 错） |
+| 2026-09-17 | 补录 Day 1 作业 6 道错题至 mistake-book |
