@@ -9,13 +9,14 @@
 
 | 份数 | 文件名 | 题数 | 题型 | 针对薄弱点 |
 |------|--------|------|------|------------|
-| Day 2-1 | `unit1-day2-part1.html` | 7 | 改错题 + 短语填空 | WP-001 复数、WP-002 a lot of、WP-003 shouldn't、WP-004 take |
-| Day 2-2 | `unit1-day2-part2.html` | 7 | 短语填空 + 语法填空 | WP-002 a lot of、WP-003 shouldn't、WP-004 take/eat |
-| Day 2-3 | `unit1-day2-part3.html` | 7 | 语法填空 + 选词填空 | WP-001 复数、WP-003 shouldn't、WP-004 eat |
-| Day 2-4 | `unit1-day2-part4.html` | 8 | 情景选择 + 拼写专练 | WP-004 take/eat、WP-001、WP-002、WP-003 |
+| Day 2-1 | `unit1-day2-part1.pdf` | 7 | 改错题 + 短语填空 | WP-001 复数、WP-002 a lot of、WP-003 shouldn't、WP-004 take |
+| Day 2-2 | `unit1-day2-part2.pdf` | 7 | 短语填空 + 语法填空 | WP-002 a lot of、WP-003 shouldn't、WP-004 take/eat |
+| Day 2-3 | `unit1-day2-part3.pdf` | 7 | 语法填空 + 选词填空 | WP-001 复数、WP-003 shouldn't、WP-004 eat |
+| Day 2-4 | `unit1-day2-part4.pdf` | 8 | 情景选择 + 拼写专练 | WP-004 take/eat、WP-001、WP-002、WP-003 |
 
 **路径：** `materials/英语/五年级/exercises/`  
-**答案：** 每份对应 `unit1-day2-partN-answers.html`（家长专用）
+**答案 PDF：** 每份对应 `unit1-day2-partN-answers.pdf`（家长专用）  
+**重新生成：** 在该目录运行 `npm install puppeteer && node generate-pdf.mjs`
 
 ---
 

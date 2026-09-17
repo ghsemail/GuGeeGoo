@@ -94,10 +94,10 @@
 |------|------|------------|------|------|
 | 2026-09-05 | Unit 1 Day 1 作业 | — | 见上方首次发现 | 基线测评 |
 | 2026-09-05 | Unit 1 Day 2 巩固练（完整版） | WP-001～004 | 已拆分 | 见下方分日安排 |
-| — | Day 2-1 | WP-001、WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part1.html` |
-| — | Day 2-2 | WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part2.html` |
-| — | Day 2-3 | WP-001、WP-003、WP-004 | 待完成 | `unit1-day2-part3.html` |
-| — | Day 2-4 | WP-001、WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part4.html` |
+| — | Day 2-1 | WP-001、WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part1.pdf`（答案：`part1-answers.pdf`） |
+| — | Day 2-2 | WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part2.pdf`（答案：`part2-answers.pdf`） |
+| — | Day 2-3 | WP-001、WP-003、WP-004 | 待完成 | `unit1-day2-part3.pdf`（答案：`part3-answers.pdf`） |
+| — | Day 2-4 | WP-001、WP-002、WP-003、WP-004 | 待完成 | `unit1-day2-part4.pdf`（答案：`part4-answers.pdf`） |
 
 ---
 
@@ -107,3 +107,4 @@
 |------|------|
 | 2026-09-05 | 建档；根据 Day 1 作业录入 4 项薄弱点、3 项已掌握 |
 | 2026-09-17 | Day 2 巩固练拆分为 4 份（每天 7～8 题） |
+| 2026-09-17 | Day 2 分日练习导出 A4 PDF（15px 字号，单页） |
