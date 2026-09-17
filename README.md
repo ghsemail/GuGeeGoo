@@ -45,3 +45,4 @@ GuGeeGoo/
 - `materials/英语/五年级/lessons/english-grade5-sem1-unit1.md` — 英语五年级上 Unit 1
 - `planning/roadmap.md` — 学习路线图
 - `planning/progress.md` — 学习进度
+- `planning/mistake-book.md` — 错题本
