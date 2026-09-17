@@ -34,6 +34,12 @@ GuGeeGoo/
 3. 学习材料放入 `materials/<学科>/<年级>/`
 4. 新学科或新年级按需新建子目录，不预建空壳
 
+## 练习材料格式
+
+- **Markdown**（`materials/exercises/`）— 源文件，便于编辑
+- **PDF**（`materials/英语/五年级/exercises/`）— A4 打印版，给景源做练习
+- **不输出 HTML**
+
 ## 当前内容
 
 - `materials/英语/五年级/lessons/english-grade5-sem1-unit1.md` — 英语五年级上 Unit 1

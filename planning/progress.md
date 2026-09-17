@@ -6,6 +6,7 @@
 | 2026-09-05 | 建立 english-profile + Day 2 巩固练 | 见 planning/english-profile.md |
 | 2026-09-17 | Day 2 拆分为 4 份微练习 | 每天 7～8 题，从 Day 2-1 开始 |
 | 2026-09-17 | Day 2 分日练习导出 A4 PDF | `unit1-day2-part1.pdf` ～ `part4.pdf` |
+| 2026-09-17 | 练习材料改为 MD + PDF | 删除 HTML，源文件在 `materials/exercises/` |
 
 ---
 

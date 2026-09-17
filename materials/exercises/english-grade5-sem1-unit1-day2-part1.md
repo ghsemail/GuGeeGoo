@@ -1,0 +1,31 @@
+# Unit 1 · Day 2-1 巩固练习
+
+> 顾景源 · 五年级英语 · 第 1/4 份  
+> **针对：** WP-001 复数 · WP-002 a lot of · WP-003 shouldn't  
+> **打印版：** `materials/英语/五年级/exercises/unit1-day2-part1.pdf`
+
+---
+
+## 一、改错题
+
+*每句有一处错误，请写出正确句子。*
+
+1. There are five food group on our plate.  
+   ____________________________________________
+
+2. Eat fruit and vegetable every day.  
+   ____________________________________________
+
+3. Rice gives us allot of energy.  
+   ____________________________________________
+
+4. You should eat candy every day.（用 shouldn't 改写）  
+   ____________________________________________
+
+5. Don't eat too much!（情景：别拿太多食物）  
+   ____________________________________________
+
+## 二、短语填空
+
+1. We can put food into five __________（食物类别）.
+2. __________（水果和蔬菜） are very important.

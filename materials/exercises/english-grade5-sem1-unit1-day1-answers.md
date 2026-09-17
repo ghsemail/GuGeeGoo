@@ -1,0 +1,36 @@
+# Unit 1 · Day 1 · 参考答案
+
+> 家长专用  
+> **打印版：** `materials/英语/五年级/exercises/unit1-day1-answers.pdf`
+
+---
+
+## 一、词汇
+
+1. candy
+2. healthy
+3. soup
+4. bread
+5. potato
+6. always
+
+## 二、短语填空
+
+1. healthy eating
+2. food groups
+3. fruit and vegetables
+4. eat too much
+5. a lot of
+
+## 三、语法填空
+
+1. shouldn't
+2. should
+3. Don't
+4. should
+5. shouldn't
+
+## 四、选词填空
+
+1. healthy
+2. bones
