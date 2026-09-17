@@ -2,7 +2,7 @@
 
 > 顾景源 · 五年级英语 · 第 1/4 份  
 > **针对：** WP-001 复数 · WP-002 a lot of · WP-003 shouldn't  
-> **打印版：** `materials/英语/五年级/exercises/unit1-day2-part1.pdf`
+> **打印版：** `unit1-day2.pdf` 第 1 页
 
 ---
 

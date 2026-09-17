@@ -1,7 +1,7 @@
 # Unit 1 · Day 2-4 · 参考答案
 
 > 家长专用  
-> **打印版：** `materials/英语/五年级/exercises/unit1-day2-part4-answers.pdf`
+> **打印版：** `unit1-day2-answers.pdf` 第 4 页
 
 ---
 

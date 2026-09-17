@@ -2,7 +2,7 @@
 
 > 顾景源 · 五年级英语 · 第 3/4 份  
 > **针对：** WP-001 复数 · WP-003 shouldn't · WP-004 eat  
-> **打印版：** `materials/英语/五年级/exercises/unit1-day2-part3.pdf`
+> **打印版：** `unit1-day2.pdf` 第 3 页
 
 ---
 
