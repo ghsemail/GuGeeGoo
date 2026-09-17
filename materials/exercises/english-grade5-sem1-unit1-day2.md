@@ -1,7 +1,9 @@
-# Unit 1 · Day 2 巩固练习
+# Unit 1 · Day 2 巩固练习（完整版）
 
 > 顾景源 · 五年级上英语 · 针对 Day 1 错题专项巩固  
 > **针对薄弱点：** WP-001 复数 · WP-002 a lot of · WP-003 shouldn't · WP-004 take/eat too much
+
+> **分日练习：** 已拆分为 8 份（每天 3～4 题），见 [`english-grade5-sem1-unit1-day2-index.md`](english-grade5-sem1-unit1-day2-index.md)
 
 ---
 
