@@ -1,0 +1,73 @@
+# Unit 1 · Day 2 · 参考答案
+
+> 家长专用  
+> **打印版：** `materials/英语/五年级/exercises/unit1-day2-answers.pdf`
+
+---
+
+## Day 2-1
+
+### 一、改错题
+
+1. There are five **food groups** on our plate.
+2. Eat fruit and **vegetables** every day.
+3. Rice gives us **a lot of** energy.
+4. You **shouldn't** eat candy every day.
+5. Don't **take** too much!
+
+### 二、短语填空
+
+1. food groups
+2. Fruit and vegetables（或 Vegetables and fruit）
+
+---
+
+## Day 2-2
+
+### 一、短语填空
+
+1. a lot of
+2. healthy eating
+3. vegetable
+
+### 二、语法填空
+
+1. shouldn't
+2. should
+3. Don't
+4. should
+
+---
+
+## Day 2-3
+
+### 一、语法填空
+
+1. shouldn't
+
+### 二、选词填空
+
+1. groups
+2. groups
+3. eat
+4. shouldn't
+5. Eat · vegetables
+6. a lot of
+
+---
+
+## Day 2-4
+
+### 一、情景选择
+
+1. A（take too much）
+2. B（eat too much）
+3. take too much
+4. eat too much
+
+### 二、拼写专练
+
+1. a lot of
+2. healthy eating
+3. shouldn't
+4. groups

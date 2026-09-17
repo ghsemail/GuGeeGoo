@@ -2,7 +2,7 @@
 
 > 顾景源 · 五年级上英语 · 针对 Day 1 错题专项巩固  
 > **打印版：** `materials/英语/五年级/exercises/unit1-day2.pdf`（4 页，每天 1 页）  
-> **答案：** `materials/英语/五年级/exercises/unit1-day2-answers.pdf`
+> **答案：** `materials/英语/五年级/exercises/unit1-day2-answers.pdf`（合订，不分页）
 
 | 页码 | 内容 | MD 源文件 |
 |------|------|-----------|

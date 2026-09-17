@@ -12,7 +12,7 @@
 | 文件 | 说明 |
 |------|------|
 | `unit1-day2.pdf` | 练习，共 4 页（Day 2-1 ～ 2-4 各 1 页） |
-| `unit1-day2-answers.pdf` | 答案，共 4 页（家长专用） |
+| `unit1-day2-answers.pdf` | 答案合订本（家长专用） |
 
 **路径：** `materials/英语/五年级/exercises/`
 
