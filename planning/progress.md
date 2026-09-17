@@ -2,7 +2,7 @@
 
 | 日期 | 内容 | 备注 |
 |------|------|------|
-| 2026-09-05 | Unit 1 Day 1 作业批改 | 词汇全对；短语/复数/a lot of/shouldn't 需巩固 |
+| 2026-09-05 | Unit 1 Day 1 作业批改 | **12/18**；6 错（复数、a lot of、take/eat、shouldn't 书写），见 `mistake-book.md` |
 | 2026-09-05 | 建立 english-profile + Day 2 巩固练 | 见 planning/english-profile.md |
 | 2026-09-17 | Day 2 拆分为 4 份微练习 | 每天 7～8 题，从 Day 2-1 开始 |
 | 2026-09-17 | Day 2 练习 4 页 PDF + 答案合订 | `unit1-day2.pdf` + `unit1-day2-answers.pdf` |
