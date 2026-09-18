@@ -8,6 +8,7 @@
 | 2026-09-17 | Day 2 练习 4 页 PDF + 答案合订 | `unit1-day2.pdf` + `unit1-day2-answers.pdf` |
 | 2026-09-17 | 练习材料改为 MD + PDF | 删除 HTML，源文件在 `materials/exercises/` |
 | 2026-09-17 | Unit 1 Day 2-1 练习批改 | 6/7；改错题 Q4 shouldn't 撇号写错（should'nt） |
+| 2026-09-18 | Unit 1 Day 2-2 练习批改 | **7/7 全对**；WP-002、WP-004 已掌握，WP-003 连续 1/2 |
 
 ---
 

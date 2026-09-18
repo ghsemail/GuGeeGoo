@@ -9,10 +9,10 @@
 
 | ID | 知识点 | 状态 | 连续正确 | 目标 |
 |----|--------|------|----------|------|
-| WP-001 | 名词复数（food groups / vegetables 等） | 薄弱 | 0/2 | 2 |
-| WP-002 | 固定短语拼写 a lot of | 薄弱 | 0/2 | 2 |
-| WP-003 | shouldn't 书写与用法 | 薄弱 | 0/2 | 2 |
-| WP-004 | take / eat too much 场景区分 | 薄弱 | 0/2 | 2 |
+| WP-001 | 名词复数（food groups / vegetables 等） | 已掌握 | 2/2 | 2 |
+| WP-002 | 固定短语拼写 a lot of | 已掌握 | 2/2 | 2 |
+| WP-003 | shouldn't 书写与用法 | 薄弱 | 1/2 | 2 |
+| WP-004 | take / eat too much 场景区分 | 已掌握 | 2/2 | 2 |
 
 ---
 
@@ -26,8 +26,8 @@
 | 首次发现 | 2026-09-05 · Unit 1 Day 1 作业 |
 | 典型错题 | `food group` → **food groups**；`fruit and vegetable` → **fruit and vegetables** |
 | 关联课文 | *five food groups*；*Vegetables and fruit are very important.* |
-| 状态 | **薄弱** |
-| 巩固记录 | Day 2-1～2-4 分日巩固（待完成） |
+| 状态 | **已掌握** |
+| 巩固记录 | Day 2-1 复数题全对；Day 2-2 短语 Q3 vegetable ✓（2026-09-18） |
 
 **掌握标准：** 复数相关填空/改错连续 2 次全对。
 
@@ -41,8 +41,8 @@
 | 首次发现 | 2026-09-05 · Unit 1 Day 1 作业 · 短语填空 Q5 |
 | 典型错题 | `allot of` → **a lot of** |
 | 易混说明 | allot = 分配；a lot of = 大量的（三个词，中间有空格） |
-| 状态 | **薄弱** |
-| 巩固记录 | Day 2-1～2-4 分日巩固（待完成） |
+| 状态 | **已掌握** |
+| 巩固记录 | Day 2-1 改错题 Q3 ✓；Day 2-2 短语 Q1 a lot of ✓（2026-09-18） |
 
 **掌握标准：** a lot of 相关题连续 2 次全对。
 
@@ -58,7 +58,7 @@
 | 典型错题 | `should'nt` → **shouldn't**（撇号应在 n 与 t 之间，勿写成 should'nt） |
 | 对比 | should（应该）↔ shouldn't（不应该，含撇号 'nt） |
 | 状态 | **薄弱** |
-| 巩固记录 | Day 2-1 改错题 Q4 仍错（2026-09-17）；Day 2-2～2-4 待完成 |
+| 巩固记录 | Day 2-1 改错题 Q4 仍错（2026-09-17）；Day 2-2 语法 Q1 shouldn't ✓（2026-09-18，连续 1/2） |
 
 **掌握标准：** shouldn't 填空连续 2 次全对。
 
@@ -72,8 +72,8 @@
 | 首次发现 | 2026-09-05 · Unit 1 Day 1 作业 · 短语填空 Q4 |
 | 典型问题 | 拿东西场景更常用 **take too much**；吃东西用 **eat too much** |
 | 课文例句 | *Don't take too much!* |
-| 状态 | **薄弱** |
-| 巩固记录 | Day 2-1～2-4 分日巩固（待完成） |
+| 状态 | **已掌握** |
+| 巩固记录 | Day 2-1 改错题 Q5 Don't take ✓；Day 2-2 语法 Q3 Don't take ✓（2026-09-18） |
 
 **掌握标准：** 场景选择题连续 2 次全对。
 
@@ -86,6 +86,9 @@
 | MP-001 | 核心词汇（candy, healthy, soup, bread, potato, always） | 2026-09-05 | Day 1 词汇题 6/6 |
 | MP-002 | 词形辨析（healthy / health / heavy；bone / bones） | 2026-09-05 | Day 1 选词填空 2/2 |
 | MP-003 | should / Don't 基本句型 | 2026-09-05 | Day 1 语法填空 should、Don't 相关题正确 |
+| MP-004 | 名词复数（food groups / vegetables） | 2026-09-18 | Day 2-1、Day 2-2 复数相关题连续全对 |
+| MP-005 | a lot of 拼写 | 2026-09-18 | Day 2-1 改错 Q3、Day 2-2 短语 Q1 连续全对 |
+| MP-006 | take / eat too much 场景区分 | 2026-09-18 | Day 2-1 改错 Q5、Day 2-2 语法 Q3 连续全对 |
 
 ---
 
@@ -96,7 +99,7 @@
 | 2026-09-05 | Unit 1 Day 1 作业 | — | 见上方首次发现 | 基线测评 |
 | 2026-09-05 | Unit 1 Day 2 巩固练 | WP-001～004 | 待完成 | `unit1-day2.pdf`（4 页，答案：`unit1-day2-answers.pdf`） |
 | 2026-09-17 | Day 2-1（第 1 页） | WP-001、WP-002、WP-003、WP-004 | **6/7** | 改错题 Q4 shouldn't 撇号位置错，见 `mistake-book.md` |
-| — | Day 2-2（第 2 页） | WP-002、WP-003、WP-004 | 待完成 | 见 `unit1-day2.pdf` |
+| 2026-09-18 | Day 2-2（第 2 页） | WP-002、WP-003、WP-004 | **7/7** | 全对；WP-002、WP-004 达掌握标准 |
 | — | Day 2-3（第 3 页） | WP-001、WP-003、WP-004 | 待完成 | 见 `unit1-day2.pdf` |
 | — | Day 2-4（第 4 页） | WP-001、WP-002、WP-003、WP-004 | 待完成 | 见 `unit1-day2.pdf` |
 
@@ -114,3 +117,4 @@
 | 2026-09-17 | Day 2 答案合并为单份 PDF（`unit1-day2-answers.pdf`） |
 | 2026-09-17 | 建立 mistake-book；Day 2-1 批改录入（Q4 错） |
 | 2026-09-17 | 补录 Day 1 作业 6 道错题至 mistake-book |
+| 2026-09-18 | Day 2-2 批改 7/7；WP-001、WP-002、WP-004 升为已掌握 |
