@@ -13,10 +13,10 @@
             "state": {
               "type": "pdf",
               "state": {
-                "file": "materials/英语/五年级/exercises/unit1-day1.pdf"
+                "file": "materials/英语/五年级/memo/unit1-review-memo.pdf"
               },
               "icon": "lucide-file-text",
-              "title": "unit1-day1"
+              "title": "unit1-review-memo"
             }
           }
         ]
@@ -188,21 +188,34 @@
   },
   "active": "e1584f4b257a9411",
   "lastOpenFiles": [
+    "materials/英语/五年级/memo/unit1-review-memo.md",
+    "materials/exercises/english-grade5-sem1-unit1-day2-part1.md",
+    "materials/exercises/english-grade5-sem1-unit1-day2-print.md",
+    "materials/exercises/english-grade5-sem1-unit1-day2-index.md",
+    "materials/exercises/english-grade5-sem1-unit1-day2.md",
+    "materials/exercises/english-grade5-sem1-unit1-day1.md",
+    "materials/英语/五年级/exercises/unit1-day2.pdf",
+    "planning/mistake-book.md",
+    "materials/英语/五年级/memo/unit1-review-memo.pdf",
+    "materials/英语/五年级/memo/generate-pdf.mjs",
+    "materials/英语/五年级/memo",
+    "materials/exercises/generate-answers-pdf.mjs",
+    "materials/exercises/english-grade5-sem1-unit1-day2-part4.md",
+    "materials/exercises/english-grade5-sem1-unit1-day2-part3.md",
+    "materials/exercises/english-grade5-sem1-unit1-day2-part2.md",
+    "materials/exercises/english-grade5-sem1-unit1-day2-answers.md",
+    "materials/exercises/english-grade5-sem1-unit1-day1-answers.md",
+    "planning/english-profile.md",
+    "materials/英语/五年级/exercises/unit1-day2-answers.pdf",
+    "materials/英语/五年级/exercises/unit1-day1.pdf",
     "materials/英语/五年级/lessons/english-grade5-sem1-unit1.md",
     "materials/英语/五年级/exercises/unit1-day1-answers.pdf",
-    "materials/英语/五年级/exercises/unit1-day1.pdf",
     "materials/英语/五年级/exercises/unit1-day1-answers.html",
     "materials/英语/五年级/exercises/unit1-day1.md",
     "materials/英语/五年级/exercises/unit1-day1.html",
     "materials/英语/五年级/exercises/unit1-day1-answers.md",
     "planning/progress.md",
     "planning/roadmap.md",
-    "assets/templates",
-    "assets/images",
-    "assets",
-    "materials/英语/五年级/printables",
-    "materials/英语/五年级/lessons",
-    "materials/英语/五年级/exercises",
     "人工智能/五年级/planning/roadmap.md",
     "英语/五年级/materials/lessons/english-grade5-sem1-unit1.md",
     "英语/五年级/planning/progress.md",
