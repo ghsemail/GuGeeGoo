@@ -46,4 +46,4 @@ GuGeeGoo/
 - `planning/roadmap.md` — 学习路线图
 - `planning/progress.md` — 学习进度
 - `planning/mistake-book.md` — 错题本
-- `materials/英语/五年级/exercises/unit1-cheat-sheet.pdf` — Unit 1 易错点小抄
+- `materials/英语/五年级/exercises/unit1-review-memo.pdf` — Unit 1 易错点复习备忘（课后用）

@@ -4,8 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const pdfPath = path.join(dir, "../英语/五年级/exercises/unit1-cheat-sheet.pdf");
-const tmpHtml = path.join(dir, ".tmp-cheat-sheet.html");
+const pdfPath = path.join(dir, "../英语/五年级/exercises/unit1-review-memo.pdf");
+const tmpHtml = path.join(dir, ".tmp-review-memo.html");
 
 const html = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -22,7 +22,16 @@ const html = `<!DOCTYPE html>
       margin: 0;
     }
     h1 { font-size: 21px; margin: 0 0 4px; }
-    .meta { font-size: 12px; color: #444; margin-bottom: 12px; }
+    .meta { font-size: 12px; color: #444; margin-bottom: 10px; }
+    .note {
+      font-size: 11px;
+      color: #555;
+      background: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-bottom: 12px;
+    }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .card {
       border: 1.5px solid #333;
@@ -57,8 +66,9 @@ const html = `<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <h1>Unit 1 · 易错点小抄</h1>
-  <div class="meta">顾景源 · 五年级英语 · 错题本整理 · 可贴书桌或放铅笔盒</div>
+  <h1>Unit 1 · 易错点复习备忘</h1>
+  <div class="meta">顾景源 · 五年级英语 · 错题本整理</div>
+  <div class="note">用途：课后复习、做巩固练习前速查。<strong>日常练习用，考试不携带。</strong></div>
 
   <div class="grid">
     <div class="card">
@@ -74,7 +84,7 @@ const html = `<!DOCTYPE html>
     <div class="card">
       <h2>② a lot of <span class="tag tag-warn">还在练</span></h2>
       <table>
-        <tr><th>❌ 别写</th><th>✅ 要写</th></tr>
+        <tr><th>容易写错</th><th>正确写法</th></tr>
         <tr><td class="wrong">allot of</td><td class="right">a lot of</td></tr>
         <tr><td class="wrong">alot of</td><td class="right">a · lot · of</td></tr>
       </table>
@@ -82,16 +92,16 @@ const html = `<!DOCTYPE html>
     </div>
 
     <div class="card">
-      <h2>③ shouldn't <span class="tag tag-ok">复习</span></h2>
+      <h2>③ shouldn't <span class="tag tag-ok">复习巩固</span></h2>
       <table>
-        <tr><th>❌ 别写</th><th>✅ 要写</th></tr>
+        <tr><th>容易写错</th><th>正确写法</th></tr>
         <tr><td class="wrong">should'nt</td><td class="right">shouldn't</td></tr>
       </table>
       <p class="tip"><strong>口诀：</strong>撇号在 <strong>n</strong> 和 <strong>t</strong> 之间：should<strong>n't</strong></p>
     </div>
 
     <div class="card">
-      <h2>④ take / eat <span class="tag tag-ok">复习</span></h2>
+      <h2>④ take / eat <span class="tag tag-ok">复习巩固</span></h2>
       <table>
         <tr><th>场景</th><th>用</th></tr>
         <tr><td>吃糖果、吃饭</td><td class="right">eat too much</td></tr>
@@ -101,14 +111,14 @@ const html = `<!DOCTYPE html>
     </div>
 
     <div class="card wide">
-      <h2>写之前想 3 秒</h2>
+      <h2>练习前想 3 秒</h2>
       <p>1. 要不要加 <strong>s</strong>？（groups / vegetables）</p>
       <p>2. 是 <strong>a lot of</strong> 还是 allot？</p>
       <p>3. 是吃（eat）还是拿（take）？</p>
     </div>
   </div>
 
-  <p class="footer">Unit 1 · What's on your plate? · 2026-09-19</p>
+  <p class="footer">Unit 1 · What's on your plate? · 复习备忘 · 2026-09-19</p>
 </body>
 </html>`;
 
