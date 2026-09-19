@@ -16,9 +16,9 @@ GuGeeGoo/
 │
 ├── materials/                   # 给景源看的学习材料
 │   └── 英语/五年级/
-│       ├── lessons/
-│       ├── exercises/
-│       └── printables/
+│       ├── lessons/             # 知识点
+│       ├── exercises/           # 练习 PDF
+│       └── memo/                # 复习备忘（MD + PDF）
 │
 └── assets/                      # 插图、模板等素材
     ├── images/
@@ -34,11 +34,14 @@ GuGeeGoo/
 3. 学习材料放入 `materials/<学科>/<年级>/`
 4. 新学科或新年级按需新建子目录，不预建空壳
 
-## 练习材料格式
+## 材料格式
 
-- **Markdown**（`materials/exercises/`）— 源文件，便于编辑
-- **PDF**（`materials/英语/五年级/exercises/`）— A4 打印版，给景源做练习
-- **不输出 HTML**
+| 类型 | Markdown 源文件 | PDF 打印版 |
+|------|-----------------|------------|
+| 练习 | `materials/exercises/` | `materials/英语/五年级/exercises/` |
+| 复习备忘 | `materials/英语/五年级/memo/` | 同目录 |
+
+不输出 HTML。备忘 PDF 重新生成：在 `memo/` 目录运行 `node generate-pdf.mjs`（需先在 `materials/exercises/` 安装 puppeteer）。
 
 ## 当前内容
 
@@ -46,4 +49,4 @@ GuGeeGoo/
 - `planning/roadmap.md` — 学习路线图
 - `planning/progress.md` — 学习进度
 - `planning/mistake-book.md` — 错题本
-- `materials/英语/五年级/exercises/unit1-review-memo.pdf` — Unit 1 易错点复习备忘（课后用）
+- `materials/英语/五年级/memo/unit1-review-memo.pdf` — Unit 1 易错点复习备忘（课后用）
