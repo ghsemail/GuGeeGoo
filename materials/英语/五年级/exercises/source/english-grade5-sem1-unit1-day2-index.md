@@ -27,7 +27,7 @@
 | 第 3 页 | `english-grade5-sem1-unit1-day2-part3.md` | 7 | 语法填空 + 选词填空 | WP-001、WP-003、WP-004 |
 | 第 4 页 | `english-grade5-sem1-unit1-day2-part4.md` | 8 | 情景选择 + 拼写专练 | WP-001、WP-002、WP-003、WP-004 |
 
-- **MD 路径：** `materials/exercises/`（答案源文件：`english-grade5-sem1-unit1-day2-answers.md`）
+- **MD 路径：** `materials/英语/五年级/exercises/source/`（答案源文件：`english-grade5-sem1-unit1-day2-answers.md`）
 - **汇总说明：** `english-grade5-sem1-unit1-day2-print.md`
 
 ---

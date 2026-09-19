@@ -18,6 +18,7 @@ GuGeeGoo/
 │   └── 英语/五年级/
 │       ├── lessons/             # 知识点
 │       ├── exercises/           # 练习 PDF
+│       │   └── source/          # 练习 MD 源文件与生成脚本
 │       └── memo/                # 复习备忘（MD + PDF）
 │
 └── assets/                      # 插图、模板等素材
@@ -38,10 +39,10 @@ GuGeeGoo/
 
 | 类型 | Markdown 源文件 | PDF 打印版 |
 |------|-----------------|------------|
-| 练习 | `materials/exercises/` | `materials/英语/五年级/exercises/` |
+| 练习 | `materials/英语/五年级/exercises/source/` | `materials/英语/五年级/exercises/*.pdf` |
 | 复习备忘 | `materials/英语/五年级/memo/` | 同目录 |
 
-不输出 HTML。备忘 PDF 重新生成：在 `memo/` 目录运行 `node generate-pdf.mjs`（需先在 `materials/exercises/` 安装 puppeteer）。
+不输出 HTML。练习 PDF：在 `exercises/source/` 运行 `node generate-pdfs.mjs`。备忘 PDF：在 `memo/` 运行 `node generate-pdf.mjs`（可选：在 `exercises/source/` 安装 puppeteer）。
 
 ## 当前内容
 

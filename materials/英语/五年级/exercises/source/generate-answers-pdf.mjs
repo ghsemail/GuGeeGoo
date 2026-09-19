@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const mdPath = path.join(dir, "english-grade5-sem1-unit1-day2-answers.md");
-const pdfPath = path.join(dir, "../英语/五年级/exercises/unit1-day2-answers.pdf");
+const pdfPath = path.join(dir, "..", "unit1-day2-answers.pdf");
 const tmpHtml = path.join(dir, ".tmp-answers.html");
 
 const md = readFileSync(mdPath, "utf8");
@@ -26,14 +26,14 @@ const html = `<!DOCTYPE html>
     @page { size: A4; margin: 18mm 20mm; }
     body {
       font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
-      font-size: 15px;
-      line-height: 1.75;
+      font-size: 17px;
+      line-height: 1.85;
       color: #000;
       margin: 0;
     }
-    h1 { font-size: 22px; margin: 0 0 8px; }
-    h2 { font-size: 17px; margin: 18px 0 8px; }
-    h3 { font-size: 15px; margin: 10px 0 6px; }
+    h1 { font-size: 24px; margin: 0 0 8px; }
+    h2 { font-size: 18px; margin: 18px 0 8px; }
+    h3 { font-size: 17px; margin: 10px 0 6px; }
     p { margin: 4px 0; }
     .meta { font-size: 14px; color: #333; margin-bottom: 16px; }
   </style>

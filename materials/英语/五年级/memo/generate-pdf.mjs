@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
-const puppeteer = require("../../../exercises/node_modules/puppeteer");
+const puppeteer = require("../exercises/source/node_modules/puppeteer");
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const pdfPath = path.join(dir, "unit1-review-memo.pdf");
@@ -19,15 +19,15 @@ const html = `<!DOCTYPE html>
     * { box-sizing: border-box; }
     body {
       font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
-      font-size: 14px;
-      line-height: 1.55;
+      font-size: 18px;
+      line-height: 1.65;
       color: #111;
       margin: 0;
     }
-    h1 { font-size: 21px; margin: 0 0 4px; }
-    .meta { font-size: 12px; color: #444; margin-bottom: 10px; }
+    h1 { font-size: 26px; margin: 0 0 4px; }
+    .meta { font-size: 16px; color: #444; margin-bottom: 10px; }
     .note {
-      font-size: 11px;
+      font-size: 13px;
       color: #555;
       background: #f7f7f7;
       border: 1px solid #ddd;
@@ -44,14 +44,14 @@ const html = `<!DOCTYPE html>
     }
     .card.wide { grid-column: 1 / -1; }
     .card h2 {
-      font-size: 15px;
+      font-size: 17px;
       margin: 0 0 8px;
       padding-bottom: 4px;
       border-bottom: 1px solid #ccc;
     }
     .tag {
       display: inline-block;
-      font-size: 11px;
+      font-size: 12px;
       padding: 1px 6px;
       border-radius: 4px;
       margin-left: 6px;
@@ -59,13 +59,13 @@ const html = `<!DOCTYPE html>
     }
     .tag-warn { background: #ffe8e8; color: #a00; }
     .tag-ok { background: #e8f5e9; color: #2e7d32; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { border: 1px solid #bbb; padding: 5px 8px; text-align: left; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { border: 1px solid #bbb; padding: 6px 9px; text-align: left; }
     th { background: #f5f5f5; font-weight: 600; }
     .wrong { color: #c62828; text-decoration: line-through; }
     .right { color: #1b5e20; font-weight: 700; }
-    .tip { font-size: 12px; color: #333; margin: 6px 0 0; }
-    .footer { margin-top: 10px; font-size: 12px; color: #555; text-align: center; }
+    .tip { font-size: 14px; color: #333; margin: 6px 0 0; }
+    .footer { margin-top: 10px; font-size: 13px; color: #555; text-align: center; }
   </style>
 </head>
 <body>
