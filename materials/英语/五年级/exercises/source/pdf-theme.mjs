@@ -36,6 +36,19 @@ export const quizCss = `
   em { font-style: italic; color: #333; }
   u { text-decoration: underline; text-underline-offset: 4px; }
   strong { font-weight: 700; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px;
+    font-size: 18px;
+  }
+  th, td {
+    border: 1px solid #333;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #f0f0f0; font-weight: 700; }
 `;
 
 export const answersCss = `

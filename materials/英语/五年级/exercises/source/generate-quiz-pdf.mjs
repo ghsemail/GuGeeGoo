@@ -57,26 +57,81 @@ function mdWorksheetToHtml(md, { title, meta, css }) {
 </body></html>`;
 }
 
+function parseTableRow(line) {
+  return line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((c) => c.trim());
+}
+
+function isTableSeparator(line) {
+  return /^\|[\s\-:|]+\|$/.test(line.trim());
+}
+
+function mdTableToHtml(rows) {
+  if (rows.length === 0) return "";
+  const [header, ...dataRows] = rows;
+  const head = header.map((c) => `<th>${blanksToUnderline(escapeHtml(c))}</th>`).join("");
+  const body = dataRows
+    .map(
+      (row) =>
+        `<tr>${row.map((c) => `<td>${blanksToUnderline(escapeHtml(c))}</td>`).join("")}</tr>`
+    )
+    .join("\n");
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
 function mdAnswersToHtml(md, { title, meta, css }) {
   const lines = md.split(/\r?\n/);
   const body = [];
 
-  for (const line of lines) {
-    if (line.startsWith("# ")) continue;
-    if (line.startsWith("> ")) continue;
-    if (line === "---") continue;
-    if (line.trim() === "") continue;
+  for (let i = 0; i < lines.length; ) {
+    const line = lines[i];
+
+    if (line.startsWith("# ")) {
+      i++;
+      continue;
+    }
+    if (line.startsWith("> ")) {
+      i++;
+      continue;
+    }
+    if (line === "---") {
+      i++;
+      continue;
+    }
+    if (line.trim() === "") {
+      i++;
+      continue;
+    }
 
     if (line.startsWith("## ")) {
       body.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
+      i++;
       continue;
     }
     if (line.startsWith("### ")) {
       body.push(`<h3>${escapeHtml(line.slice(4))}</h3>`);
+      i++;
+      continue;
+    }
+
+    if (line.trim().startsWith("|")) {
+      const tableRows = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        if (!isTableSeparator(lines[i])) {
+          tableRows.push(parseTableRow(lines[i]));
+        }
+        i++;
+      }
+      body.push(mdTableToHtml(tableRows));
       continue;
     }
 
     body.push(`<p>${blanksToUnderline(escapeHtml(line))}</p>`);
+    i++;
   }
 
   return `<!DOCTYPE html>
