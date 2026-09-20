@@ -38,4 +38,15 @@
 
 ---
 
+## Unit 1 收尾小测（WP-001 / WP-002）
+
+| 文件 | 说明 |
+|------|------|
+| `unit1-quiz-wp001-wp002.pdf` | 小测练习，**5 题**，字号偏大，建议 **1 页** |
+| `unit1-quiz-wp001-wp002-answers.pdf` | 参考答案（家长专用） |
+
+**MD 源文件：** `english-grade5-sem1-unit1-quiz-wp001-wp002.md` · 生成 PDF：`node generate-quiz-pdf.mjs`（在 `source/` 目录）
+
+---
+
 *每完成 1 页，请家长拍照批改；我会更新 `planning/english-profile.md` 中的巩固记录。*
