@@ -11,8 +11,8 @@
 
 ## 二、拼写与填空
 
-3. **a lot of**
-4. **a lot of**
+3. **a lot of**（每格一词：a · lot · of）
+4. **vegetables**
 5. **groups**
 
 ---
@@ -23,6 +23,7 @@
 |------|------|--------|
 | 1、5 | WP-001 复数 | group → groups |
 | 2 | WP-001 复数 | vegetable → vegetables |
-| 3、4 | WP-002 | allot of、alot of、漏空格 |
+| 3 | WP-002 | allot of、alot of、漏空格 |
+| 4 | WP-001 复数 | vegetable → vegetables |
 
 **掌握标准：** 5 题全对 → 可在档案中记 WP-001、WP-002 各「连续 2/2」。
