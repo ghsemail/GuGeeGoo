@@ -11,14 +11,12 @@
             "id": "e1584f4b257a9411",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "pdf",
               "state": {
-                "file": "planning/roadmap.md",
-                "mode": "source",
-                "source": false
+                "file": "materials/英语/五年级/exercises/unit1-quiz-wp001-wp002.pdf"
               },
-              "icon": "lucide-file",
-              "title": "roadmap"
+              "icon": "lucide-file-text",
+              "title": "unit1-quiz-wp001-wp002"
             }
           }
         ]
@@ -191,7 +189,13 @@
   },
   "active": "e1584f4b257a9411",
   "lastOpenFiles": [
+    "materials/英语/五年级/exercises/unit1-quiz-wp001-wp002-answers.pdf",
+    "materials/英语/五年级/exercises/unit1-quiz-wp001-wp002.pdf",
     "planning/progress.md",
+    "planning/roadmap.md",
+    "materials/英语/五年级/exercises/source/generate-quiz-pdf.mjs",
+    "materials/英语/五年级/exercises/source/english-grade5-sem1-unit1-quiz-wp001-wp002.md",
+    "materials/英语/五年级/exercises/source/english-grade5-sem1-unit1-quiz-wp001-wp002-answers.md",
     "planning/mistake-book.md",
     "planning/english-profile.md",
     "materials/英语/五年级/memo/unit1-review-memo.pdf",
@@ -207,18 +211,14 @@
     "materials/英语/五年级/exercises/unit1-day2.pdf",
     "materials/英语/五年级/memo/generate-pdf.mjs",
     "materials/英语/五年级/memo",
-    "materials/exercises/generate-answers-pdf.mjs",
     "materials/exercises/english-grade5-sem1-unit1-day2-part4.md",
     "materials/exercises/english-grade5-sem1-unit1-day2-part3.md",
     "materials/exercises/english-grade5-sem1-unit1-day2-part2.md",
     "materials/exercises/english-grade5-sem1-unit1-day2-answers.md",
     "materials/exercises/english-grade5-sem1-unit1-day1-answers.md",
-    "materials/英语/五年级/exercises/unit1-day2-answers.pdf",
-    "materials/英语/五年级/exercises/unit1-day1.pdf",
     "materials/英语/五年级/lessons/english-grade5-sem1-unit1.md",
     "materials/英语/五年级/exercises/unit1-day1.md",
     "materials/英语/五年级/exercises/unit1-day1-answers.md",
-    "planning/roadmap.md",
     "人工智能/五年级/planning/roadmap.md",
     "英语/五年级/materials/lessons/english-grade5-sem1-unit1.md",
     "英语/五年级/planning/progress.md",
