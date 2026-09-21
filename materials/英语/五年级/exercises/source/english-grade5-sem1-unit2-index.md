@@ -9,8 +9,9 @@
 
 | 项目 | 状态 |
 |------|------|
-| MD 源文件（Day 1～4 + 答案） | ✅ 已写好 |
-| `unit2-day1-4.pdf` / 答案 PDF | ⬜ **等你指令再生成** |
+| MD 源文件（Day 1～4 + 答案） | ✅ |
+| `unit2-practice.pdf` | ✅ 4 页（每天 1 页） |
+| `unit2-practice-answers.pdf` | ✅ 答案合订（不按天分页） |
 
 ---
 
@@ -28,13 +29,12 @@
 
 ---
 
-## 确认后生成 PDF（备忘）
+## 生成 PDF
 
-在 `source/` 目录扩展 `generate-pdfs.mjs` 或新增 `generate-unit2-pdfs.mjs`，输出至 `materials/英语/五年级/exercises/`：
+在 `source/` 目录执行：
 
-- `unit2-practice.pdf`（4 页，每天 1 页）
-- `unit2-practice-answers.pdf`
+```bash
+node generate-unit2-pdfs.mjs
+```
 
----
-
-*题目确认后请告诉我：是否需要改题量/某天难度，以及何时生成 PDF。*
+输出：`materials/英语/五年级/exercises/unit2-practice.pdf`、`unit2-practice-answers.pdf`

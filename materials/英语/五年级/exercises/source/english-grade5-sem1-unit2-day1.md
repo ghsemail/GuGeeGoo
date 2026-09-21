@@ -2,7 +2,7 @@
 
 > 顾景源 · 五年级英语 · 第 1/4 天  
 > **主题：** Get Ready · 减废（Use less waste）· 基础词汇  
-> **状态：** 仅 MD 预览，**PDF 待确认后生成**
+> **打印版：** `unit2-practice.pdf` 第 1 页
 
 ---
 
