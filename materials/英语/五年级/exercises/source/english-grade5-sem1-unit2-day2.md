@@ -1,0 +1,30 @@
+# Unit 2 · Day 2 练习
+
+> 顾景源 · 五年级英语 · 第 2/4 天  
+> **主题：** Get Ready · 再用（Use things again）· give / use … to …  
+> **状态：** 仅 MD 预览，**PDF 待确认后生成**
+
+---
+
+## 一、短语填空
+
+1. Use things __________.（课文小标题：再用）
+2. Before you __________ something away, ask yourself first.
+3. You can give old toys or clothes to __________ in need.
+4. Give old things a new __________.
+
+## 二、选词填空
+
+**词库：** again · places · children · throw · useful
+
+1. Can I use this __________?
+2. You can use an old toothbrush to clean small __________.
+3. Don't __________ away this __________ bottle.
+4. __________ old books to children in need.（用 give 的正确形式开头）
+
+## 三、改错题
+
+*每句有一处错误，写出正确整句。*
+
+1. You can give children in need to old toys.  
+   ____________________________________________

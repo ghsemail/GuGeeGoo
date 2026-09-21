@@ -38,7 +38,8 @@
 - [ ] WP-001、WP-002 再各对 1 次达掌握标准
 - [ ] Unit 1 过关后进入 Unit 2（按学校进度）
 - [x] Unit 2 课文 Get Ready + 知识点录入（`lessons/english-grade5-sem1-unit2.md`）
-- [ ] Unit 2 Day 1 练习 / PDF（待排）
+- [x] Unit 2 四天练习 MD 草案（待家长确认）
+- [ ] Unit 2 练习 PDF（待指令生成）
 
 ---
 
