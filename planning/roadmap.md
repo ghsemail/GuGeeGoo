@@ -5,9 +5,10 @@
 
 ---
 
-## 当前主线：英语 · 五年级上 · Unit 1
+## 当前主线：英语 · 五年级上 · Unit 2（进行中）
 
-**单元主题：** What's on your plate?（五大食物类别、健康饮食）
+**Unit 1 主题：** What's on your plate?（已基本完成巩固）  
+**Unit 2 主题：** A green life（环保 · 减废 / 再用 / 回收）
 
 ### Unit 1 学习阶段
 
@@ -40,6 +41,9 @@
 - [x] Unit 2 课文 Get Ready + 知识点录入（`lessons/english-grade5-sem1-unit2.md`）
 - [x] Unit 2 四天练习 MD 草案（待家长确认）
 - [x] Unit 2 练习 PDF（`unit2-practice.pdf` + 答案合订）
+- [x] Unit 2 Day 1 练习（9/10）
+- [x] Unit 2 Day 2 练习（7/9）
+- [ ] Unit 2 Day 3、Day 4 练习
 
 ---
 
@@ -61,4 +65,4 @@
 
 ---
 
-*最后更新：2026-09-21*
+*最后更新：2026-09-25*
