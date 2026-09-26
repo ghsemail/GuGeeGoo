@@ -13,10 +13,10 @@
             "state": {
               "type": "pdf",
               "state": {
-                "file": "materials/英语/五年级/exercises/unit1-quiz-wp001-wp002.pdf"
+                "file": "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1.pdf"
               },
               "icon": "lucide-file-text",
-              "title": "unit1-quiz-wp001-wp002"
+              "title": "xes-grade5-autumn-lesson01-practice1"
             }
           }
         ]
@@ -81,7 +81,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 524.8333740234375
   },
   "right": {
     "id": "6d926274cadc8d00",
@@ -189,6 +189,11 @@
   },
   "active": "e1584f4b257a9411",
   "lastOpenFiles": [
+    "materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-index.md",
+    "materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-lesson01.md",
+    "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1-answers.pdf",
+    "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1.pdf",
+    "materials/英语/五年级/exercises/unit1-quiz-wp001-wp002.pdf",
     "scripts/pdf-theme.mjs",
     "scripts/generate-pdf.mjs",
     "scripts",
@@ -200,9 +205,6 @@
     "materials/英语/五年级/exercises/source/DEPRECATED.md",
     "materials/英语/五年级/exercises/english-grade5-sem1-unit2-day1.pdf",
     "materials/英语/五年级/exercises/english-grade5-sem1-unit2-day1-answers.pdf",
-    "materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-lesson01.md",
-    "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1.pdf",
-    "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1-answers.pdf",
     "materials/数学/五年级/学而思五年级秋/exercises/source/xes-grade5-autumn-lesson01-practice1.md",
     "materials/数学/五年级/学而思五年级秋/exercises/source/xes-grade5-autumn-lesson01-practice1-answers.md",
     "assets/images/数学/学而思五年级秋/lesson01-学有所得.jpg",
@@ -210,8 +212,6 @@
     "assets/images/数学/学而思五年级秋/lesson01-day3-graded.jpg",
     "assets/images/数学/学而思五年级秋/lesson01-day2-graded.jpg",
     "assets/images/数学/学而思五年级秋/lesson01-day1-graded.jpg",
-    "assets/images/数学/学而思五年级秋",
-    "assets/images/数学",
     "AGENTS.md",
     "planning/progress.md",
     "planning/roadmap.md",
@@ -228,7 +228,6 @@
     "materials/exercises/english-grade5-sem1-unit1-day2-part4.md",
     "materials/exercises/english-grade5-sem1-unit1-day2-part3.md",
     "materials/exercises/english-grade5-sem1-unit1-day2-part2.md",
-    "materials/exercises/english-grade5-sem1-unit1-day2-answers.md",
-    "materials/exercises/english-grade5-sem1-unit1-day1-answers.md"
+    "materials/exercises/english-grade5-sem1-unit1-day2-answers.md"
   ]
 }
