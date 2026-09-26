@@ -180,12 +180,15 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 
 ---
 
-## 10. Git / PR 约定
+## 10. Git 约定
 
-1. **家长的 Obsidian obsidian-git 每 10 分钟自动提交到 main**，AI 助手**不得直接 push 到 main**
-2. **所有变更通过 PR**：`cursor/<描述性名称>` 分支
-3. 单次 PR 包含完整功能集（如：知识点 + 练习 + 四档更新）
-4. PR 合并由家长在 GitHub UI 完成
+1. **直接在 main 分支工作**，不使用功能分支，不创建 PR
+2. **家长的 Obsidian obsidian-git 每 ~10 分钟自动提交推送**，因此提交前务必同步
+3. **提交推送流程**：
+   - 提交前先执行 `git pull --rebase origin main`
+   - 然后 `git add` + `git commit` + `git push origin main`
+   - 若 push 被拒绝（远程有新提交），再次 `git pull --rebase origin main` 后重试
+4. **禁止 force push**（`--force` / `-f`）
 
 ---
 
@@ -235,7 +238,7 @@ PDF 生成器会正确渲染中文冒号与比号。
 
 开始新任务前：
 
-- [ ] 确认当前分支（不应在 main）
+- [ ] 执行 `git pull --rebase origin main` 同步最新代码
 - [ ] 读取 `planning/roadmap.md` 了解近期计划
 - [ ] 读取对应 `<学科>-profile.md` 了解薄弱点
 
@@ -244,7 +247,7 @@ PDF 生成器会正确渲染中文冒号与比号。
 - [ ] 四档同步（如有批改）
 - [ ] 新练习已在 roadmap/index 标注「待家长确认」
 - [ ] PDF 已生成（或注明草稿）
-- [ ] 提交 PR、更新 PR 描述
+- [ ] `git pull --rebase origin main` → `git add` → `git commit` → `git push origin main`
 
 ---
 
