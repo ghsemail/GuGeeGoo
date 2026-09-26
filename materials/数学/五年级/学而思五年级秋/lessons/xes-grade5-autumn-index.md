@@ -4,10 +4,10 @@
 
 | 讲次 | 主题 | 知识点文件 | 备注 |
 |------|------|------------|------|
-| — | — | — | 待家长上传资料后录入 |
+| 第 1 讲 | 比和比例（学有所得） | `math-xes-grade5-autumn-lesson01.md` | 讲义图见 `assets/images/数学/学而思五年级秋/lesson01-学有所得.jpg` |
 
 **练习材料：** 见 `../exercises/`（源文件在 `../exercises/source/`）
 
 **错题与薄弱点：** `planning/math-profile.md` · `planning/mistake-book.md`（数学小节）
 
-*最后更新：2026-09-26 · 目录已建，待补知识点与错题*
+*最后更新：2026-09-26*
