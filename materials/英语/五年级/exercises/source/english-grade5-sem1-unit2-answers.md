@@ -69,7 +69,7 @@
 
 ### 三、排序
 
-**Take off → Wash → Put**（对应：Take off the bottle caps → Wash the bottle with water → Put them in a recycling box.）
+**Take off → Wash → Put**（完整动词短语：Take off / Wash / Put，对应句子顺序 2 → 3 → 1）
 
 ---
 

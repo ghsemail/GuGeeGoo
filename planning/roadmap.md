@@ -66,8 +66,10 @@
 
 | ID | 知识点 | 状态 |
 |----|--------|------|
-| WP-001 | 名词复数（food groups / vegetables） | 薄弱 |
-| WP-002 | a lot of 拼写 | 薄弱 |
+| WP-002 | a lot of 拼写 | 薄弱 1/2 |
+| WP-005 | Unit 2 选词语境 | 薄弱 1/2 |
+| WP-006 | 动词短语写完整（take off / turn into） | 薄弱 0/2 |
+| WP-001 | 名词复数 | ✅ 已掌握 → MP-008 |
 | WP-003 | shouldn't 书写与用法 | ✅ 已掌握 |
 | WP-004 | take / eat too much 场景区分 | ✅ 已掌握 |
 
@@ -86,7 +88,8 @@
 - [x] Unit 2 练习 PDF（`unit2-practice.pdf` + 答案合订）
 - [x] Unit 2 Day 1 练习（9/10）
 - [x] Unit 2 Day 2 练习（7/9）
-- [ ] Unit 2 Day 3、Day 4 练习
+- [x] Unit 2 Day 3 练习（9/10）
+- [ ] Unit 2 Day 4 练习
 - [x] Unit 3 知识点录入（`lessons/english-grade5-sem1-unit3.md`，课文待补）
 - [x] Unit 4 知识点录入（`lessons/english-grade5-sem1-unit4.md`，课文待补）
 - [x] Unit 5 知识点录入（`lessons/english-grade5-sem1-unit5.md`，课文待补）

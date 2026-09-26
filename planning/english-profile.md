@@ -9,9 +9,9 @@
 
 | ID | 知识点 | 状态 | 连续正确 | 目标 |
 |----|--------|------|----------|------|
-| WP-001 | 名词复数（food groups / vegetables 等） | 薄弱 | 1/2 | 2 |
 | WP-002 | 固定短语拼写 a lot of | 薄弱 | 1/2 | 2 |
-| WP-005 | Unit 2 选词语境（places / useful 等） | 薄弱 | 0/2 | 2 |
+| WP-005 | Unit 2 选词语境（places / useful 等） | 薄弱 | 1/2 | 2 |
+| WP-006 | 动词短语写完整（如 take off / turn into） | 薄弱 | 0/2 | 2 |
 
 ---
 
@@ -25,8 +25,8 @@
 | 首次发现 | 2026-09-05 · Unit 1 Day 1 作业 |
 | 典型错题 | `food group` → **food groups**；`fruit and vegetable` → **fruit and vegetables** |
 | 关联课文 | *five food groups*；*Vegetables and fruit are very important.* |
-| 状态 | **薄弱** |
-| 巩固记录 | Day 2-3 选词 Q1、Q5 仍错（2026-09-19）；Day 2-4 拼写 groups ✓（2026-09-20，连续 1/2） |
+| 状态 | **已掌握** → MP-008 |
+| 巩固记录 | Day 2-3 选词 Q1、Q5 仍错（2026-09-19）；Day 2-4 拼写 groups ✓（2026-09-20，连续 1/2）；Unit 2 Day 3 一-1 bottles ✓（2026-09-26，连续 2/2 达标） |
 
 **掌握标准：** 复数相关填空/改错连续 2 次全对。
 
@@ -87,9 +87,24 @@
 | 典型错题 | `clean small children` → **places**；`places bottle` → **useful** bottle |
 | 关联课文 | *use an old toothbrush to clean small **places*** |
 | 状态 | **薄弱** |
-| 巩固记录 | Day 2 选词 2/4 空错（2026-09-25） |
+| 巩固记录 | Day 2 选词 2/4 空错（2026-09-25）；Day 3 二-4 useful ✓（2026-09-26，连续 1/2） |
 
 **掌握标准：** 选词填空结合句意连续 2 次全对。
+
+---
+
+### WP-006 动词短语写完整
+
+| 项目 | 内容 |
+|------|------|
+| 关联单元 | Unit 2 · A green life |
+| 首次发现 | 2026-09-26 · Unit 2 Day 3 · 排序 |
+| 典型错题 | `Take` → **Take off**（漏掉 off） |
+| 关联课文 | *Take off the bottle caps before recycling.* |
+| 状态 | **薄弱** |
+| 巩固记录 | Day 3 排序只写 Take 漏掉 off（2026-09-26） |
+
+**掌握标准：** 动词短语（take off / turn into 等）连续 2 次写完整。
 
 ---
 
@@ -102,6 +117,7 @@
 | MP-003 | should / Don't 基本句型 | 2026-09-05 | Day 1 语法填空 should、Don't 相关题正确 |
 | MP-006 | take / eat too much 场景区分 | 2026-09-18 | Day 2-1 改错 Q5、Day 2-2 语法 Q3 连续全对 |
 | MP-007 | shouldn't 书写与用法 | 2026-09-19 | Day 2-2、Day 2-3 shouldn't 相关题连续全对 |
+| MP-008 | 名词复数（food groups / vegetables 等） | 2026-09-26 | Day 2-4 groups ✓、Unit 2 Day 3 bottles ✓ 连续全对 |
 
 ---
 
@@ -117,6 +133,7 @@
 | 2026-09-20 | Day 2-4（第 4 页） | WP-001、WP-002、WP-003、WP-004 | **8/8 全对** | 情景选择 + 拼写专练全对 |
 | 2026-09-25 | Unit 2 Day 1 | 减废 · 词汇 · 祈使句 | **9/10** | 三-2 判错，见 english-mistake-book |
 | 2026-09-25 | Unit 2 Day 2 | 再用 · give / 选词 / 改错 | **7/9** | 选词 Q2、Q3 错；改错全对 |
+| 2026-09-26 | Unit 2 Day 3 | 回收 · turn into / take off | **9/10** | 排序只写 Take 漏掉 off；WP-001→MP-008 |
 
 ---
 
@@ -124,6 +141,7 @@
 
 | 日期 | 操作 |
 |------|------|
+| 2026-09-26 | Unit 2 Day 3 批改；WP-001 达标→MP-008；WP-005 连续 1/2；新增 WP-006 动词短语写完整 |
 | 2026-09-05 | 建档；根据 Day 1 作业录入 4 项薄弱点、3 项已掌握 |
 | 2026-09-17 | Day 2 巩固练拆分为 4 份（每天 7～8 题） |
 | 2026-09-17 | Day 2 分日练习导出 A4 PDF（15px 字号，单页） |

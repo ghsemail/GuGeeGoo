@@ -1,11 +1,8 @@
-import { createRequire } from "node:module";
 import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import puppeteer from "puppeteer";
 import { answersCss, worksheetCss } from "./pdf-theme.mjs";
-
-const require = createRequire(import.meta.url);
-const puppeteer = require("../../../../exercises/node_modules/puppeteer");
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(dir, "..");
