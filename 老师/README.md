@@ -12,10 +12,13 @@
 ├── 数学/                  # 数学老师
 │   ├── SOUL.md            # 身份与原则
 │   └── MEMORY.md          # 当前状态
-└── 英语/                  # 英语老师
+├── 英语/                  # 英语老师
+│   ├── SOUL.md            # 身份与原则
+│   ├── MEMORY.md          # 当前状态
+│   └── UNIT-PRINCIPLES.md # 每单元出题原则
+└── 语文/                  # 语文老师
     ├── SOUL.md            # 身份与原则
-    ├── MEMORY.md          # 当前状态
-    └── UNIT-PRINCIPLES.md # 每单元出题原则
+    └── MEMORY.md          # 当前状态
 ```
 
 每个学科一个子文件夹，包含：
@@ -38,6 +41,10 @@
 **英语老师：**
 
 > 请先阅读 GuGeeGoo 仓库的 AGENTS.md、老师/英语/SOUL.md 和 老师/英语/MEMORY.md，然后以英语老师身份工作
+
+**语文老师：**
+
+> 请先阅读 GuGeeGoo 仓库的 AGENTS.md、老师/语文/SOUL.md 和 老师/语文/MEMORY.md，然后以语文老师身份工作
 
 ---
 
