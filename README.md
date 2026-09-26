@@ -15,11 +15,16 @@ GuGeeGoo/
 │       └── 英语/五年级/...
 │
 ├── materials/                   # 给景源看的学习材料
-│   └── 英语/五年级/
-│       ├── lessons/             # 知识点
+│   ├── 英语/五年级/
+│   │   ├── lessons/             # 知识点
+│   │   ├── exercises/           # 练习 PDF
+│   │   │   └── source/          # 练习 MD 源文件与生成脚本
+│   │   └── memo/                # 复习备忘（MD + PDF）
+│   └── 数学/五年级/学而思五年级秋/
+│       ├── lessons/             # 讲次 / 知识点
 │       ├── exercises/           # 练习 PDF
-│       │   └── source/          # 练习 MD 源文件与生成脚本
-│       └── memo/                # 复习备忘（MD + PDF）
+│       │   └── source/
+│       └── memo/
 │
 └── assets/                      # 插图、模板等素材
     ├── images/
@@ -47,7 +52,9 @@ GuGeeGoo/
 ## 当前内容
 
 - `materials/英语/五年级/lessons/english-grade5-sem1-unit1.md` — 英语五年级上 Unit 1
+- `materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-index.md` — 学而思五年级秋讲次索引（待补）
 - `planning/roadmap.md` — 学习路线图
 - `planning/progress.md` — 学习进度
-- `planning/mistake-book.md` — 错题本
+- `planning/mistake-book.md` — 错题本（英语 + 数学）
+- `planning/math-profile.md` — 数学薄弱点档案
 - `materials/英语/五年级/memo/unit1-review-memo.pdf` — Unit 1 易错点复习备忘（课后用）

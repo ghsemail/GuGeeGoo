@@ -1,7 +1,19 @@
 # 学习路线图
 
 > 由家长维护，根据景源的学校进度和薄弱点灵活调整。  
-> **进度明细：** `progress.md` · **英语档案：** `english-profile.md` · **错题本：** `mistake-book.md`
+> **进度明细：** `progress.md` · **英语档案：** `english-profile.md` · **数学档案：** `math-profile.md` · **错题本：** `mistake-book.md`
+
+---
+
+## 数学 · 学而思五年级秋（待启动）
+
+**材料路径：** `materials/数学/五年级/学而思五年级秋/`（`lessons/` · `exercises/` · `memo/`）
+
+| 阶段 | 内容 | 状态 |
+|------|------|------|
+| 目录与档案 | 讲次索引、math-profile、错题本数学小节 | ✅ 已建 |
+| 知识点录入 | 按讲次写入 `lessons/` | ⬜ 待家长上传 |
+| 近期错题 | 录入 `mistake-book.md` 并更新薄弱点 | ⬜ 待家长上传 |
 
 ---
 
