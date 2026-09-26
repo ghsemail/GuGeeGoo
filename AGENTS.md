@@ -40,8 +40,13 @@ GuGeeGoo/
 │       │   └── 源文件/               # 练习 MD 源文件
 │       └── 备忘/                     # 复习备忘
 │
+├── apps/                             # 网站代码（与学习 MD 分离）
+│   ├── web/                          # 学生主页（Cloudflare Pages）
+│   └── api/                          # 预留：Cloudflare Workers
+├── infra/                            # Cloudflare / 腾讯云 COS 配置说明
+├── deploy/staging/                   # stage:deploy 快照（含 private/planning）
 ├── assets/images/                    # 插图、讲义扫描件
-├── scripts/                          # 生成工具（PDF 等）
+├── scripts/                          # PDF、stage-deploy、sync-cos
 ├── 老师/                             # AI 教师配置（各学科子文件夹）
 │   ├── 数学/SOUL.md                  # 数学老师身份与原则
 │   └── 数学/MEMORY.md                # 数学老师当前状态（每次工作后更新）
@@ -102,7 +107,7 @@ GuGeeGoo/
 
 ## 6. 材料输出格式
 
-- **MD + PDF**，**绝不输出 HTML**
+- **MD + PDF**，练习材料**绝不输出 HTML**（`apps/web` 主页除外，且不得展示 WP/MP 编码）
 - 练习 PDF：A4、大字号（17–20px）、每日一页 7–10 题
 - 小测 PDF：5 题，字号更大（20px+）
 - 答案 PDF：合订为家长专用（`...-answers.pdf`）
@@ -206,7 +211,22 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 
 ---
 
-## 10. Git 约定
+## 10. Web 与 COS 部署
+
+| 命令 | 作用 |
+|------|------|
+| `npm run stage:deploy` | `学习档案/*.md` → `deploy/staging/private/planning/`；公开 PDF → `deploy/staging/public/` |
+| `npm run sync:cos -- --dry-run` | 列出将上传 COS 的对象 |
+| `npm run sync:cos` | 上传 staging（需 `infra/cos/env.example` 中的密钥） |
+| `npm run web:build` | 构建学生主页 → `apps/web/dist/` |
+
+- **学生主页**不得打包 `学习档案/`；规划 MD 只走 COS **`private/planning/`**（私有 ACL）。
+- 四档同步更新 `学习档案/` 后，启动前或发布前执行 **`npm run stage:deploy`**（可选再 `sync:cos`）。
+- 说明文档：`infra/README.md`、`apps/web/README.md`。
+
+---
+
+## 11. Git 约定
 
 1. **直接在 main 分支工作**，不使用功能分支，不创建 PR
 2. **家长的 Obsidian obsidian-git 每 ~10 分钟自动提交推送**，因此提交前务必同步
@@ -218,7 +238,7 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 
 ---
 
-## 11. 周循环工作流
+## 12. 周循环工作流
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -248,7 +268,7 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 
 ---
 
-## 12. 数学符号渲染
+## 13. 数学符号渲染
 
 练习 / 答案 MD 中的数学符号：
 
@@ -260,7 +280,7 @@ PDF 生成器会正确渲染中文冒号与比号。
 
 ---
 
-## 13. 快速检查清单
+## 14. 快速检查清单
 
 开始新任务前：
 

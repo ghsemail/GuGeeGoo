@@ -1,13 +1,23 @@
 {
   "name": "gugeegoo",
   "version": "1.0.0",
-  "description": "顾景源学习项目 — 练习与备忘 PDF 生成工具",
+  "description": "顾景源学习项目 — 练习 PDF、主页与 COS 同步",
   "type": "module",
+  "workspaces": [
+    "apps/web"
+  ],
   "scripts": {
-    "pdf": "node scripts/generate-pdf.mjs"
+    "pdf": "node scripts/generate-pdf.mjs",
+    "stage:deploy": "node scripts/stage-deploy.mjs",
+    "sync:cos": "node scripts/sync-cos.mjs",
+    "web:dev": "npm run dev -w @gugeegoo/web",
+    "web:build": "npm run build -w @gugeegoo/web"
   },
   "dependencies": {
     "puppeteer": "^24.0.0"
+  },
+  "devDependencies": {
+    "cos-nodejs-sdk-v5": "^2.14.6"
   },
   "engines": {
     "node": ">=18"

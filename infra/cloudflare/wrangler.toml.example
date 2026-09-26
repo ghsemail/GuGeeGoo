@@ -1,0 +1,13 @@
+# 复制为 wrangler.toml 并填入 account_id（启用 Workers 时）
+# 当前阶段可仅使用 Pages，无需 Worker。
+
+name = "gugeegoo-api"
+main = "../../apps/api/src/index.ts"
+compatibility_date = "2024-09-01"
+
+# account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# [vars]
+# COS_PUBLIC_BASE = "https://cdn.example.com"
+
+# 私有规划 MD、答案 PDF 预签名等后续在此扩展
