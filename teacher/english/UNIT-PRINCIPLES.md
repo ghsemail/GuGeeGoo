@@ -21,14 +21,20 @@
 | 单元小测 | `unitN-quiz.pdf` + `unitN-quiz-answers.pdf` | 整单元短测（约 5～8 题） |
 | 薄弱点回顾训练 | `unitN-weakpoint-review.pdf` + 答案 | 针对档案薄弱点，可大字 |
 
-### 源文件（`exercises/source/`）
+### 源文件（`exercises/unitN/source/`）
 
 - `english-grade5-sem1-unitN-day1.md` … `day4.md`
 - `english-grade5-sem1-unitN-practice-answers.md`
 - `english-grade5-sem1-unitN-quiz.md` + `-answers.md`
 - `english-grade5-sem1-unitN-weakpoint-review.md` + `-answers.md`
 - `english-grade5-sem1-unitN-index.md`
-- `generate-unitN-pdfs.mjs`（或统一脚本）
+- `unitN-memo.md`（Memo 源文件）
+
+### 生成脚本（`exercises/scripts/`）
+
+- `generate-unit1-pdfs.mjs`、`generate-unit2-pdfs.mjs`
+- `generate-memo-pdf.mjs`
+- `pdf-theme.mjs`、`package.json`
 
 ### 不含在本标准内
 
@@ -150,8 +156,8 @@
 | Unit 6 | ✗ | ✗ | ✗ | ✗ | 未开始 |
 
 **验证文件**：
-- Unit 1：`unit1-practice.pdf`、`memo/unit1-memo.pdf`、`unit1-quiz.pdf`、`unit1-weakpoint-review.pdf`（均有对应答案）
-- Unit 2：`unit2-practice.pdf`（有答案）
+- Unit 1：`unit1/unit1-practice.pdf`、`unit1/unit1-memo.pdf`、`unit1/unit1-quiz.pdf`、`unit1/unit1-weakpoint-review.pdf`（均有对应答案）
+- Unit 2：`unit2/unit2-practice.pdf`（有答案）
 
 ---
 

@@ -83,9 +83,9 @@
 | 类型 | 路径 |
 |------|------|
 | 英语知识点 | `materials/英语/五年级/lessons/english-grade5-sem1-unit*.md` |
-| 练习源文件 | `materials/英语/五年级/exercises/source/english-grade5-sem1-unit*-day*.md` |
-| 练习 PDF | `materials/英语/五年级/exercises/` |
-| 复习备忘 | `materials/英语/五年级/memo/` |
+| 练习源文件 | `materials/英语/五年级/exercises/unitN/source/english-grade5-sem1-unitN-*.md` |
+| 练习 PDF | `materials/英语/五年级/exercises/unitN/` |
+| 复习备忘 | `materials/英语/五年级/exercises/unitN/unitN-memo.pdf`（源文件在 `unitN/source/`） |
 | 薄弱点档案 | `planning/english-profile.md` |
 | 错题本 | `planning/english-mistake-book.md` |
 | 进度记录 | `planning/progress.md` |
@@ -110,6 +110,7 @@
 | 日期 | 内容 |
 |------|------|
 | 2026-09-26 | 家长确认 Day 1 祈使句句首大写算对，Day 1 成绩改为 10/10 |
+| 2026-09-26 | 英语 exercises 按单元分文件夹；memo 并入各单元；删除早期 day1 单独 PDF |
 | 2026-09-26 | 新建每单元出题原则 UNIT-PRINCIPLES.md |
 | 2026-09-26 | 建档；记录 Unit 2 Day 1–3 批改结果；WP-002、WP-005、WP-006 薄弱点；MP-008 已掌握（WP-001 升级） |
 | 2026-09-26 | 家长确认教材为外研五上，统一教材版本表述 |

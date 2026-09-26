@@ -9,8 +9,8 @@
 
 | # | 用途 | 练习 PDF | 答案 PDF |
 |---|------|----------|----------|
-| 1 | **四天巩固**（每天 1 页，共 4 页） | `unit1-practice.pdf` | `unit1-practice-answers.pdf` |
-| 2 | **Memo**（课后速查，非测验） | `../memo/unit1-memo.pdf` | — |
+| 1 | **四天巩固**（每天 1 页，共 4 页） | `../unit1-practice.pdf` | `../unit1-practice-answers.pdf` |
+| 2 | **Memo**（课后速查，非测验） | `../unit1-memo.pdf` | — |
 | 3 | **单元小测**（7 题，整单元） | `unit1-quiz.pdf` | `unit1-quiz-answers.pdf` |
 | 4 | **薄弱点回顾训练**（5 题，大字） | `unit1-weakpoint-review.pdf` | `unit1-weakpoint-review-answers.pdf` |
 

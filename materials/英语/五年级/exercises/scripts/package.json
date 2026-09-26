@@ -5,7 +5,8 @@
   "description": "PDF generation for Unit practice sheets (puppeteer)",
   "scripts": {
     "unit1": "node generate-unit1-pdfs.mjs",
-    "unit2": "node generate-unit2-pdfs.mjs"
+    "unit2": "node generate-unit2-pdfs.mjs",
+    "memo1": "node generate-memo-pdf.mjs"
   },
   "dependencies": {
     "puppeteer": "^23.11.1"

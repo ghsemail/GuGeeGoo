@@ -21,9 +21,10 @@ GuGeeGoo/
 ├── materials/                   # 给景源看的学习材料
 │   ├── 英语/五年级/
 │   │   ├── lessons/             # 知识点（Unit 1–6）
-│   │   ├── exercises/           # 练习 PDF
-│   │   │   └── source/          # 练习 MD 源文件
-│   │   └── memo/                # 复习备忘（MD + PDF）
+│   │   └── exercises/           # 练习（按单元分文件夹）
+│   │       ├── unitN/           # 单元 PDF
+│   │       │   └── source/      # 单元源文件（MD）
+│   │       └── scripts/         # PDF 生成脚本
 │   └── 数学/五年级/学而思五年级秋/
 │       ├── lessons/             # 讲次知识点
 │       ├── exercises/           # 练习 PDF
@@ -47,25 +48,24 @@ GuGeeGoo/
 
 | 类型 | Markdown 源文件 | PDF 打印版 |
 |------|-----------------|------------|
-| 练习 | `materials/<学科>/.../exercises/source/` | `materials/<学科>/.../exercises/*.pdf` |
-| 复习备忘 | `materials/<学科>/.../memo/` | 同目录 |
+| 英语练习 | `materials/英语/.../exercises/unitN/source/` | `materials/英语/.../exercises/unitN/*.pdf` |
+| 数学练习 | `materials/数学/.../exercises/source/` | `materials/数学/.../exercises/*.pdf` |
+| 英语复习备忘 | `materials/英语/.../exercises/unitN/source/unitN-memo.md` | `exercises/unitN/unitN-memo.pdf` |
+| 数学复习备忘 | `materials/数学/.../memo/` | 同目录 |
 
 **不输出 HTML**，统一使用 MD + PDF。
 
 ## PDF 生成
 
 ```bash
-# 安装依赖（首次）
+# 英语（在 scripts/ 目录下执行）
+cd materials/英语/五年级/exercises/scripts
 npm install
+npm run unit1     # 生成 Unit 1 全部 PDF
+npm run unit2     # 生成 Unit 2 全部 PDF
+npm run memo1     # 生成 Unit 1 Memo PDF
 
-# 生成练习 PDF
-npm run pdf -- <练习MD路径>
-
-# 同时生成答案 PDF
-npm run pdf -- <练习MD路径> --answers <答案MD路径>
-
-# 示例
-npm run pdf -- materials/英语/五年级/exercises/source/english-grade5-sem1-unit2-day1.md
+# 数学（在仓库根目录执行）
 npm run pdf -- materials/数学/五年级/学而思五年级秋/exercises/source/xes-grade5-autumn-lesson01-practice1.md --answers xes-grade5-autumn-lesson01-practice1-answers.md
 ```
 
@@ -73,14 +73,9 @@ npm run pdf -- materials/数学/五年级/学而思五年级秋/exercises/source
 
 ### 英语（五年级上）
 
-- `materials/英语/五年级/lessons/english-grade5-sem1-unit1.md` — Unit 1 知识点
-- `materials/英语/五年级/lessons/english-grade5-sem1-unit2.md` — Unit 2 知识点
-- `materials/英语/五年级/lessons/english-grade5-sem1-unit3.md` — Unit 3 知识点
-- `materials/英语/五年级/lessons/english-grade5-sem1-unit4.md` — Unit 4 知识点
-- `materials/英语/五年级/lessons/english-grade5-sem1-unit5.md` — Unit 5 知识点
-- `materials/英语/五年级/lessons/english-grade5-sem1-unit6.md` — Unit 6 知识点
-- `materials/英语/五年级/exercises/` — Unit 1–2 练习 PDF
-- `materials/英语/五年级/memo/unit1-review-memo.pdf` — Unit 1 易错点复习备忘
+- `materials/英语/五年级/lessons/english-grade5-sem1-unit*.md` — Unit 1–6 知识点
+- `materials/英语/五年级/exercises/unit1/` — Unit 1 练习 PDF（practice、quiz、weakpoint-review、memo、baseline）
+- `materials/英语/五年级/exercises/unit2/` — Unit 2 练习 PDF（practice + answers）
 - `planning/english-profile.md` — 英语薄弱点档案
 
 ### 数学（学而思五年级秋）

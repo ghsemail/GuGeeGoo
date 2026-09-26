@@ -30,9 +30,10 @@ GuGeeGoo/
 ├── materials/                   # 学习材料
 │   ├── 英语/五年级/
 │   │   ├── lessons/             # 知识点 MD
-│   │   ├── exercises/           # 练习 PDF
-│   │   │   └── source/          # 练习 MD 源文件
-│   │   └── memo/                # 复习备忘
+│   │   └── exercises/           # 练习（按单元分文件夹）
+│   │       ├── unitN/           # 单元 PDF
+│   │       │   └── source/      # 单元源文件（MD）
+│   │       └── scripts/         # PDF 生成脚本
 │   └── 数学/五年级/学而思五年级秋/
 │       ├── lessons/             # 讲次知识点 MD
 │       ├── exercises/           # 练习 PDF
@@ -144,7 +145,7 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 
 ## 7. 练习生成工作流
 
-1. **草稿**：创建 `source/<subject>-<grade>-<unit/lesson>-<序号>.md` 及 `-answers.md`
+1. **草稿**：创建 `unitN/source/<subject>-<grade>-<unit/lesson>-<序号>.md` 及 `-answers.md`（英语按单元分文件夹；数学仍用 `source/`）
 2. **家长确认**：在 roadmap 或 index 标注「待家长确认」
 3. **生成 PDF**：确认后执行 `npm run pdf`
 4. **批改 → 四档同步**（见 §5）

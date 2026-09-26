@@ -1,11 +1,15 @@
+import { createRequire } from "node:module";
 import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import puppeteer from "puppeteer";
-import { answersCss, worksheetCss } from "./pdf-theme.mjs";
+import { answersCss, quizCss, worksheetCss } from "./pdf-theme.mjs";
 
-const dir = path.dirname(fileURLToPath(import.meta.url));
-const outDir = path.join(dir, "..");
+const require = createRequire(import.meta.url);
+const puppeteer = require("puppeteer");
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const dir = path.join(scriptDir, "../unit1/source");
+const outDir = path.join(scriptDir, "../unit1");
 
 const answersCssWithTable = `${answersCss}
   table {
@@ -21,7 +25,6 @@ const answersCssWithTable = `${answersCss}
     vertical-align: top;
   }
   th { background: #f0f0f0; font-weight: 700; }
-  h2, h3 { page-break-after: avoid; }
 `;
 
 function escapeHtml(s) {
@@ -58,11 +61,6 @@ function mdWorksheetBody(md) {
       continue;
     }
 
-    if (line.startsWith("- [ ]")) {
-      body.push(`<p>${escapeHtml(line.replace(/^- \[ \]\s*/, "☐ "))}</p>`);
-      continue;
-    }
-
     body.push(`<p>${blanksToUnderline(escapeHtml(line))}</p>`);
   }
 
@@ -80,7 +78,7 @@ function mdMultiDayWorksheetToHtml(dayFiles, css) {
   const sections = dayFiles.map((file, i) => {
     const md = readFileSync(path.join(dir, file), "utf8");
     const titleMatch = md.match(/^# (.+)/m);
-    const title = titleMatch ? titleMatch[1] : `Unit 2 · Day ${i + 1}`;
+    const title = titleMatch ? titleMatch[1] : `Unit 1 · Day ${i + 1}`;
     const inner = mdWorksheetSection(md, {
       title,
       meta: "顾景源 · 五年级英语",
@@ -93,6 +91,13 @@ function mdMultiDayWorksheetToHtml(dayFiles, css) {
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><style>${css}</style></head>
 <body>${sections.join("\n")}</body></html>`;
+}
+
+function mdSingleWorksheetToHtml(md, { title, meta, css }) {
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><style>${css}</style></head>
+<body>${mdWorksheetSection(md, { title, meta })}</body></html>`;
 }
 
 function parseTableRow(line) {
@@ -183,7 +188,7 @@ function mdAnswersToHtml(md, { title, meta, css }) {
 }
 
 async function buildPdf(html, pdfPath, tmpName) {
-  const tmp = path.join(dir, tmpName);
+  const tmp = path.join(scriptDir, tmpName);
   writeFileSync(tmp, html, "utf8");
   const browser = await puppeteer.launch({
     headless: true,
@@ -202,27 +207,110 @@ async function buildPdf(html, pdfPath, tmpName) {
   console.log("Generated", pdfPath);
 }
 
-const dayFiles = [1, 2, 3, 4].map(
-  (n) => `english-grade5-sem1-unit2-day${n}.md`
+const practiceDays = [1, 2, 3, 4].map(
+  (n) => `english-grade5-sem1-unit1-day${n}.md`
 );
 
 await buildPdf(
-  mdMultiDayWorksheetToHtml(dayFiles, worksheetCss),
-  path.join(outDir, "unit2-practice.pdf"),
-  ".tmp-unit2-practice.html"
+  mdMultiDayWorksheetToHtml(practiceDays, worksheetCss),
+  path.join(outDir, "unit1-practice.pdf"),
+  ".tmp-unit1-practice.html"
 );
 
-const answersMd = readFileSync(
-  path.join(dir, "english-grade5-sem1-unit2-answers.md"),
+await buildPdf(
+  mdAnswersToHtml(
+    readFileSync(path.join(dir, "english-grade5-sem1-unit1-practice-answers.md"), "utf8"),
+    {
+      title: "Unit 1 · 四天巩固 · 参考答案",
+      meta: "家长专用 · 合订不分页",
+      css: answersCssWithTable,
+    }
+  ),
+  path.join(outDir, "unit1-practice-answers.pdf"),
+  ".tmp-unit1-practice-answers.html"
+);
+
+const quizMd = readFileSync(
+  path.join(dir, "english-grade5-sem1-unit1-quiz.md"),
   "utf8"
 );
+await buildPdf(
+  mdSingleWorksheetToHtml(quizMd, {
+    title: "Unit 1 · 单元小测",
+    meta: "顾景源 · 五年级英语",
+    css: worksheetCss,
+  }),
+  path.join(outDir, "unit1-quiz.pdf"),
+  ".tmp-unit1-quiz.html"
+);
 
 await buildPdf(
-  mdAnswersToHtml(answersMd, {
-    title: "Unit 2 · 四天练习 · 参考答案",
-    meta: "家长专用 · 合订不分页",
-    css: answersCssWithTable,
+  mdAnswersToHtml(
+    readFileSync(path.join(dir, "english-grade5-sem1-unit1-quiz-answers.md"), "utf8"),
+    {
+      title: "Unit 1 · 单元小测 · 参考答案",
+      meta: "家长专用",
+      css: answersCssWithTable,
+    }
+  ),
+  path.join(outDir, "unit1-quiz-answers.pdf"),
+  ".tmp-unit1-quiz-answers.html"
+);
+
+const weakMd = readFileSync(
+  path.join(dir, "english-grade5-sem1-unit1-weakpoint-review.md"),
+  "utf8"
+);
+await buildPdf(
+  mdSingleWorksheetToHtml(weakMd, {
+    title: "Unit 1 · 薄弱点回顾训练",
+    meta: "顾景源 · 五年级英语 · WP-001 / WP-002",
+    css: quizCss,
   }),
-  path.join(outDir, "unit2-practice-answers.pdf"),
-  ".tmp-unit2-answers.html"
+  path.join(outDir, "unit1-weakpoint-review.pdf"),
+  ".tmp-unit1-weakpoint.html"
+);
+
+await buildPdf(
+  mdAnswersToHtml(
+    readFileSync(
+      path.join(dir, "english-grade5-sem1-unit1-weakpoint-review-answers.md"),
+      "utf8"
+    ),
+    {
+      title: "Unit 1 · 薄弱点回顾训练 · 参考答案",
+      meta: "家长专用",
+      css: quizCss,
+    }
+  ),
+  path.join(outDir, "unit1-weakpoint-review-answers.pdf"),
+  ".tmp-unit1-weakpoint-answers.html"
+);
+
+// 可选存档：基线测评
+const baselineMd = readFileSync(
+  path.join(dir, "english-grade5-sem1-unit1-baseline.md"),
+  "utf8"
+);
+await buildPdf(
+  mdSingleWorksheetToHtml(baselineMd, {
+    title: "Unit 1 · 基线测评（存档）",
+    meta: "顾景源 · 五年级英语 · 2026-09-05",
+    css: worksheetCss,
+  }),
+  path.join(outDir, "unit1-baseline.pdf"),
+  ".tmp-unit1-baseline.html"
+);
+
+await buildPdf(
+  mdAnswersToHtml(
+    readFileSync(path.join(dir, "english-grade5-sem1-unit1-baseline-answers.md"), "utf8"),
+    {
+      title: "Unit 1 · 基线测评 · 参考答案",
+      meta: "家长专用 · 存档",
+      css: answersCss,
+    }
+  ),
+  path.join(outDir, "unit1-baseline-answers.pdf"),
+  ".tmp-unit1-baseline-answers.html"
 );

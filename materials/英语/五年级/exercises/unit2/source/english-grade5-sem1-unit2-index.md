@@ -24,7 +24,7 @@
 | Day 3 | `english-grade5-sem1-unit2-day3.md` | 10 | 课文填空 + 短语 + 排序 | 回收 · turn into / take off |
 | Day 4 | `english-grade5-sem1-unit2-day4.md` | 11 | 祈使句 + 语法短语 + 选词 | 综合 · better · 对话短语 |
 
-**路径：** `materials/英语/五年级/exercises/source/`  
+**路径：** `materials/英语/五年级/exercises/unit2/source/`  
 **知识点：** `materials/英语/五年级/lessons/english-grade5-sem1-unit2.md`
 
 ---
@@ -37,4 +37,4 @@
 node generate-unit2-pdfs.mjs
 ```
 
-输出：`materials/英语/五年级/exercises/unit2-practice.pdf`、`unit2-practice-answers.pdf`
+输出：`materials/英语/五年级/exercises/unit2/unit2-practice.pdf`、`unit2-practice-answers.pdf`

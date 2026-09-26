@@ -2,7 +2,7 @@
 
 > 顾景源 · 五年级英语 · 根据错题本整理（2026-09-19）  
 > **用途：** 课后复习、做练习前速查，**不是**测验卷。  
-> **打印版：** `materials/英语/五年级/memo/unit1-memo.pdf`
+> **打印版：** `materials/英语/五年级/exercises/unit1/unit1-memo.pdf`
 
 ---
 
