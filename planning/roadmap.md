@@ -5,15 +5,25 @@
 
 ---
 
-## 数学 · 学而思五年级秋（待启动）
+## 数学 · 学而思五年级秋
 
-**材料路径：** `materials/数学/五年级/学而思五年级秋/`（`lessons/` · `exercises/` · `memo/`）
+**材料路径：** `materials/数学/五年级/学而思五年级秋/`（`lessons/` · `exercises/` · `memo/`）  
+**档案：** `planning/math-profile.md`（薄弱点 WP-Mxxx、已掌握 MP-Mxxx）
 
 | 阶段 | 内容 | 状态 |
 |------|------|------|
 | 目录与档案 | 讲次索引、math-profile、错题本数学小节 | ✅ 已建 |
 | 知识点录入 | 按讲次写入 `lessons/` | 🔄 第 1 讲已录入 |
+| 练习生成 | 按讲次在 `exercises/source/` 写练习 | 🔄 第 1 讲练习草稿已完成 |
 | 近期错题 | 录入 `mistake-book.md` 并更新薄弱点 | ⬜ 待家长上传 |
+
+### 第 1 讲 · 比和比例
+
+| 内容 | 状态 |
+|------|------|
+| 知识点 `xes-grade5-autumn-lesson01.md` | ✅ 已录入 |
+| 练习草稿 `xes-grade5-autumn-lesson01-practice1.md` | ⚠️ 待家长确认 |
+| 练习 PDF | ⬜ 家长确认后生成 |
 
 ---
 
