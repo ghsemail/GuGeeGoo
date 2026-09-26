@@ -1,0 +1,13 @@
+{
+  "name": "gugeegoo-grade5-exercises",
+  "private": true,
+  "type": "module",
+  "description": "PDF generation for Unit practice sheets (puppeteer)",
+  "scripts": {
+    "unit1": "node generate-unit1-pdfs.mjs",
+    "unit2": "node generate-unit2-pdfs.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^23.11.1"
+  }
+}

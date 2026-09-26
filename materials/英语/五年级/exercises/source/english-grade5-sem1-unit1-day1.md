@@ -1,36 +1,31 @@
-# Unit 1 · Day 1
+# Unit 1 · Day 1 巩固练习
 
-> 顾景源 · 五年级英语  
-> **打印版：** `materials/英语/五年级/exercises/unit1-day1.pdf`
+> 顾景源 · 五年级英语 · 第 1/4 天  
+> **针对：** WP-001 复数 · WP-002 a lot of · WP-003 shouldn't  
+> **打印版：** `unit1-practice.pdf` 第 1 页
 
 ---
 
-## 一、词汇
+## 一、改错题
 
-1. 糖果　__________
-2. 健康的　__________
-3. 汤　　__________
-4. 面包　__________
-5. 土豆　__________
-6. 总是　__________
+*每句有一处错误，请写出正确句子。*
+
+1. There are five food group on our plate.  
+   ____________________________________________
+
+2. Eat fruit and vegetable every day.  
+   ____________________________________________
+
+3. Rice gives us allot of energy.  
+   ____________________________________________
+
+4. You should eat candy every day.（用 shouldn't 改写）  
+   ____________________________________________
+
+5. Don't eat too much!（情景：别拿太多食物）  
+   ____________________________________________
 
 ## 二、短语填空
 
-1. We should have __________ every day.（健康饮食）
-2. There are five __________ on our plate.（食物类别）
-3. Eat __________ to stay healthy.（水果和蔬菜）
-4. Don't __________ candy!（吃太多）
-5. Rice and noodles give us __________ energy.（大量的）
-
-## 三、语法填空
-
-1. You __________ eat too fast.（不应该）
-2. We __________ eat slowly.（应该）
-3. __________ take too much!（别拿太多！）
-4. You __________ have some vegetables.（应该）
-5. You __________ eat candy every day.（不应该）
-
-## 四、选词填空
-
-1. A healthy body starts with __________ (healthy / health / heavy) food.
-2. Milk and cheese are good for our __________ (bone / bones / bread) and teeth.
+1. We can put food into five __________（食物类别）.
+2. __________（水果和蔬菜） are very important.

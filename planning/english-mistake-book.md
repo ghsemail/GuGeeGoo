@@ -22,6 +22,7 @@
 | 2026-09-25 | Unit 2 Day 1 · 祈使句 | Q2 | __________ to eat all your food.（尽量把饭吃完） | Try（判错） | **try** | 祈使句 / 课文 | 课文：*And remember, try to eat all your food.* 若确为 try 建议复核 |
 | 2026-09-25 | Unit 2 Day 2 · 选词填空 | Q2 | … clean small __________. | children | **places** | WP-005 选词语境 | 课文：*clean small places*（地方），不是 children |
 | 2026-09-25 | Unit 2 Day 2 · 选词填空 | Q3 | … this __________ bottle. | places | **useful** | WP-005 选词语境 | 修饰 bottle 用 useful（有用的） |
+| 2026-09-26 | Unit 2 Day 3 · 排序 | Q1 | 第一步：__________ | Take | **Take off** | WP-006 动词短语写完整 | 完整短语 take off the bottle caps，不能省略 off |
 
 ---
 
@@ -29,6 +30,7 @@
 
 | 日期 | 操作 |
 |------|------|
+| 2026-09-26 | 录入 Unit 2 Day 3 排序 Q1（Take → Take off）；新增 WP-006 |
 | 2026-09-26 | 从合并错题本拆分为独立英语错题本 |
 | 2026-09-25 | 录入 Unit 2 Day 1 祈使句 Q2；Day 2 选词 Q2、Q3 |
 | 2026-09-19 | 录入 Day 2-3 选词填空 Q1、Q5、Q6 |

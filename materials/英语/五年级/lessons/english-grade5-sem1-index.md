@@ -11,7 +11,7 @@
 | Unit 5 | Look into the future | `english-grade5-sem1-unit5.md` | ⬜ 待补 |
 | Unit 6 | Enjoy the festivals | `english-grade5-sem1-unit6.md` | ⬜ 待补 |
 
-**练习材料：** Unit 1～2 见 `../exercises/`；Unit 3～6 练习未建。
+**练习材料：** Unit 1 已按 [`UNIT-STANDARD.md`](../exercises/UNIT-STANDARD.md) 整理；Unit 2 仅有四天巩固 PDF；Unit 3～6 未建。
 
 **课文：** Unit 3～6（及 Unit 2 后续篇章）**后续补入**各单元 `english-grade5-sem1-unitN.md` 的「课文」小节。
 
