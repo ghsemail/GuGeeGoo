@@ -109,9 +109,16 @@ function getCss(type) {
   }
 }
 
-function mdToHtmlBody(md) {
+function extractNameDateLine(md) {
+  const match = md.match(/^\*\*姓名[：:].+日期[：:].+\*\*$/m);
+  return match ? match[0] : null;
+}
+
+function mdToHtmlBody(md, options = {}) {
   const lines = md.split(/\r?\n/);
   const body = [];
+  const nameDateLine = extractNameDateLine(md);
+  const skipNameDate = options.skipNameDate || false;
 
   for (let i = 0; i < lines.length; ) {
     const line = lines[i];
@@ -120,6 +127,12 @@ function mdToHtmlBody(md) {
     if (line.startsWith("> ")) { i++; continue; }
     if (line === "---") { i++; continue; }
     if (line.trim() === "") { i++; continue; }
+
+    // Skip name/date line in body if we're handling it separately
+    if (skipNameDate && nameDateLine && line === nameDateLine) {
+      i++;
+      continue;
+    }
 
     if (line.startsWith("## ")) {
       body.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
@@ -165,14 +178,22 @@ function mdToHtmlBody(md) {
   return body.join("\n");
 }
 
-function mdToHtml(md, { title, meta, css }) {
-  const body = mdToHtmlBody(md);
+function mdToHtml(md, { title, meta, css, type }) {
+  const isWorksheet = type === "worksheet" || type === "quiz";
+  const nameDateLine = isWorksheet ? extractNameDateLine(md) : null;
+  const body = mdToHtmlBody(md, { skipNameDate: !!nameDateLine });
+  
+  const nameDateHtml = nameDateLine 
+    ? `<p class="name-date">${blanksToUnderline(escapeHtml(nameDateLine))}</p>`
+    : "";
+  
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><style>${css}</style></head>
 <body>
   <h1>${escapeHtml(title)}</h1>
   <div class="meta">${escapeHtml(meta)}</div>
+  ${nameDateHtml}
   ${body}
 </body></html>`;
 }
@@ -275,6 +296,7 @@ async function main() {
       title: options.title || autoTitle,
       meta: options.meta || autoMeta,
       css,
+      type,
     });
 
     const pdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}.pdf`);
@@ -294,6 +316,7 @@ async function main() {
           title: ansTitle || `${autoTitle} · 参考答案`,
           meta: ansMeta || "家长专用",
           css: answersCss,
+          type: "answers",
         });
         const answersPdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}-answers.pdf`);
         await generatePdf(answersHtml, answersPdfPath);

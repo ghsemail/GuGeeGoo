@@ -13,7 +13,8 @@ export const worksheetCss = `
     margin: 0;
   }
   h1 { font-size: 24px; margin: 0 0 6px; }
-  .meta { font-size: 15px; color: #333; margin-bottom: 14px; }
+  .meta { font-size: 15px; color: #333; margin-bottom: 8px; }
+  .name-date { font-size: 16px; margin: 0 0 14px; }
   h2 { font-size: 18px; margin: 16px 0 10px; }
   h3 { font-size: 17px; margin: 12px 0 8px; }
   p { margin: 7px 0; }
@@ -47,7 +48,8 @@ export const quizCss = `
     margin: 0;
   }
   h1 { font-size: 28px; margin: 0 0 8px; }
-  .meta { font-size: 16px; color: #333; margin-bottom: 18px; }
+  .meta { font-size: 16px; color: #333; margin-bottom: 10px; }
+  .name-date { font-size: 18px; margin: 0 0 18px; }
   h2 { font-size: 21px; margin: 22px 0 12px; }
   h3 { font-size: 19px; margin: 14px 0 8px; }
   p { margin: 10px 0; }
