@@ -44,6 +44,7 @@
 - [x] Unit 2 Day 1 练习（9/10）
 - [x] Unit 2 Day 2 练习（7/9）
 - [ ] Unit 2 Day 3、Day 4 练习
+- [x] Unit 3 知识点录入（`lessons/english-grade5-sem1-unit3.md`，课文待补）
 
 ---
 
