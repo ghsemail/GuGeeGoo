@@ -36,7 +36,7 @@ GuGeeGoo/
 ├── deploy/staging/                   # 待上传 COS 的快照（含规划 MD）
 ├── assets/images/                    # 插图、讲义扫描件
 ├── scripts/                          # PDF、stage-deploy、sync-cos
-├── 老师/                             # AI 教师配置（各学科子文件夹，每次工作后更新 MEMORY.md）
+├── 老师配置/                         # AI 教师配置（各学科子文件夹，每次工作后更新 MEMORY.md）
 ├── AGENTS.md                         # AI 协作约定
 └── README.md                         # 本文件
 ```

@@ -55,7 +55,7 @@ GuGeeGoo/
 ├── deploy/staging/                   # stage:deploy 快照（含 private/planning）
 ├── assets/images/                    # 插图、讲义扫描件
 ├── scripts/                          # PDF、stage-deploy、sync-cos
-├── 老师/                             # AI 教师配置（各学科子文件夹）
+├── 老师配置/                         # AI 教师配置（各学科子文件夹）
 │   ├── 数学/SOUL.md                  # 数学老师身份与原则
 │   ├── 数学/MEMORY.md                # 数学老师当前状态（每次工作后更新）
 │   ├── 英语/SOUL.md                  # 英语老师身份与原则
