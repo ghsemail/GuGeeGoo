@@ -19,7 +19,7 @@
 
 ```
 GuGeeGoo/
-├── 规划-planning/                    # 家长端规划与追踪
+├── 学习档案/                         # 家长端规划与追踪
 │   ├── roadmap.md                    # 学习路线图（总览，双学科）
 │   ├── progress.md                   # 进度记录（按日期，双学科）
 │   ├── english-profile.md            # 英语薄弱点档案
@@ -27,24 +27,24 @@ GuGeeGoo/
 │   ├── math-profile.md               # 数学薄弱点档案
 │   └── math-mistake-book.md          # 数学错题本
 │
-├── 资料-materials/                   # 学习材料
-│   ├── 英语-english/五年级-grade5/
-│   │   ├── 讲义-lessons/             # 知识点 MD
-│   │   └── 练习-exercises/           # 练习（按单元分文件夹）
-│   │       ├── 第N单元-unitN/        # 单元 PDF
-│   │       │   └── 源文件-source/    # 单元源文件（MD）
-│   │       └── 脚本-scripts/         # PDF 生成脚本
-│   └── 数学-math/五年级-grade5/学而思五年级秋-xueersi-grade5-fall/
-│       ├── 讲义-lessons/             # 讲次知识点 MD
-│       ├── 练习-exercises/           # 练习 PDF
-│       │   └── 源文件-source/        # 练习 MD 源文件
-│       └── 备忘-memo/                # 复习备忘
+├── 学科学习/                         # 学习材料
+│   ├── 英语/五年级/
+│   │   ├── 讲义/                     # 知识点 MD
+│   │   └── 练习/                     # 练习（按单元分文件夹）
+│   │       ├── 第N单元/              # 单元 PDF
+│   │       │   └── 源文件/           # 单元源文件（MD）
+│   │       └── 脚本/                 # PDF 生成脚本
+│   └── 数学/五年级/学而思五年级秋/
+│       ├── 讲义/                     # 讲次知识点 MD
+│       ├── 练习/                     # 练习 PDF
+│       │   └── 源文件/               # 练习 MD 源文件
+│       └── 备忘/                     # 复习备忘
 │
 ├── assets/images/                    # 插图、讲义扫描件
 ├── scripts/                          # 生成工具（PDF 等）
-├── 老师-teacher/                     # AI 教师配置（各学科子文件夹）
-│   ├── 数学-math/SOUL.md             # 数学老师身份与原则
-│   └── 数学-math/MEMORY.md           # 数学老师当前状态（每次工作后更新）
+├── 老师/                             # AI 教师配置（各学科子文件夹）
+│   ├── 数学/SOUL.md                  # 数学老师身份与原则
+│   └── 数学/MEMORY.md                # 数学老师当前状态（每次工作后更新）
 ├── AGENTS.md                         # 本文件
 └── README.md                         # 项目说明
 ```
@@ -119,7 +119,7 @@ GuGeeGoo/
 
 **编码仅保留在规划文件中：**
 
-- `规划-planning/` 目录下的所有文件（mistake-book、profile、progress、roadmap）
+- `学习档案/` 目录下的所有文件（mistake-book、profile、progress、roadmap）
 - 规划文件可记录练习针对哪些编码，但练习本身不显示
 
 ### 练习格式规范
@@ -145,7 +145,7 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 
 ## 7. 练习生成工作流
 
-1. **草稿**：创建 `第N单元-unitN/源文件-source/<subject>-<grade>-<unit/lesson>-<序号>.md` 及 `-answers.md`（英语按单元分文件夹；数学仍用 `源文件-source/`）
+1. **草稿**：创建 `第N单元/源文件/<subject>-<grade>-<unit/lesson>-<序号>.md` 及 `-answers.md`（英语按单元分文件夹；数学仍用 `源文件/`）
 2. **家长确认**：在 roadmap 或 index 标注「待家长确认」
 3. **生成 PDF**：确认后执行 `npm run pdf`
 4. **批改 → 四档同步**（见 §5）
@@ -265,7 +265,7 @@ PDF 生成器会正确渲染中文冒号与比号。
 开始新任务前：
 
 - [ ] 执行 `git pull --rebase origin main` 同步最新代码
-- [ ] 读取 `规划-planning/roadmap.md` 了解近期计划
+- [ ] 读取 `学习档案/roadmap.md` 了解近期计划
 - [ ] 读取对应 `<学科>-profile.md` 了解薄弱点
 
 完成任务前：
