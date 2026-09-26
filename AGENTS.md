@@ -1,6 +1,8 @@
 # AGENTS.md — 项目协作约定
 
 > 本文档供 AI 助手 / 自动化代理阅读，定义了维护此学习项目的核心约定。
+>
+> **Git（必读）：** 所有改动 **只提交到 `main`**。不要创建功能分支，不要开 Pull Request；`git pull --rebase origin main` → 改文件 → commit → `git push origin main`。
 
 ---
 
@@ -245,7 +247,10 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 
 ## 11. Git 约定
 
-1. **直接在 main 分支工作**，不使用功能分支，不创建 PR
+1. **只在 `main` 分支工作**（家长明确要求，2026-09-26 起严格执行）
+   - **禁止** `cursor/*` 等功能分支
+   - **禁止** 为日常改动创建 Pull Request（合并后再删分支的流程不再使用）
+   - **Cursor Cloud Agent** 与其它 AI 助手同样遵守：checkout `main` → 同步 → 改 → 推 `main`
 2. **家长的 Obsidian obsidian-git 每 ~10 分钟自动提交推送**，因此提交前务必同步
 3. **提交推送流程**：
    - 提交前先执行 `git pull --rebase origin main`
