@@ -101,7 +101,7 @@ async function copyPublicPdfs({ local, remotePrefix, excludeAnswers }) {
   let count = 0;
   for (const pdf of pdfs) {
     const base = path.basename(pdf);
-    if (excludeAnswers && /answers/i.test(base)) continue;
+    if (excludeAnswers && (/answers/i.test(base) || /答案/.test(base))) continue;
     const rel = path.relative(srcRoot, pdf);
     const dest = path.join(STAGING, remotePrefix, rel);
     await copyFile(pdf, dest);
@@ -130,6 +130,8 @@ async function writeManifestFile(stats) {
 
 async function main() {
   const stats = { planningMd: 0, publicPdf: 0 };
+
+  await fs.rm(path.join(STAGING, 'public'), { recursive: true, force: true });
 
   for (const item of PLANNING_COPY) {
     stats.planningMd += await copyMdDir(item.local, item.remotePrefix);
