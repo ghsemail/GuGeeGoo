@@ -2,11 +2,13 @@
 
 > 顾景源 · 五年级 · 学而思秋季班 · 源文件均在 `lessons/` 目录
 
-| 讲次 | 主题 | 知识点文件 | 练习 | 备注 |
+| 讲次 | 主题 | 知识点文件 | 练习 | 备忘 |
 |------|------|------------|------|------|
-| 第 1 讲 | 比和比例（学有所得） | `xes-grade5-autumn-lesson01.md` | 草稿待确认 | 讲义图见 `assets/images/数学/学而思五年级秋/lesson01-学有所得.jpg` |
+| 第 1 讲 | 比和比例（学有所得） | `xes-grade5-autumn-lesson01.md` | `xes-grade5-autumn-lesson01-review.pdf`（9 题） | `xes-grade5-autumn-lesson01-memo.pdf` |
 
 **练习材料：** 见 `../exercises/`（源文件在 `../exercises/source/`）
+
+**复习备忘：** 见 `../memo/`
 
 **错题与薄弱点：** `planning/math-profile.md` · `planning/math-mistake-book.md`
 
