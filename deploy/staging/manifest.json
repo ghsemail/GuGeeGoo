@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-09-26T11:06:10.867Z",
+  "generatedAt": "2026-09-26T11:09:04.216Z",
   "note": "由 npm run stage:deploy 生成；上传前请核对 private/ 勿公开读",
   "stats": {
     "planningMd": 6,
-    "publicPdf": 8
+    "publicPdf": 14
   },
   "paths": {
     "planning": "private/planning",

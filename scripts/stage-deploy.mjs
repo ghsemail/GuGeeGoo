@@ -55,6 +55,7 @@ async function copyFile(src, dest) {
 async function copyMdDir(localRel, remotePrefix) {
   const srcDir = path.join(ROOT, localRel);
   const destDir = path.join(STAGING, remotePrefix);
+  await fs.rm(destDir, { recursive: true, force: true });
   let entries;
   try {
     entries = await fs.readdir(srcDir, { withFileTypes: true });
