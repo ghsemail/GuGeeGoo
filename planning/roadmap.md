@@ -47,6 +47,7 @@
 - [x] Unit 3 知识点录入（`lessons/english-grade5-sem1-unit3.md`，课文待补）
 - [x] Unit 4 知识点录入（`lessons/english-grade5-sem1-unit4.md`，课文待补）
 - [x] Unit 5 知识点录入（`lessons/english-grade5-sem1-unit5.md`，课文待补）
+- [x] Unit 6 知识点录入（`lessons/english-grade5-sem1-unit6.md`）；五上 **6 单元知识点页齐**
 
 ---
 
