@@ -23,7 +23,11 @@ export const worksheetCss = `
   }
   .meta-left { }
   .meta-right { text-align: right; }
-  .meta-right u { text-decoration: underline; text-underline-offset: 3px; }
+  .meta-right u { 
+    text-decoration: underline; 
+    text-underline-offset: 3px;
+    letter-spacing: 2px;
+  }
   h2 { font-size: 18px; margin: 16px 0 10px; }
   h3 { font-size: 17px; margin: 12px 0 8px; }
   p { margin: 7px 0; }

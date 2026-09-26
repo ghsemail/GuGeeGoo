@@ -170,7 +170,7 @@ function mdToHtml(md, { title, meta, css, type }) {
   const body = mdToHtmlBody(md);
   
   const dateBlank = isWorksheet 
-    ? `<span class="meta-right">日期：<u>　　　　　　　</u></span>`
+    ? `<span class="meta-right">日期：<u>____________</u></span>`
     : "";
   
   return `<!DOCTYPE html>
@@ -186,7 +186,7 @@ function mdToHtml(md, { title, meta, css, type }) {
 function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
   const isWorksheet = type === "worksheet" || type === "quiz";
   const dateBlank = isWorksheet 
-    ? `<span class="meta-right">日期：<u>　　　　　　　</u></span>`
+    ? `<span class="meta-right">日期：<u>____________</u></span>`
     : "";
     
   const sections = files.map((file, i) => {
