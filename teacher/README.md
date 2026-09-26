@@ -12,9 +12,9 @@ teacher/
 ├── math/            # 数学老师
 │   ├── SOUL.md      # 身份与原则
 │   └── MEMORY.md    # 当前状态
-└── english/         # 英语老师（待建）
-    ├── SOUL.md
-    └── MEMORY.md
+└── english/         # 英语老师
+    ├── SOUL.md      # 身份与原则
+    └── MEMORY.md    # 当前状态
 ```
 
 每个学科一个子文件夹，包含：
