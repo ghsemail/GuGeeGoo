@@ -41,6 +41,9 @@ GuGeeGoo/
 │
 ├── assets/images/               # 插图、讲义扫描件
 ├── scripts/                     # 生成工具（PDF 等）
+├── teacher/                     # AI 教师配置（各学科子文件夹）
+│   ├── math/SOUL.md             # 数学老师身份与原则
+│   └── math/MEMORY.md           # 数学老师当前状态（每次工作后更新）
 ├── AGENTS.md                    # 本文件
 └── README.md                    # 项目说明
 ```

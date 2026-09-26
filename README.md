@@ -32,6 +32,7 @@ GuGeeGoo/
 │
 ├── assets/images/               # 插图、讲义扫描件
 ├── scripts/                     # PDF 生成工具
+├── teacher/                     # AI 教师配置（各学科子文件夹，每次工作后更新 MEMORY.md）
 ├── AGENTS.md                    # AI 协作约定
 └── README.md                    # 本文件
 ```
