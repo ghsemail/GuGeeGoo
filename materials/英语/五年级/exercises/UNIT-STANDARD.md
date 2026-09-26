@@ -1,5 +1,7 @@
 # 五年级英语 · 每单元练习标准
 
+> 完整出题原则见 `teacher/english/UNIT-PRINCIPLES.md`
+>
 > 与 Unit 1 整理后对齐；Unit 2～6 按此补齐。
 
 ## 每单元 4 类材料

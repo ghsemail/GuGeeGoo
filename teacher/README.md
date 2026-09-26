@@ -14,7 +14,8 @@ teacher/
 │   └── MEMORY.md    # 当前状态
 └── english/         # 英语老师
     ├── SOUL.md      # 身份与原则
-    └── MEMORY.md    # 当前状态
+    ├── MEMORY.md    # 当前状态
+    └── UNIT-PRINCIPLES.md  # 每单元出题原则
 ```
 
 每个学科一个子文件夹，包含：
