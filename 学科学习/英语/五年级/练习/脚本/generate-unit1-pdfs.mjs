@@ -8,8 +8,9 @@ const require = createRequire(import.meta.url);
 const puppeteer = require("puppeteer");
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const dir = path.join(scriptDir, "../unit1/source");
-const outDir = path.join(scriptDir, "../unit1");
+const dir = path.join(scriptDir, "../第1单元/源文件");
+const outDir = path.join(scriptDir, "../第1单元");
+const U1 = "第1单元";
 
 const answersCssWithTable = `${answersCss}
   table {
@@ -207,110 +208,95 @@ async function buildPdf(html, pdfPath, tmpName) {
   console.log("Generated", pdfPath);
 }
 
-const practiceDays = [1, 2, 3, 4].map(
-  (n) => `english-grade5-sem1-unit1-day${n}.md`
-);
+const practiceDays = [1, 2, 3, 4].map((n) => `${U1}-四天巩固-第${n}天.md`);
 
 await buildPdf(
   mdMultiDayWorksheetToHtml(practiceDays, worksheetCss),
-  path.join(outDir, "unit1-practice.pdf"),
+  path.join(outDir, `${U1}-四天巩固.pdf`),
   ".tmp-unit1-practice.html"
 );
 
 await buildPdf(
   mdAnswersToHtml(
-    readFileSync(path.join(dir, "english-grade5-sem1-unit1-practice-answers.md"), "utf8"),
+    readFileSync(path.join(dir, `${U1}-四天巩固-答案.md`), "utf8"),
     {
       title: "Unit 1 · 四天巩固 · 参考答案",
       meta: "家长专用 · 合订不分页",
       css: answersCssWithTable,
     }
   ),
-  path.join(outDir, "unit1-practice-answers.pdf"),
+  path.join(outDir, `${U1}-四天巩固-答案.pdf`),
   ".tmp-unit1-practice-answers.html"
 );
 
-const quizMd = readFileSync(
-  path.join(dir, "english-grade5-sem1-unit1-quiz.md"),
-  "utf8"
-);
+const quizMd = readFileSync(path.join(dir, `${U1}-单元小测.md`), "utf8");
 await buildPdf(
   mdSingleWorksheetToHtml(quizMd, {
     title: "Unit 1 · 单元小测",
     meta: "顾景源 · 五年级英语",
     css: worksheetCss,
   }),
-  path.join(outDir, "unit1-quiz.pdf"),
+  path.join(outDir, `${U1}-单元小测.pdf`),
   ".tmp-unit1-quiz.html"
 );
 
 await buildPdf(
   mdAnswersToHtml(
-    readFileSync(path.join(dir, "english-grade5-sem1-unit1-quiz-answers.md"), "utf8"),
+    readFileSync(path.join(dir, `${U1}-单元小测-答案.md`), "utf8"),
     {
       title: "Unit 1 · 单元小测 · 参考答案",
       meta: "家长专用",
       css: answersCssWithTable,
     }
   ),
-  path.join(outDir, "unit1-quiz-answers.pdf"),
+  path.join(outDir, `${U1}-单元小测-答案.pdf`),
   ".tmp-unit1-quiz-answers.html"
 );
 
-const weakMd = readFileSync(
-  path.join(dir, "english-grade5-sem1-unit1-weakpoint-review.md"),
-  "utf8"
-);
+const weakMd = readFileSync(path.join(dir, `${U1}-薄弱点回顾训练.md`), "utf8");
 await buildPdf(
   mdSingleWorksheetToHtml(weakMd, {
     title: "Unit 1 · 薄弱点回顾训练",
     meta: "顾景源 · 五年级英语 · WP-001 / WP-002",
     css: quizCss,
   }),
-  path.join(outDir, "unit1-weakpoint-review.pdf"),
+  path.join(outDir, `${U1}-薄弱点回顾训练.pdf`),
   ".tmp-unit1-weakpoint.html"
 );
 
 await buildPdf(
   mdAnswersToHtml(
-    readFileSync(
-      path.join(dir, "english-grade5-sem1-unit1-weakpoint-review-answers.md"),
-      "utf8"
-    ),
+    readFileSync(path.join(dir, `${U1}-薄弱点回顾训练-答案.md`), "utf8"),
     {
       title: "Unit 1 · 薄弱点回顾训练 · 参考答案",
       meta: "家长专用",
       css: quizCss,
     }
   ),
-  path.join(outDir, "unit1-weakpoint-review-answers.pdf"),
+  path.join(outDir, `${U1}-薄弱点回顾训练-答案.pdf`),
   ".tmp-unit1-weakpoint-answers.html"
 );
 
-// 可选存档：基线测评
-const baselineMd = readFileSync(
-  path.join(dir, "english-grade5-sem1-unit1-baseline.md"),
-  "utf8"
-);
+const baselineMd = readFileSync(path.join(dir, `${U1}-基线测评-存档.md`), "utf8");
 await buildPdf(
   mdSingleWorksheetToHtml(baselineMd, {
     title: "Unit 1 · 基线测评（存档）",
     meta: "顾景源 · 五年级英语 · 2026-09-05",
     css: worksheetCss,
   }),
-  path.join(outDir, "unit1-baseline.pdf"),
+  path.join(outDir, `${U1}-基线测评-存档.pdf`),
   ".tmp-unit1-baseline.html"
 );
 
 await buildPdf(
   mdAnswersToHtml(
-    readFileSync(path.join(dir, "english-grade5-sem1-unit1-baseline-answers.md"), "utf8"),
+    readFileSync(path.join(dir, `${U1}-基线测评-存档-答案.md`), "utf8"),
     {
       title: "Unit 1 · 基线测评 · 参考答案",
       meta: "家长专用 · 存档",
       css: answersCss,
     }
   ),
-  path.join(outDir, "unit1-baseline-answers.pdf"),
+  path.join(outDir, `${U1}-基线测评-存档-答案.pdf`),
   ".tmp-unit1-baseline-answers.html"
 );

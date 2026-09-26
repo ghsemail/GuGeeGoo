@@ -14,8 +14,8 @@
  *   --multi <文件1,文件2>    多页练习模式，逗号分隔文件名
  * 
  * 示例：
- *   npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/english-grade5-sem1-unit2-day1.md
- *   npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/源文件/xes-grade5-autumn-lesson01-practice1.md --answers xes-grade5-autumn-lesson01-practice1-answers.md
+ *   npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/第2单元-四天巩固-第1天.md
+ *   npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/源文件/第1讲-回顾训练.md --answers 第1讲-回顾训练-答案.md
  */
 
 import { readFileSync, writeFileSync, unlinkSync, existsSync } from "node:fs";
@@ -245,8 +245,8 @@ async function main() {
   --multi <文件列表>       多页模式，逗号分隔
 
 示例:
-  npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/english-grade5-sem1-unit2-day1.md
-  npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/源文件/xes-grade5-autumn-lesson01-practice1.md --answers xes-grade5-autumn-lesson01-practice1-answers.md
+  npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/第2单元-四天巩固-第1天.md
+  npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/源文件/第1讲-回顾训练.md --answers 第1讲-回顾训练-答案.md
 `);
     process.exit(0);
   }
