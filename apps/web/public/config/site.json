@@ -1,0 +1,19 @@
+{
+  "studentName": "顾景源",
+  "gradeLabel": "五年级",
+  "status": "prelaunch",
+  "subjects": [
+    {
+      "id": "english",
+      "title": "英语",
+      "subtitle": "外研版 · 五年级上",
+      "cosPath": "public/exercises/english/grade5"
+    },
+    {
+      "id": "math",
+      "title": "数学",
+      "subtitle": "学而思 · 五年级秋季班",
+      "cosPath": "public/exercises/math/xes-grade5-autumn"
+    }
+  ]
+}

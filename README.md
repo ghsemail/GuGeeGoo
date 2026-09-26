@@ -31,8 +31,11 @@ GuGeeGoo/
 │       │   └── 源文件/               # 练习 MD 源文件
 │       └── 备忘/                     # 复习备忘
 │
+├── apps/web/                         # 学生主页（Cloudflare Pages）
+├── infra/                            # Cloudflare、腾讯云 COS 说明
+├── deploy/staging/                   # 待上传 COS 的快照（含规划 MD）
 ├── assets/images/                    # 插图、讲义扫描件
-├── scripts/                          # PDF 生成工具
+├── scripts/                          # PDF、stage-deploy、sync-cos
 ├── 老师/                             # AI 教师配置（各学科子文件夹，每次工作后更新 MEMORY.md）
 ├── AGENTS.md                         # AI 协作约定
 └── README.md                         # 本文件
@@ -53,7 +56,19 @@ GuGeeGoo/
 | 英语复习备忘 | `.../源文件/第N单元-复习备忘.md` | `.../第N单元/第N单元-复习备忘.pdf` |
 | 数学复习备忘 | `学科学习/数学/.../备忘/` | 同目录 |
 
-**不输出 HTML**，统一使用 MD + PDF。
+练习材料统一使用 **MD + PDF**（学生主页 `apps/web` 为静态 HTML，不含薄弱点编码）。
+
+## 主页与 COS（预备）
+
+```bash
+npm install
+npm run stage:deploy    # 学习档案 → deploy/staging/private/planning/
+npm run web:dev         # 本地预览主页
+npm run web:build       # 构建 Pages 产物
+# 配置 .env 后：npm run sync:cos
+```
+
+详见 [`infra/README.md`](./infra/README.md)。
 
 ## PDF 生成
 
