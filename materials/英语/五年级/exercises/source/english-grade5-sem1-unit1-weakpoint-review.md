@@ -1,8 +1,8 @@
-# Unit 1 · 薄弱点小测
+# Unit 1 · 薄弱点回顾训练
 
 > 顾景源 · 五年级英语  
-> **考查：** WP-001 名词复数 · WP-002 a lot of  
-> **打印版：** `unit1-quiz-wp001-wp002.pdf` · 共 5 题
+> **针对：** WP-001 名词复数 · WP-002 a lot of（及单元易错）  
+> **打印版：** `unit1-weakpoint-review.pdf` · 共 5 题 · 字号偏大
 
 ---
 

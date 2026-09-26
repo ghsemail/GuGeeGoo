@@ -4,10 +4,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
-const puppeteer = require("../exercises/source/node_modules/puppeteer");
+const puppeteer = require("../exercises/source/node_modules/puppeteer"); // run npm install in source/
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const pdfPath = path.join(dir, "unit1-review-memo.pdf");
+const pdfPath = path.join(dir, "unit1-memo.pdf");
 const tmpHtml = path.join(dir, ".tmp-review-memo.html");
 
 const html = `<!DOCTYPE html>

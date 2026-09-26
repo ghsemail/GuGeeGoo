@@ -1,7 +1,7 @@
-# Unit 2 · A green life · 四天练习安排
+# Unit 2 · A green life · 练习索引
 
 > 顾景源 · 五年级上英语  
-> **材料格式：** Markdown 预览 → 家长确认后 → PDF（4 页合订 + 答案 PDF）
+> **单元标准：** 见 [`../UNIT-STANDARD.md`](../UNIT-STANDARD.md)（四天巩固 / Memo / 单元小测 / 薄弱点回顾）
 
 ---
 

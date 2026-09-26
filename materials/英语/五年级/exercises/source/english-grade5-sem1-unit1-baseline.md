@@ -1,0 +1,36 @@
+# Unit 1 · 基线测评（存档）
+
+> 顾景源 · 五年级英语 · **2026-09-05 首次作业，已批改 12/18**  
+> **说明：** 不属于标准四件套；保留备查。可选 PDF：`unit1-baseline.pdf`
+
+---
+
+## 一、词汇
+
+1. 糖果　__________
+2. 健康的　__________
+3. 汤　　__________
+4. 面包　__________
+5. 土豆　__________
+6. 总是　__________
+
+## 二、短语填空
+
+1. We should have __________ every day.（健康饮食）
+2. There are five __________ on our plate.（食物类别）
+3. Eat __________ to stay healthy.（水果和蔬菜）
+4. Don't __________ candy!（吃太多）
+5. Rice and noodles give us __________ energy.（大量的）
+
+## 三、语法填空
+
+1. You __________ eat too fast.（不应该）
+2. We __________ eat slowly.（应该）
+3. __________ take too much!（别拿太多！）
+4. You __________ have some vegetables.（应该）
+5. You __________ eat candy every day.（不应该）
+
+## 四、选词填空
+
+1. A healthy body starts with __________ (healthy / health / heavy) food.
+2. Milk and cheese are good for our __________ (bone / bones / bread) and teeth.

@@ -1,8 +1,8 @@
-# Unit 1 · Day 2-4 巩固练习
+# Unit 1 · Day 4 巩固练习
 
-> 顾景源 · 五年级英语 · 第 4/4 份  
+> 顾景源 · 五年级英语 · 第 4/4 天  
 > **针对：** WP-004 take/eat · WP-001 复数 · WP-002 a lot of · WP-003 shouldn't  
-> **打印版：** `unit1-day2.pdf` 第 4 页
+> **打印版：** `unit1-practice.pdf` 第 4 页
 
 ---
 
