@@ -5,8 +5,9 @@ import puppeteer from "puppeteer";
 import { answersCss, worksheetCss } from "./pdf-theme.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const dir = path.join(scriptDir, "../unit2/source");
-const outDir = path.join(scriptDir, "../unit2");
+const dir = path.join(scriptDir, "../第2单元/源文件");
+const outDir = path.join(scriptDir, "../第2单元");
+const U2 = "第2单元";
 
 const answersCssWithTable = `${answersCss}
   table {
@@ -203,20 +204,15 @@ async function buildPdf(html, pdfPath, tmpName) {
   console.log("Generated", pdfPath);
 }
 
-const dayFiles = [1, 2, 3, 4].map(
-  (n) => `english-grade5-sem1-unit2-day${n}.md`
-);
+const dayFiles = [1, 2, 3, 4].map((n) => `${U2}-四天巩固-第${n}天.md`);
 
 await buildPdf(
   mdMultiDayWorksheetToHtml(dayFiles, worksheetCss),
-  path.join(outDir, "unit2-practice.pdf"),
+  path.join(outDir, `${U2}-四天巩固.pdf`),
   ".tmp-unit2-practice.html"
 );
 
-const answersMd = readFileSync(
-  path.join(dir, "english-grade5-sem1-unit2-answers.md"),
-  "utf8"
-);
+const answersMd = readFileSync(path.join(dir, `${U2}-四天巩固-答案.md`), "utf8");
 
 await buildPdf(
   mdAnswersToHtml(answersMd, {
@@ -224,6 +220,6 @@ await buildPdf(
     meta: "家长专用 · 合订不分页",
     css: answersCssWithTable,
   }),
-  path.join(outDir, "unit2-practice-answers.pdf"),
+  path.join(outDir, `${U2}-四天巩固-答案.pdf`),
   ".tmp-unit2-answers.html"
 );

@@ -7,7 +7,7 @@ const require = createRequire(import.meta.url);
 const puppeteer = require("puppeteer");
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const pdfPath = path.join(scriptDir, "../unit1/unit1-memo.pdf");
+const pdfPath = path.join(scriptDir, "../第1单元/第1单元-复习备忘.pdf");
 const tmpHtml = path.join(scriptDir, ".tmp-review-memo.html");
 
 const html = `<!DOCTYPE html>
