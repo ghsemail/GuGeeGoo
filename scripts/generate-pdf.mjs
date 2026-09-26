@@ -109,16 +109,9 @@ function getCss(type) {
   }
 }
 
-function extractNameDateLine(md) {
-  const match = md.match(/^\*\*姓名[：:].+日期[：:].+\*\*$/m);
-  return match ? match[0] : null;
-}
-
-function mdToHtmlBody(md, options = {}) {
+function mdToHtmlBody(md) {
   const lines = md.split(/\r?\n/);
   const body = [];
-  const nameDateLine = extractNameDateLine(md);
-  const skipNameDate = options.skipNameDate || false;
 
   for (let i = 0; i < lines.length; ) {
     const line = lines[i];
@@ -127,12 +120,6 @@ function mdToHtmlBody(md, options = {}) {
     if (line.startsWith("> ")) { i++; continue; }
     if (line === "---") { i++; continue; }
     if (line.trim() === "") { i++; continue; }
-
-    // Skip name/date line in body if we're handling it separately
-    if (skipNameDate && nameDateLine && line === nameDateLine) {
-      i++;
-      continue;
-    }
 
     if (line.startsWith("## ")) {
       body.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
@@ -180,11 +167,10 @@ function mdToHtmlBody(md, options = {}) {
 
 function mdToHtml(md, { title, meta, css, type }) {
   const isWorksheet = type === "worksheet" || type === "quiz";
-  const nameDateLine = isWorksheet ? extractNameDateLine(md) : null;
-  const body = mdToHtmlBody(md, { skipNameDate: !!nameDateLine });
+  const body = mdToHtmlBody(md);
   
-  const nameDateHtml = nameDateLine 
-    ? `<p class="name-date">${blanksToUnderline(escapeHtml(nameDateLine))}</p>`
+  const dateBlank = isWorksheet 
+    ? `<span class="meta-right">日期：<u>　　　　　　　</u></span>`
     : "";
   
   return `<!DOCTYPE html>
@@ -192,13 +178,17 @@ function mdToHtml(md, { title, meta, css, type }) {
 <head><meta charset="UTF-8"><style>${css}</style></head>
 <body>
   <h1>${escapeHtml(title)}</h1>
-  <div class="meta">${escapeHtml(meta)}</div>
-  ${nameDateHtml}
+  <div class="meta"><span class="meta-left">${escapeHtml(meta)}</span>${dateBlank}</div>
   ${body}
 </body></html>`;
 }
 
-function mdMultiToHtml(files, css, baseMeta) {
+function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
+  const isWorksheet = type === "worksheet" || type === "quiz";
+  const dateBlank = isWorksheet 
+    ? `<span class="meta-right">日期：<u>　　　　　　　</u></span>`
+    : "";
+    
   const sections = files.map((file, i) => {
     const md = readFileSync(file, "utf8");
     const { title, meta } = extractMeta(md);
@@ -206,7 +196,7 @@ function mdMultiToHtml(files, css, baseMeta) {
     const cls = i === 0 ? "sheet" : "sheet page-break";
     return `<section class="${cls}">
   <h1>${escapeHtml(title)}</h1>
-  <div class="meta">${escapeHtml(meta || baseMeta)}</div>
+  <div class="meta"><span class="meta-left">${escapeHtml(meta || baseMeta)}</span>${dateBlank}</div>
   ${body}
 </section>`;
   });
@@ -282,8 +272,9 @@ async function main() {
     const multiFiles = options.multi.split(",").map(f => 
       path.isAbsolute(f.trim()) ? f.trim() : path.join(inputDir, f.trim())
     );
-    const css = getCss(options.type || "worksheet");
-    const html = mdMultiToHtml(multiFiles, css, options.meta || "顾景源");
+    const type = options.type || "worksheet";
+    const css = getCss(type);
+    const html = mdMultiToHtml(multiFiles, css, options.meta || "顾景源", type);
     const pdfPath = path.join(outDir, `${inputName}.pdf`);
     await generatePdf(html, pdfPath);
   } else {
