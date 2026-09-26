@@ -19,7 +19,7 @@
 | 2026-09-19 | Unit 1 Day 2-3 · 选词填空 | Q1 | There are five food __________. | group | **groups** | WP-001 复数 | five 后面用复数 groups |
 | 2026-09-19 | Unit 1 Day 2-3 · 选词填空 | Q5 | __________ fruit and __________ to stay healthy. | Eat · vegetable | **Eat · vegetables** | WP-001 复数 | 词库为 vegetables，需用复数 |
 | 2026-09-19 | Unit 1 Day 2-3 · 选词填空 | Q6 | Rice and bread give us __________ energy. | allot of | **a lot of** | WP-002 a lot of | 勿与 allot（分配）混淆 |
-| 2026-09-25 | Unit 2 Day 1 · 祈使句 | Q2 | __________ to eat all your food.（尽量把饭吃完） | Try（判错） | **try** | 祈使句 / 课文 | 课文：*And remember, try to eat all your food.* 若确为 try 建议复核 |
+| 2026-09-25 | Unit 2 Day 1 · 祈使句 | Q2 | __________ to eat all your food.（尽量把饭吃完） | Try | **try / Try** | 祈使句 / 课文 | ✅ 已更正：2026-09-26 家长确认句首大写 Try 算对，Day 1 成绩 10/10 |
 | 2026-09-25 | Unit 2 Day 2 · 选词填空 | Q2 | … clean small __________. | children | **places** | WP-005 选词语境 | 课文：*clean small places*（地方），不是 children |
 | 2026-09-25 | Unit 2 Day 2 · 选词填空 | Q3 | … this __________ bottle. | places | **useful** | WP-005 选词语境 | 修饰 bottle 用 useful（有用的） |
 | 2026-09-26 | Unit 2 Day 3 · 排序 | Q1 | 第一步：__________ | Take | **Take off** | WP-006 动词短语写完整 | 完整短语 take off the bottle caps，不能省略 off |

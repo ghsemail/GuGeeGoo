@@ -86,7 +86,7 @@
 - [x] Unit 2 课文 Get Ready + 知识点录入（`lessons/english-grade5-sem1-unit2.md`）
 - [x] Unit 2 四天练习 MD 草案（待家长确认）
 - [x] Unit 2 练习 PDF（`unit2-practice.pdf` + 答案合订）
-- [x] Unit 2 Day 1 练习（9/10）
+- [x] Unit 2 Day 1 练习（10/10）
 - [x] Unit 2 Day 2 练习（7/9）
 - [x] Unit 2 Day 3 练习（9/10）
 - [ ] Unit 2 Day 4 练习
