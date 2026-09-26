@@ -20,11 +20,12 @@
 ```
 GuGeeGoo/
 ├── planning/                    # 家长端规划与追踪
-│   ├── roadmap.md               # 学习路线图（总览）
-│   ├── progress.md              # 进度记录（按日期）
+│   ├── roadmap.md               # 学习路线图（总览，双学科）
+│   ├── progress.md              # 进度记录（按日期，双学科）
 │   ├── english-profile.md       # 英语薄弱点档案
+│   ├── english-mistake-book.md  # 英语错题本
 │   ├── math-profile.md          # 数学薄弱点档案
-│   └── mistake-book.md          # 错题本（英语 + 数学）
+│   └── math-mistake-book.md     # 数学错题本
 │
 ├── materials/                   # 学习材料
 │   ├── 英语/五年级/
@@ -74,16 +75,18 @@ GuGeeGoo/
 
 ## 5. 批改后同步流程（四档同步）
 
-家长批改后，AI 助手需依次更新以下 4 个文件：
+家长批改后，AI 助手需依次更新以下 4 个文件（按学科区分错题本）：
 
 | 顺序 | 文件 | 操作 |
 |------|------|------|
-| 1 | `mistake-book.md` | 添加每道错题一行（表格格式） |
+| 1 | `<学科>-mistake-book.md` | 添加每道错题一行（英语用 `english-mistake-book.md`，数学用 `math-mistake-book.md`） |
 | 2 | `<学科>-profile.md` | 更新「当前关注」连续正确计数；若达标则移至「已掌握」并记录巩固日志；新错题则添加薄弱点明细 |
-| 3 | `progress.md` | 添加一行含 **成绩** 加粗（如 **7/9**） |
+| 3 | `progress.md` | 添加一行含 **成绩** 加粗（如 **7/9**），带学科标记 [英]/[数] |
 | 4 | `roadmap.md` | 更新对应单元 / 讲次状态及近期计划勾选 |
 
-### mistake-book.md 格式
+> **注意**：`progress.md` 和 `roadmap.md` 是双学科合并文件，用学科标记或分节区分。
+
+### 错题本格式（英语 / 数学通用）
 
 ```markdown
 | 日期 | 来源 | 题号 | 题目 | 景源作答 | 正确写法 | 知识点 | 备注 |
@@ -201,7 +204,7 @@ npm run pdf -- <练习MD路径> [--answers <答案MD路径>] [--out <输出目�
 ### Intake（录入）
 
 - 按学校 / 学而思进度录入新课知识点
-- 家长上传错题照片后录入 `mistake-book.md`
+- 家长上传错题照片后录入对应学科的错题本（`english-mistake-book.md` 或 `math-mistake-book.md`）
 
 ### 练习生成
 

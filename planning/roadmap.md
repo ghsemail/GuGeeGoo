@@ -1,7 +1,8 @@
 # 学习路线图
 
 > 由家长维护，根据景源的学校进度和薄弱点灵活调整。  
-> **进度明细：** `progress.md` · **英语档案：** `english-profile.md` · **数学档案：** `math-profile.md` · **错题本：** `mistake-book.md`
+> **进度明细：** `progress.md` · **英语档案：** `english-profile.md` · **数学档案：** `math-profile.md`  
+> **错题本：** `english-mistake-book.md` · `math-mistake-book.md`
 
 ---
 
@@ -15,7 +16,7 @@
 | 目录与档案 | 讲次索引、math-profile、错题本数学小节 | ✅ 已建 |
 | 知识点录入 | 按讲次写入 `lessons/` | 🔄 第 1 讲已录入 |
 | 练习生成 | 按讲次在 `exercises/source/` 写练习 | 🔄 第 1 讲练习草稿已完成 |
-| 错题录入 | 录入 `mistake-book.md` 并更新薄弱点 | ✅ 第 1 讲 Day 1–4 已录入 |
+| 错题录入 | 录入 `math-mistake-book.md` 并更新薄弱点 | ✅ 第 1 讲 Day 1–4 已录入 |
 
 ### 当前薄弱点（需巩固）
 

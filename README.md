@@ -11,11 +11,12 @@
 ```
 GuGeeGoo/
 ├── planning/                    # 家长端：路线图、进度、档案
-│   ├── roadmap.md               # 学习路线图（总览）
-│   ├── progress.md              # 进度记录（按日期）
+│   ├── roadmap.md               # 学习路线图（总览，双学科）
+│   ├── progress.md              # 进度记录（按日期，双学科）
 │   ├── english-profile.md       # 英语薄弱点档案
+│   ├── english-mistake-book.md  # 英语错题本
 │   ├── math-profile.md          # 数学薄弱点档案
-│   └── mistake-book.md          # 错题本（英语 + 数学）
+│   └── math-mistake-book.md     # 数学错题本
 │
 ├── materials/                   # 给景源看的学习材料
 │   ├── 英语/五年级/
@@ -90,6 +91,7 @@ npm run pdf -- materials/数学/五年级/学而思五年级秋/exercises/source
 
 ### 规划与追踪
 
-- `planning/roadmap.md` — 学习路线图
-- `planning/progress.md` — 学习进度
-- `planning/mistake-book.md` — 错题本（英语 + 数学）
+- `planning/roadmap.md` — 学习路线图（双学科）
+- `planning/progress.md` — 学习进度（双学科）
+- `planning/english-mistake-book.md` — 英语错题本
+- `planning/math-mistake-book.md` — 数学错题本

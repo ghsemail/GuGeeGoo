@@ -8,6 +8,6 @@
 
 **练习材料：** 见 `../exercises/`（源文件在 `../exercises/source/`）
 
-**错题与薄弱点：** `planning/math-profile.md` · `planning/mistake-book.md`（数学小节）
+**错题与薄弱点：** `planning/math-profile.md` · `planning/math-mistake-book.md`
 
 *最后更新：2026-09-26*
