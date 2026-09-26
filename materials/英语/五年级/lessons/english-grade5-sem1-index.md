@@ -13,4 +13,6 @@
 
 **练习材料：** Unit 1～2 见 `../exercises/`；Unit 3～6 练习未建。
 
+**课文：** Unit 3～6（及 Unit 2 后续篇章）**后续补入**各单元 `english-grade5-sem1-unitN.md` 的「课文」小节。
+
 *最后更新：2026-09-26*
