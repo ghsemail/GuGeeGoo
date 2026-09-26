@@ -11,12 +11,14 @@
             "id": "e1584f4b257a9411",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1.pdf"
+                "file": "materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-lesson01.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-file-text",
-              "title": "xes-grade5-autumn-lesson01-practice1"
+              "icon": "lucide-file",
+              "title": "xes-grade5-autumn-lesson01"
             }
           }
         ]
@@ -190,21 +192,22 @@
   "active": "e1584f4b257a9411",
   "lastOpenFiles": [
     "materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-index.md",
-    "materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-lesson01.md",
-    "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1-answers.pdf",
+    "planning/math-profile.md",
+    "planning/math-mistake-book.md",
     "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1.pdf",
+    "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice2.pdf",
+    "materials/数学/五年级/学而思五年级秋/exercises/xes-grade5-autumn-lesson01-practice1-answers.pdf",
+    "materials/数学/五年级/学而思五年级秋/lessons/xes-grade5-autumn-lesson01.md",
     "materials/英语/五年级/exercises/unit1-quiz-wp001-wp002.pdf",
     "scripts/pdf-theme.mjs",
     "scripts/generate-pdf.mjs",
     "scripts",
-    "planning/math-mistake-book.md",
     "planning/english-mistake-book.md",
     "package.json",
     "package-lock.json",
     "materials/英语/五年级/memo/DEPRECATED.md",
     "materials/英语/五年级/exercises/source/DEPRECATED.md",
     "materials/英语/五年级/exercises/english-grade5-sem1-unit2-day1.pdf",
-    "materials/英语/五年级/exercises/english-grade5-sem1-unit2-day1-answers.pdf",
     "materials/数学/五年级/学而思五年级秋/exercises/source/xes-grade5-autumn-lesson01-practice1.md",
     "materials/数学/五年级/学而思五年级秋/exercises/source/xes-grade5-autumn-lesson01-practice1-answers.md",
     "assets/images/数学/学而思五年级秋/lesson01-学有所得.jpg",
