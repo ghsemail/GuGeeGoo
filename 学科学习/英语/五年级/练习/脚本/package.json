@@ -6,6 +6,7 @@
   "scripts": {
     "unit1": "node generate-unit1-pdfs.mjs",
     "unit2": "node generate-unit2-pdfs.mjs",
+    "fourday:3-6": "node generate-fourday-pdf.mjs 3 4 5 6",
     "memo1": "node generate-memo-pdf.mjs"
   },
   "dependencies": {
