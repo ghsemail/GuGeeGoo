@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
-import { answersCss, worksheetCss } from "./pdf-theme.mjs";
+import { answersCss, quizCss, worksheetCss } from "./pdf-theme.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const dir = path.join(scriptDir, "../第2单元/源文件");
@@ -44,28 +44,58 @@ function mdWorksheetBody(md) {
   const lines = md.split(/\r?\n/);
   const body = [];
 
-  for (const line of lines) {
-    if (line.startsWith("# ")) continue;
-    if (line.startsWith("> ")) continue;
-    if (line === "---") continue;
-    if (line.trim() === "") continue;
+  for (let i = 0; i < lines.length; ) {
+    const line = lines[i];
+
+    if (line.startsWith("# ")) {
+      i++;
+      continue;
+    }
+    if (line.startsWith("> ")) {
+      i++;
+      continue;
+    }
+    if (line === "---") {
+      i++;
+      continue;
+    }
+    if (line.trim() === "") {
+      i++;
+      continue;
+    }
 
     if (line.startsWith("## ")) {
       body.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
+      i++;
       continue;
     }
 
     if (line.startsWith("*") && line.endsWith("*") && !line.startsWith("**")) {
       body.push(`<p class="hint"><em>${escapeHtml(line.slice(1, -1))}</em></p>`);
+      i++;
       continue;
     }
 
     if (line.startsWith("- [ ]")) {
       body.push(`<p>${escapeHtml(line.replace(/^- \[ \]\s*/, "☐ "))}</p>`);
+      i++;
+      continue;
+    }
+
+    if (line.trim().startsWith("|")) {
+      const tableRows = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        if (!isTableSeparator(lines[i])) {
+          tableRows.push(parseTableRow(lines[i]));
+        }
+        i++;
+      }
+      body.push(mdTableToHtml(tableRows));
       continue;
     }
 
     body.push(`<p>${blanksToUnderline(escapeHtml(line))}</p>`);
+    i++;
   }
 
   return body.join("\n");
@@ -76,6 +106,13 @@ function mdWorksheetSection(md, { title, meta }) {
   <h1>${escapeHtml(title)}</h1>
   <div class="meta">${escapeHtml(meta)}</div>
   ${mdWorksheetBody(md)}`;
+}
+
+function mdSingleWorksheetToHtml(md, { title, meta, css }) {
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><style>${css}</style></head>
+<body>${mdWorksheetSection(md, { title, meta })}</body></html>`;
 }
 
 function mdMultiDayWorksheetToHtml(dayFiles, css) {
@@ -222,4 +259,63 @@ await buildPdf(
   }),
   path.join(outDir, `${U2}-四天巩固-答案.pdf`),
   ".tmp-unit2-answers.html"
+);
+
+const memoMd = readFileSync(path.join(dir, `${U2}-复习备忘.md`), "utf8");
+await buildPdf(
+  mdAnswersToHtml(memoMd, {
+    title: "Unit 2 · 易错点复习备忘",
+    meta: "顾景源 · 五年级英语 · 课后复习用，不是测验",
+    css: answersCssWithTable,
+  }),
+  path.join(outDir, `${U2}-复习备忘.pdf`),
+  ".tmp-unit2-memo.html"
+);
+
+const quizMd = readFileSync(path.join(dir, `${U2}-单元小测.md`), "utf8");
+await buildPdf(
+  mdSingleWorksheetToHtml(quizMd, {
+    title: "Unit 2 · 单元小测",
+    meta: "顾景源 · 五年级英语",
+    css: worksheetCss,
+  }),
+  path.join(outDir, `${U2}-单元小测.pdf`),
+  ".tmp-unit2-quiz.html"
+);
+
+await buildPdf(
+  mdAnswersToHtml(
+    readFileSync(path.join(dir, `${U2}-单元小测-答案.md`), "utf8"),
+    {
+      title: "Unit 2 · 单元小测 · 参考答案",
+      meta: "家长专用",
+      css: answersCssWithTable,
+    }
+  ),
+  path.join(outDir, `${U2}-单元小测-答案.pdf`),
+  ".tmp-unit2-quiz-answers.html"
+);
+
+const weakMd = readFileSync(path.join(dir, `${U2}-薄弱点回顾训练.md`), "utf8");
+await buildPdf(
+  mdSingleWorksheetToHtml(weakMd, {
+    title: "Unit 2 · 薄弱点回顾训练",
+    meta: "顾景源 · 五年级英语",
+    css: quizCss,
+  }),
+  path.join(outDir, `${U2}-薄弱点回顾训练.pdf`),
+  ".tmp-unit2-weakpoint.html"
+);
+
+await buildPdf(
+  mdAnswersToHtml(
+    readFileSync(path.join(dir, `${U2}-薄弱点回顾训练-答案.md`), "utf8"),
+    {
+      title: "Unit 2 · 薄弱点回顾训练 · 参考答案",
+      meta: "家长专用",
+      css: quizCss,
+    }
+  ),
+  path.join(outDir, `${U2}-薄弱点回顾训练-答案.pdf`),
+  ".tmp-unit2-weakpoint-answers.html"
 );
