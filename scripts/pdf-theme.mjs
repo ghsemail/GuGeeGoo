@@ -49,6 +49,8 @@ export const worksheetCss = `
     vertical-align: top;
   }
   th { background: #f0f0f0; font-weight: 700; }
+  .fig-wrap { margin: 10px 0 14px; text-align: center; page-break-inside: avoid; }
+  img.fig { max-width: 92%; max-height: 105mm; height: auto; width: auto; }
 `;
 
 export const quizCss = `

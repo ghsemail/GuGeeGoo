@@ -109,12 +109,29 @@ function getCss(type) {
   }
 }
 
-function mdToHtmlBody(md) {
+function mdToHtmlBody(md, baseDir) {
   const lines = md.split(/\r?\n/);
   const body = [];
 
   for (let i = 0; i < lines.length; ) {
     const line = lines[i];
+
+    const imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imgMatch) {
+      const alt = imgMatch[1];
+      const rel = imgMatch[2];
+      const abs = path.isAbsolute(rel) ? rel : path.resolve(baseDir, rel);
+      if (existsSync(abs)) {
+        const src = `file://${abs}`;
+        body.push(
+          `<p class="fig-wrap"><img class="fig" src="${src}" alt="${escapeHtml(alt)}" /></p>`
+        );
+      } else {
+        body.push(`<p>${escapeHtml(line)}</p>`);
+      }
+      i++;
+      continue;
+    }
 
     if (line.startsWith("# ")) { i++; continue; }
     if (line.startsWith("> ")) { i++; continue; }
@@ -165,9 +182,9 @@ function mdToHtmlBody(md) {
   return body.join("\n");
 }
 
-function mdToHtml(md, { title, meta, css, type }) {
+function mdToHtml(md, { title, meta, css, type, baseDir }) {
   const isWorksheet = type === "worksheet" || type === "quiz";
-  const body = mdToHtmlBody(md);
+  const body = mdToHtmlBody(md, baseDir || process.cwd());
   
   const dateBlank = isWorksheet 
     ? `<span class="meta-right">日期：<u>____________</u></span>`
@@ -192,7 +209,7 @@ function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
   const sections = files.map((file, i) => {
     const md = readFileSync(file, "utf8");
     const { title, meta } = extractMeta(md);
-    const body = mdToHtmlBody(md);
+    const body = mdToHtmlBody(md, path.dirname(file));
     const cls = i === 0 ? "sheet" : "sheet page-break";
     return `<section class="${cls}">
   <h1>${escapeHtml(title)}</h1>
@@ -288,6 +305,7 @@ async function main() {
       meta: options.meta || autoMeta,
       css,
       type,
+      baseDir: inputDir,
     });
 
     const pdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}.pdf`);
@@ -308,6 +326,7 @@ async function main() {
           meta: ansMeta || "家长专用",
           css: answersCss,
           type: "answers",
+          baseDir: path.dirname(answersPath),
         });
         const answersPdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}-answers.pdf`);
         await generatePdf(answersHtml, answersPdfPath);
