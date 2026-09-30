@@ -11,6 +11,9 @@
 | Account ID | `15b1233497d3363a2240f8a54f900fe2`（已写入 [`wrangler.toml`](./wrangler.toml)） |
 | Wrangler 配置 | [`infra/cloudflare/wrangler.toml`](./wrangler.toml) |
 | 构建产物 | `apps/web/dist/`（`npm run web:build`） |
+| 当前主页 | **Hello World**（`apps/web/index.html`，与线上一致） |
+
+**首次上线（2026-09）：** 维护者曾用 `wrangler pages deploy` 手动 Direct Upload 到项目 `gugeegoo`（branch `main`），发布上述 Hello World 页。合并本仓库 CI 配置并 push `main` 后，GitHub Actions 将构建同一页面并覆盖部署，避免回退到旧骨架页。
 
 发布路径二选一（或同时使用）：
 
@@ -31,7 +34,7 @@
 |------|------|------|------|
 | `CLOUDFLARE_API_TOKEN` | Secret | **是**（否则 CI 跳过部署） | Cloudflare API Token |
 | `CLOUDFLARE_ACCOUNT_ID` | Variable | 否 | 默认与 `wrangler.toml` 相同，可不填 |
-| `VITE_COS_PUBLIC_BASE_URL` | Variable | 否 | 构建时注入 Vite；未设时主页 COS 链接为「待配置」 |
+| `VITE_COS_PUBLIC_BASE_URL` | Variable | 否 | 构建时注入 Vite；当前 Hello World 页未使用，后续学科/COS 入口再启用 |
 
 **Token 权限（创建 Token 时勾选）：**
 

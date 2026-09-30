@@ -2,6 +2,8 @@
 
 静态站点（Vite），部署到 **Cloudflare Pages** 项目 `gugeegoo`（https://gugeegoo.pages.dev）。
 
+当前首页为 **Hello World**（紫色渐变卡片 + 挥手动画），源码在 `index.html` 与 `src/style.css`，与维护者首次手动 `wrangler pages deploy` 上线的页面一致。后续可在 `src/main.js` 中接入 COS 练习链接等。
+
 ## 开发
 
 在仓库根目录：
@@ -12,13 +14,6 @@ npm run web:dev
 ```
 
 浏览器打开 http://localhost:5173
-
-本地调试 COS 链接时可临时导出：
-
-```bash
-export VITE_COS_PUBLIC_BASE_URL=https://你的公开CDN根路径
-npm run web:dev
-```
 
 ## 构建
 
@@ -41,9 +36,11 @@ Wrangler 与账号配置见 [`../../infra/cloudflare/pages.md`](../../infra/clou
 
 | 变量 | 说明 |
 |------|------|
-| `VITE_COS_PUBLIC_BASE_URL` | 腾讯云 COS/CDN 上 `public/` 的根 URL（构建时注入） |
+| `VITE_COS_PUBLIC_BASE_URL` | 腾讯云 COS/CDN 上 `public/` 的根 URL（构建时由 Vite 注入；**当前 Hello World 未使用**，保留供后续学科入口） |
 
 GitHub 可在 **Settings → Variables** 配置同名变量供 CI 构建。
+
+`public/config/site.json` 为旧骨架预留配置，当前首页不读取；日后扩展时可再用。
 
 ## 隐私
 
