@@ -4,7 +4,7 @@
 
 | 类型 | 名称 | 目标 | 说明 |
 |------|------|------|------|
-| CNAME | `www` | `<pages-project>.pages.dev` 或 Pages 提供的 target | 学生主页 |
+| CNAME | `www` | `gugeegoo.pages.dev` 或 Pages 控制台给出的 Custom domain target | 学生主页 |
 | CNAME / 平铺 | `@` | Cloudflare Pages（apex） | 可选 |
 | CNAME | `files` 或 `cdn` | COS 静态网站 / CDN 域名 | 公开 PDF |
 | — | — | — | 私有桶 **不要** 绑公共 CDN |

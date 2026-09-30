@@ -11,13 +11,15 @@
     "stage:deploy": "node scripts/stage-deploy.mjs",
     "sync:cos": "node scripts/sync-cos.mjs",
     "web:dev": "npm run dev -w @gugeegoo/web",
-    "web:build": "npm run build -w @gugeegoo/web"
+    "web:build": "npm run build -w @gugeegoo/web",
+    "deploy:pages": "node scripts/deploy-pages.mjs"
   },
   "dependencies": {
     "puppeteer": "^24.0.0"
   },
   "devDependencies": {
-    "cos-nodejs-sdk-v5": "^2.14.6"
+    "cos-nodejs-sdk-v5": "^2.14.6",
+    "wrangler": "^3.99.0"
   },
   "engines": {
     "node": ">=18"

@@ -15,7 +15,7 @@
  * 
  * 示例：
  *   npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/第2单元-四天巩固-第1天.md
- *   npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/源文件/第1讲-回顾训练.md --answers 第1讲-回顾训练-答案.md
+ *   npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/第1讲/源文件/第1讲-原题巩固.md --answers 第1讲-原题巩固-答案.md
  */
 
 import { readFileSync, writeFileSync, unlinkSync, existsSync } from "node:fs";
@@ -109,12 +109,43 @@ function getCss(type) {
   }
 }
 
-function mdToHtmlBody(md) {
+function mdToHtmlBody(md, baseDir, { wrapQuestions = false } = {}) {
   const lines = md.split(/\r?\n/);
   const body = [];
+  let inQuestionBlock = false;
+
+  function closeQuestionBlock() {
+    if (inQuestionBlock) {
+      body.push("</div>");
+      inQuestionBlock = false;
+    }
+  }
+
+  function openQuestionBlock(h2Html) {
+    closeQuestionBlock();
+    body.push(`<div class="question-block">${h2Html}`);
+    inQuestionBlock = true;
+  }
 
   for (let i = 0; i < lines.length; ) {
     const line = lines[i];
+
+    const imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imgMatch) {
+      const alt = imgMatch[1];
+      const rel = imgMatch[2];
+      const abs = path.isAbsolute(rel) ? rel : path.resolve(baseDir, rel);
+      if (existsSync(abs)) {
+        const src = `file://${abs}`;
+        body.push(
+          `<p class="fig-wrap"><img class="fig" src="${src}" alt="${escapeHtml(alt)}" /></p>`
+        );
+      } else {
+        body.push(`<p>${escapeHtml(line)}</p>`);
+      }
+      i++;
+      continue;
+    }
 
     if (line.startsWith("# ")) { i++; continue; }
     if (line.startsWith("> ")) { i++; continue; }
@@ -122,7 +153,12 @@ function mdToHtmlBody(md) {
     if (line.trim() === "") { i++; continue; }
 
     if (line.startsWith("## ")) {
-      body.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
+      const h2 = `<h2>${escapeHtml(line.slice(3))}</h2>`;
+      if (wrapQuestions) {
+        openQuestionBlock(h2);
+      } else {
+        body.push(h2);
+      }
       i++;
       continue;
     }
@@ -162,12 +198,15 @@ function mdToHtmlBody(md) {
     i++;
   }
 
+  closeQuestionBlock();
   return body.join("\n");
 }
 
-function mdToHtml(md, { title, meta, css, type }) {
+function mdToHtml(md, { title, meta, css, type, baseDir }) {
   const isWorksheet = type === "worksheet" || type === "quiz";
-  const body = mdToHtmlBody(md);
+  const body = mdToHtmlBody(md, baseDir || process.cwd(), {
+    wrapQuestions: isWorksheet,
+  });
   
   const dateBlank = isWorksheet 
     ? `<span class="meta-right">日期：<u>____________</u></span>`
@@ -192,7 +231,9 @@ function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
   const sections = files.map((file, i) => {
     const md = readFileSync(file, "utf8");
     const { title, meta } = extractMeta(md);
-    const body = mdToHtmlBody(md);
+    const body = mdToHtmlBody(md, path.dirname(file), {
+      wrapQuestions: isWorksheet,
+    });
     const cls = i === 0 ? "sheet" : "sheet page-break";
     return `<section class="${cls}">
   <h1>${escapeHtml(title)}</h1>
@@ -246,7 +287,7 @@ async function main() {
 
 示例:
   npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/第2单元-四天巩固-第1天.md
-  npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/源文件/第1讲-回顾训练.md --answers 第1讲-回顾训练-答案.md
+  npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/第1讲/源文件/第1讲-回顾训练.md --answers 第1讲-回顾训练-答案.md
 `);
     process.exit(0);
   }
@@ -288,6 +329,7 @@ async function main() {
       meta: options.meta || autoMeta,
       css,
       type,
+      baseDir: inputDir,
     });
 
     const pdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}.pdf`);
@@ -308,8 +350,10 @@ async function main() {
           meta: ansMeta || "家长专用",
           css: answersCss,
           type: "answers",
+          baseDir: path.dirname(answersPath),
         });
-        const answersPdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}-answers.pdf`);
+        const baseName = inputName.replace(/-answers$/, "").replace(/-答案$/, "");
+        const answersPdfPath = path.join(outDir, `${baseName}-答案.pdf`);
         await generatePdf(answersHtml, answersPdfPath);
       }
     }

@@ -1,0 +1,90 @@
+# 构建 apps/web 并发布到 Cloudflare Pages（Direct Upload 项目 gugeegoo）
+# 未配置 CLOUDFLARE_API_TOKEN 时跳过部署并输出说明（不失败整库 CI）
+
+name: Deploy Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'infra/cloudflare/wrangler.toml'
+      - '.github/workflows/deploy-pages.yml'
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'infra/cloudflare/wrangler.toml'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.token.outputs.deploy }}
+    steps:
+      - name: 检查 CLOUDFLARE_API_TOKEN
+        id: token
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CF_TOKEN" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=跳过 Cloudflare Pages 部署::未配置仓库 Secret \`CLOUDFLARE_API_TOKEN\`。请在 GitHub → Settings → Secrets and variables → Actions 中添加（权限见 infra/cloudflare/pages.md）。"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-and-deploy:
+    needs: check-secrets
+    if: needs.check-secrets.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || '15b1233497d3363a2240f8a54f900fe2' }}
+      VITE_COS_PUBLIC_BASE_URL: ${{ vars.VITE_COS_PUBLIC_BASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web
+        run: npm run web:build
+
+      - name: 部署到 Cloudflare Pages（生产）
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: pages deploy apps/web/dist --project-name=gugeegoo --config infra/cloudflare/wrangler.toml
+
+      - name: 部署到 Cloudflare Pages（PR 预览）
+        if: github.event_name == 'pull_request'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy apps/web/dist --project-name=gugeegoo --config infra/cloudflare/wrangler.toml --branch=${{ github.head_ref }}

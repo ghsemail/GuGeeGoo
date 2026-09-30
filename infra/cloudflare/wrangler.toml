@@ -1,0 +1,20 @@
+# GuGeeGoo 学生主页 — Cloudflare Pages（Direct Upload）
+# 部署：GitHub Actions 或 `npm run deploy:pages`（见 infra/cloudflare/pages.md）
+#
+# 线上项目（已在 Cloudflare 创建）：
+#   名称：gugeegoo
+#   默认 URL：https://gugeegoo.pages.dev
+#   Production branch：main（由 CI 在 push main 时发布生产）
+
+name = "gugeegoo"
+compatibility_date = "2024-09-01"
+account_id = "15b1233497d3363a2240f8a54f900fe2"
+
+# 与 `npm run web:build` 输出一致；wrangler pages deploy 可显式传目录，此项供 Pages 本地预览等工具参考
+pages_build_output_dir = "apps/web/dist"
+
+# ---------------------------------------------------------------------------
+# 以下为预留 Worker（API / COS 预签名 URL / 排行榜 KV·D1），当前 **不部署**。
+# 启用时在 apps/api 下单独维护 wrangler 配置并执行 wrangler deploy，勿与 Pages 混发。
+# 模板见：wrangler.worker.toml.example
+# ---------------------------------------------------------------------------
