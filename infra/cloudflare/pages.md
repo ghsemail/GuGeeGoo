@@ -1,35 +1,120 @@
-# Cloudflare Pages — GuGeeGoo 主页
+# Cloudflare Pages — GuGeeGoo 学生主页
 
-## 推荐流程（过两天启动时）
+## 当前线上配置（仓库为真源）
 
-1. **域名**（可选）：在 Cloudflare Registrar 购买，或将已有域名 NS 指到 Cloudflare。
-2. **创建 Pages 项目**
-   - 连接 GitHub 仓库 `GuGeeGoo`
-   - **Production branch**：`main`（合并 scaffold PR 后）
-   - **Root directory**：`/apps/web`
-   - **Build command**：`npm ci && npm run build`
-   - **Build output directory**：`dist`
-3. **环境变量**（Pages → Settings → Environment variables）
-   - `VITE_COS_PUBLIC_BASE_URL`：公开 PDF 的 CDN 根 URL（COS 或自定义域名），未配置时主页显示「待配置」
-4. **自定义域名**：Pages → Custom domains → 绑定 `www` 或 apex。
+| 项 | 值 |
+|----|-----|
+| Pages 项目名 | `gugeegoo` |
+| 创建方式 | **Direct Upload**（未使用 Cloudflare 控制台连接 GitHub） |
+| Production branch | `main` |
+| 默认域名 | https://gugeegoo.pages.dev |
+| Account ID | `15b1233497d3363a2240f8a54f900fe2`（已写入 [`wrangler.toml`](./wrangler.toml)） |
+| Wrangler 配置 | [`infra/cloudflare/wrangler.toml`](./wrangler.toml) |
+| 构建产物 | `apps/web/dist/`（`npm run web:build`） |
 
-## 构建说明
+发布路径二选一（或同时使用）：
 
-Monorepo 若从仓库根构建，可改为：
+1. **GitHub Actions**（推荐）：push `main` → 生产部署；Pull Request → 预览部署（需已配置 Secret）。
+2. **本地**：`npm run deploy:pages`（需本机 `.env` 或环境变量）。
 
-- Root directory：`/`（仓库根）
-- Build command：`npm ci && npm run web:build`
-- Output：`apps/web/dist`
+两者均执行 `wrangler pages deploy`，**不会**把 `学习档案/` 打进静态站。
 
-本仓库根 `package.json` 已提供 `npm run web:build`。
+---
+
+## 一次性手动步骤（仓库维护者）
+
+### 1. GitHub Actions Secret / Variable
+
+在 GitHub 仓库 **Settings → Secrets and variables → Actions**：
+
+| 名称 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `CLOUDFLARE_API_TOKEN` | Secret | **是**（否则 CI 跳过部署） | Cloudflare API Token |
+| `CLOUDFLARE_ACCOUNT_ID` | Variable | 否 | 默认与 `wrangler.toml` 相同，可不填 |
+| `VITE_COS_PUBLIC_BASE_URL` | Variable | 否 | 构建时注入 Vite；未设时主页 COS 链接为「待配置」 |
+
+**Token 权限（创建 Token 时勾选）：**
+
+- Account → **Cloudflare Pages**：Edit
+- Account → **Workers Scripts**：Edit（当前仅 Pages 也可先只开 Pages；后续部署 Worker 时需要）
+
+不要将 Token 写入仓库或提交到 `.env` 的历史记录。
+
+### 2. 自定义域名（强烈建议，尤其大陆访问）
+
+`*.pages.dev` 在大陆可能较慢或不稳定。可在 Cloudflare 控制台 **Workers & Pages → gugeegoo → Custom domains** 绑定自有域名（如 `www.example.com`），DNS 清单见 [`dns-checklist.md`](./dns-checklist.md)。
+
+### 3. COS 公开资源（与 Pages 独立）
+
+学生主页通过 `VITE_COS_PUBLIC_BASE_URL` 指向 COS/CDN 上的公开 PDF。桶与 CORS 见 [`../cos/`](../cos/)。
+
+---
+
+## GitHub Actions 工作流
+
+文件：[`.github/workflows/deploy-pages.yml`](../../.github/workflows/deploy-pages.yml)
+
+- **触发**：`main` push、相关路径的 PR、`workflow_dispatch`
+- **无 `CLOUDFLARE_API_TOKEN`**：job `check-secrets` 输出 Notice，**跳过部署**（workflow 仍为成功，便于 fork/未配置 Secret 时不误报失败）
+- **push `main`**：部署到 Pages **生产**环境
+- **pull_request**：带 `--branch=<head ref>` 的**预览**部署（wrangler-action 可配合 `GITHUB_TOKEN` 评论预览 URL）
+
+构建命令与本地一致：`npm ci` → `npm run web:build`。
+
+---
+
+## 本地部署
+
+```bash
+# 1. 复制环境变量示例
+cp infra/cloudflare/env.example .env
+# 编辑 .env，填入 CLOUDFLARE_API_TOKEN；可选 VITE_COS_PUBLIC_BASE_URL
+
+npm install
+npm run deploy:pages
+```
+
+等价于：加载根目录 `.env` → `npm run web:build` →  
+`wrangler pages deploy apps/web/dist --project-name=gugeegoo --config infra/cloudflare/wrangler.toml`。
+
+仅构建、不上传：
+
+```bash
+npm run web:build
+```
+
+---
+
+## 免费额度（与本项目相关）
+
+**Cloudflare Pages（Free）**
+
+- 静态请求 / 带宽：不限（Fair Use）
+- **构建次数**：500 次/月（GitHub Actions 每次 deploy 计 1 次；Direct Upload 上传也受项目限制）
+- 单文件最大 **25 MB**；整站最多约 **20 000** 个文件
+
+**Cloudflare Workers（Free，后续 API / 排行榜）**
+
+- **100 000** 次请求/天
+- KV、D1 等有独立免费配额，启用 Worker 时再查官方定价页
+
+---
+
+## 预留 Worker（当前不部署）
+
+- 模板：[`wrangler.worker.toml.example`](./wrangler.worker.toml.example)
+- 用途设想：COS 预签名 URL、家长区 API、小游戏排行榜（KV/D1）
+- Pages 与 Worker 分开部署；配置勿与 [`wrangler.toml`](./wrangler.toml) 混在同一 deploy 命令中
 
 ## 家长区（后续）
 
 - 路径前缀建议：`/parent/*`
-- 使用 **Cloudflare Access** 限制为家长邮箱 / 一次性 PIN
+- **Cloudflare Access** 限制家长邮箱 / PIN
 - 规划 MD 从 COS `private/planning/` 经 Worker 读取，**不要**放进 Pages 静态资源
 
 ## 相关文件
 
-- [`wrangler.toml.example`](./wrangler.toml.example) — 可选 Workers（API / 签名 URL）
+- [`wrangler.toml`](./wrangler.toml) — Pages 项目（已启用）
+- [`wrangler.worker.toml.example`](./wrangler.worker.toml.example) — 未来 Worker 示例
+- [`env.example`](./env.example) — 本地 `.env` 键名
 - [`dns-checklist.md`](./dns-checklist.md) — DNS 记录清单
