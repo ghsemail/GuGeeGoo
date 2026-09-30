@@ -7,4 +7,4 @@
 - 为家长生成 COS 预签名 URL（答案 PDF、`private/planning`）
 - 健康检查、Webhook
 
-配置模板见 [`../../infra/cloudflare/wrangler.toml.example`](../../infra/cloudflare/wrangler.toml.example)。
+配置模板见 [`../../infra/cloudflare/wrangler.worker.toml.example`](../../infra/cloudflare/wrangler.worker.toml.example)。Pages 见 [`../../infra/cloudflare/wrangler.toml`](../../infra/cloudflare/wrangler.toml)。

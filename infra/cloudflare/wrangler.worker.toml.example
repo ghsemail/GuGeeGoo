@@ -1,0 +1,22 @@
+# 复制为 apps/api/wrangler.toml（或独立文件名）并在填入密钥后部署 Worker。
+# 当前阶段仅 Pages 静态站；本文件 **不会** 被 GitHub Actions 或 deploy:pages 使用。
+
+name = "gugeegoo-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+
+account_id = "15b1233497d3363a2240f8a54f900fe2"
+
+# [vars]
+# COS_PUBLIC_BASE = "https://cdn.example.com"
+
+# [[kv_namespaces]]
+# binding = "LEADERBOARD"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "gugeegoo"
+# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# 私有规划 MD、答案 PDF 预签名、排行榜等后续在此扩展
