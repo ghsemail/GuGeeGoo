@@ -156,8 +156,9 @@ function mdToHtmlBody(md, baseDir, { wrapQuestions = false } = {}) {
       const abs = path.isAbsolute(rel) ? rel : path.resolve(baseDir, rel);
       if (existsSync(abs)) {
         const src = `file://${abs}`;
+        const figClass = alt === "wide" ? "fig fig-wide" : "fig";
         body.push(
-          `<p class="fig-wrap"><img class="fig" src="${src}" alt="${escapeHtml(alt)}" /></p>`
+          `<p class="fig-wrap"><img class="${figClass}" src="${src}" alt="${escapeHtml(alt === "wide" ? "" : alt)}" /></p>`
         );
       } else {
         body.push(`<p>${escapeHtml(line)}</p>`);
