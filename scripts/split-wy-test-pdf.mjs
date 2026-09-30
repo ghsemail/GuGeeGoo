@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * 从 学习资料/WY五上测试卷.pdf 按单元切出题目页 / 答案页（扫描版，保留原页）。
+ * A4 重排版请用：npm run pdf -- …/第N单元-综合素养练.md --answers …-答案.md
  *
  * 用法：node scripts/split-wy-test-pdf.mjs [单元号，默认 1]
  */

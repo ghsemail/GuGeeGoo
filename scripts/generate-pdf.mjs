@@ -18,13 +18,32 @@
  *   npm run pdf -- 学科学习/数学/五年级/学而思五年级秋/练习/第1讲/源文件/第1讲-原题巩固.md --answers 第1讲-原题巩固-答案.md
  */
 
-import { readFileSync, writeFileSync, unlinkSync, existsSync } from "node:fs";
+import {
+  readFileSync,
+  writeFileSync,
+  unlinkSync,
+  existsSync,
+  renameSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
 import { worksheetCss, quizCss, answersCss, memoCss } from "./pdf-theme.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const CHROME_CANDIDATES = [
+  process.env.PUPPETEER_EXECUTABLE_PATH,
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+].filter(Boolean);
+
+function resolveChromePath() {
+  for (const p of CHROME_CANDIDATES) {
+    if (existsSync(p)) return p;
+  }
+  return undefined;
+}
 
 function parseArgs(args) {
   const result = { files: [], options: {} };
@@ -250,17 +269,20 @@ function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
 
 async function generatePdf(html, pdfPath) {
   const tmpHtml = pdfPath.replace(/\.pdf$/, ".tmp.html");
+  const tmpPdf = pdfPath.replace(/\.pdf$/, ".part.pdf");
   writeFileSync(tmpHtml, html, "utf8");
   
+  const executablePath = resolveChromePath();
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   
   const page = await browser.newPage();
   await page.goto(`file://${path.resolve(tmpHtml)}`, { waitUntil: "networkidle0" });
   await page.pdf({
-    path: pdfPath,
+    path: tmpPdf,
     format: "A4",
     printBackground: true,
     margin: { top: "16mm", right: "18mm", bottom: "16mm", left: "18mm" },
@@ -268,6 +290,15 @@ async function generatePdf(html, pdfPath) {
   
   await browser.close();
   unlinkSync(tmpHtml);
+  try {
+    if (existsSync(pdfPath)) unlinkSync(pdfPath);
+    renameSync(tmpPdf, pdfPath);
+  } catch {
+    if (existsSync(tmpPdf)) {
+      renameSync(tmpPdf, pdfPath.replace(/\.pdf$/, "-new.pdf"));
+      console.warn(`⚠ 目标文件被占用，已另存为 ${path.basename(pdfPath.replace(/\.pdf$/, "-new.pdf"))}`);
+    }
+  }
   console.log(`✓ 已生成 ${pdfPath}`);
 }
 
