@@ -109,9 +109,23 @@ function getCss(type) {
   }
 }
 
-function mdToHtmlBody(md, baseDir) {
+function mdToHtmlBody(md, baseDir, { wrapQuestions = false } = {}) {
   const lines = md.split(/\r?\n/);
   const body = [];
+  let inQuestionBlock = false;
+
+  function closeQuestionBlock() {
+    if (inQuestionBlock) {
+      body.push("</div>");
+      inQuestionBlock = false;
+    }
+  }
+
+  function openQuestionBlock(h2Html) {
+    closeQuestionBlock();
+    body.push(`<div class="question-block">${h2Html}`);
+    inQuestionBlock = true;
+  }
 
   for (let i = 0; i < lines.length; ) {
     const line = lines[i];
@@ -139,7 +153,12 @@ function mdToHtmlBody(md, baseDir) {
     if (line.trim() === "") { i++; continue; }
 
     if (line.startsWith("## ")) {
-      body.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
+      const h2 = `<h2>${escapeHtml(line.slice(3))}</h2>`;
+      if (wrapQuestions) {
+        openQuestionBlock(h2);
+      } else {
+        body.push(h2);
+      }
       i++;
       continue;
     }
@@ -179,12 +198,15 @@ function mdToHtmlBody(md, baseDir) {
     i++;
   }
 
+  closeQuestionBlock();
   return body.join("\n");
 }
 
 function mdToHtml(md, { title, meta, css, type, baseDir }) {
   const isWorksheet = type === "worksheet" || type === "quiz";
-  const body = mdToHtmlBody(md, baseDir || process.cwd());
+  const body = mdToHtmlBody(md, baseDir || process.cwd(), {
+    wrapQuestions: isWorksheet,
+  });
   
   const dateBlank = isWorksheet 
     ? `<span class="meta-right">日期：<u>____________</u></span>`
@@ -209,7 +231,9 @@ function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
   const sections = files.map((file, i) => {
     const md = readFileSync(file, "utf8");
     const { title, meta } = extractMeta(md);
-    const body = mdToHtmlBody(md, path.dirname(file));
+    const body = mdToHtmlBody(md, path.dirname(file), {
+      wrapQuestions: isWorksheet,
+    });
     const cls = i === 0 ? "sheet" : "sheet page-break";
     return `<section class="${cls}">
   <h1>${escapeHtml(title)}</h1>
@@ -328,7 +352,8 @@ async function main() {
           type: "answers",
           baseDir: path.dirname(answersPath),
         });
-        const answersPdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}-answers.pdf`);
+        const baseName = inputName.replace(/-answers$/, "").replace(/-答案$/, "");
+        const answersPdfPath = path.join(outDir, `${baseName}-答案.pdf`);
         await generatePdf(answersHtml, answersPdfPath);
       }
     }

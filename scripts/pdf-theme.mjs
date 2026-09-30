@@ -49,6 +49,12 @@ export const worksheetCss = `
     vertical-align: top;
   }
   th { background: #f0f0f0; font-weight: 700; }
+  .question-block {
+    page-break-inside: avoid;
+    margin-bottom: 4.6em;
+  }
+  .question-block:last-child { margin-bottom: 0; }
+  .question-block h2 { margin-top: 0; }
   .fig-wrap { margin: 10px 0 14px; text-align: left; page-break-inside: avoid; overflow: visible; }
   img.fig { width: 8cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
 `;
@@ -94,6 +100,14 @@ export const quizCss = `
     vertical-align: top;
   }
   th { background: #f0f0f0; font-weight: 700; }
+  .question-block {
+    page-break-inside: avoid;
+    margin-bottom: 5em;
+  }
+  .question-block:last-child { margin-bottom: 0; }
+  .question-block h2 { margin-top: 0; }
+  .fig-wrap { margin: 10px 0 14px; text-align: left; page-break-inside: avoid; overflow: visible; }
+  img.fig { width: 8cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
 `;
 
 export const answersCss = `
