@@ -57,6 +57,7 @@ export const worksheetCss = `
   .question-block h2 { margin-top: 0; }
   .fig-wrap { margin: 10px 0 14px; text-align: left; page-break-inside: avoid; overflow: visible; }
   img.fig { width: 8cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
+  img.fig-wide { width: 17cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
 `;
 
 export const quizCss = `
@@ -108,6 +109,7 @@ export const quizCss = `
   .question-block h2 { margin-top: 0; }
   .fig-wrap { margin: 10px 0 14px; text-align: left; page-break-inside: avoid; overflow: visible; }
   img.fig { width: 8cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
+  img.fig-wide { width: 17cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
 `;
 
 export const answersCss = `
