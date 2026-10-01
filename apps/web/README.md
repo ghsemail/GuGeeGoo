@@ -35,6 +35,12 @@ npm run web:build
 
 产物：`apps/web/dist/`（多页：`index.html`、`snake/index.html` 及对应 JS/CSS）。
 
+贪吃蛇布局自检（需先 `web:build` 并 `vite preview -p 4173`）：
+
+```bash
+node scripts/verify-snake-layout.mjs
+```
+
 验证 Functions 打包（可选）：
 
 ```bash

@@ -1,6 +1,10 @@
 /**
  * 本地存档 + 可选 Cloudflare KV API（失败时只用 localStorage）
  */
+import {
+  getLevelStatsSnapshot,
+  mergeLevelStatsFromRemote,
+} from './level-progress.js';
 
 const LS_PLAYER_ID = 'gugeegoo_snake_player_id';
 const LS_NICKNAME = 'gugeegoo_snake_nickname';
@@ -12,6 +16,8 @@ const LS_OWNED_ITEMS = 'gugeegoo_snake_owned_items';
 const LS_INVENTORY = 'gugeegoo_snake_inventory';
 const LS_EQUIPPED = 'gugeegoo_snake_equipped';
 const LS_LOADOUT = 'gugeegoo_snake_loadout';
+const LS_EQUIPPED_WEAPON = 'gugeegoo_snake_equipped_weapon';
+const LS_LAST_LEVEL = 'gugeegoo_snake_last_level';
 
 const DEFAULT_NICK = '景源';
 const MAX_NICK_LEN = 12;
@@ -183,6 +189,24 @@ export function clearLoadout() {
   localStorage.setItem(LS_LOADOUT, JSON.stringify([]));
 }
 
+export function getEquippedWeaponId() {
+  return localStorage.getItem(LS_EQUIPPED_WEAPON) || '';
+}
+
+export function setEquippedWeaponId(id) {
+  if (id) localStorage.setItem(LS_EQUIPPED_WEAPON, id);
+  else localStorage.removeItem(LS_EQUIPPED_WEAPON);
+}
+
+export function getLastSelectedLevelIndex() {
+  const n = Number(localStorage.getItem(LS_LAST_LEVEL) || 0);
+  return Number.isFinite(n) ? Math.max(0, Math.min(14, Math.floor(n))) : 0;
+}
+
+export function setLastSelectedLevelIndex(index) {
+  localStorage.setItem(LS_LAST_LEVEL, String(Math.max(0, Math.min(14, index))));
+}
+
 /** 兼容旧代码 */
 export function getOwnedItemIds() {
   return Object.keys(getInventoryCounts());
@@ -227,6 +251,8 @@ export function getWalletSnapshot() {
     inventory: getInventoryCounts(),
     equippedIds: getEquippedCosmeticIds(),
     loadoutIds: getLoadoutIds(),
+    equippedWeaponId: getEquippedWeaponId(),
+    levelStats: getLevelStatsSnapshot(),
   };
 }
 
@@ -280,6 +306,12 @@ function mergeWalletFromRemote(remote) {
     JSON.stringify(mergeList(getLoadoutIds(), remote.loadoutIds))
   );
 
+  if (remote.equippedWeaponId && typeof remote.equippedWeaponId === 'string') {
+    const localW = getEquippedWeaponId();
+    if (!localW) setEquippedWeaponId(remote.equippedWeaponId);
+  }
+  mergeLevelStatsFromRemote(remote.levelStats);
+
   return getWalletSnapshot();
 }
 
@@ -309,6 +341,10 @@ export async function loadRemoteProgress() {
     }
     if (data.nickname) {
       setNickname(data.nickname);
+    }
+    mergeLevelStatsFromRemote(data.levelStats);
+    if (data.equippedWeaponId && !getEquippedWeaponId()) {
+      setEquippedWeaponId(data.equippedWeaponId);
     }
     mergeWalletFromRemote(data);
     return data;
@@ -343,6 +379,8 @@ export async function persistProgress({
         inventory: snap.inventory,
         equippedIds: snap.equippedIds,
         loadoutIds: snap.loadoutIds,
+        equippedWeaponId: snap.equippedWeaponId,
+        levelStats: snap.levelStats,
       }),
     });
     if (data.lifetimeEarned != null) {
@@ -372,6 +410,8 @@ export async function persistWallet() {
         inventory: snap.inventory,
         equippedIds: snap.equippedIds,
         loadoutIds: snap.loadoutIds,
+        equippedWeaponId: snap.equippedWeaponId,
+        levelStats: snap.levelStats,
       }),
     });
     mergeWalletFromRemote(data);

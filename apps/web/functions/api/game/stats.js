@@ -31,6 +31,8 @@ export async function onRequestGet(context) {
         inventory: {},
         equippedIds: [],
         loadoutIds: [],
+        equippedWeaponId: '',
+        levelStats: {},
         kv: false,
       },
       200
@@ -49,6 +51,8 @@ export async function onRequestGet(context) {
       inventory: {},
       equippedIds: [],
       loadoutIds: [],
+      equippedWeaponId: '',
+      levelStats: {},
       kv: true,
     });
   }
@@ -63,6 +67,8 @@ export async function onRequestGet(context) {
     inventory: saved.inventory ?? {},
     equippedIds: saved.equippedIds ?? [],
     loadoutIds: saved.loadoutIds ?? [],
+    equippedWeaponId: saved.equippedWeaponId ?? '',
+    levelStats: saved.levelStats ?? {},
     kv: true,
   });
 }

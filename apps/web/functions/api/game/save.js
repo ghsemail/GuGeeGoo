@@ -49,6 +49,8 @@ export async function onRequestPost(context) {
     inventory: merged.inventory,
     equippedIds: merged.equippedIds,
     loadoutIds: merged.loadoutIds,
+    equippedWeaponId: merged.equippedWeaponId,
+    levelStats: merged.levelStats,
     leaderboard: leaderboard.map(({ nickname, bestScore, maxLevel }) => ({
       nickname,
       bestScore,

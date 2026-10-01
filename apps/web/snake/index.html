@@ -7,24 +7,12 @@
   </head>
   <body class="snake-page">
     <header class="snake-header">
-      <a class="back-link" href="/">← 导航页</a>
+      <a class="back-link" id="link-nav-home" href="/">← 导航页</a>
       <h1>🐍 贪吃蛇</h1>
       <p class="tagline">顾景源 · 关卡挑战</p>
     </header>
 
-    <section class="stats-bar">
-      <div class="stat">
-        <span class="label">关卡</span>
-        <span id="stat-level" class="value">—</span>
-      </div>
-      <div class="stat">
-        <span class="label">苹果</span>
-        <span id="stat-food" class="value">0 / 0</span>
-      </div>
-      <div class="stat">
-        <span class="label">本局</span>
-        <span id="stat-score" class="value">0</span>
-      </div>
+    <section class="stats-bar stats-bar-global">
       <div class="stat">
         <span class="label">累计积分</span>
         <span id="stat-lifetime" class="value">0</span>
@@ -39,28 +27,148 @@
       </div>
     </section>
 
-    <p id="level-hint" class="hint"></p>
+    <!-- 主菜单 -->
+    <section id="screen-menu" class="screen screen-menu">
+      <p class="menu-welcome">选关、买道具和武器，再出发吃苹果吧！</p>
+      <div class="menu-actions">
+        <button type="button" id="btn-menu-play" class="btn btn-primary btn-lg">
+          开始游戏
+        </button>
+        <button type="button" id="btn-menu-levels" class="btn btn-lg">选关</button>
+        <button type="button" id="btn-menu-shop" class="btn btn-lg btn-shop">
+          道具商店
+        </button>
+        <button type="button" id="btn-menu-weapons" class="btn btn-lg">武器库</button>
+        <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
+      </div>
+      <p class="menu-hint">
+        对局里：方向键 / WASD / 滑动 / 右下角十字键；按 <strong>J</strong> 或
+        <strong>F</strong> 发射武器。
+      </p>
+    </section>
 
-    <div class="canvas-wrap">
-      <div class="canvas-stage">
-        <canvas id="game-canvas" aria-label="贪吃蛇游戏区域"></canvas>
-        <div id="effect-bar" class="effect-bar" aria-label="当前道具效果"></div>
-        <div id="game-toast" class="game-toast" hidden></div>
-        <div class="dpad-overlay" aria-label="方向控制">
-          <button type="button" class="dpad-btn dpad-up" data-dir="up" aria-label="上">▲</button>
-          <button type="button" class="dpad-btn dpad-left" data-dir="left" aria-label="左">◀</button>
-          <button type="button" class="dpad-btn dpad-right" data-dir="right" aria-label="右">▶</button>
-          <button type="button" class="dpad-btn dpad-down" data-dir="down" aria-label="下">▼</button>
+    <!-- 选关 -->
+    <section id="screen-levels" class="screen screen-levels" hidden>
+      <div class="screen-topbar">
+        <button type="button" id="btn-levels-back" class="btn btn-ghost btn-sm">
+          ← 主菜单
+        </button>
+        <h2 class="screen-title">选关（15 关全开）</h2>
+      </div>
+      <div id="level-grid" class="level-grid" aria-label="关卡列表"></div>
+    </section>
+
+    <!-- 道具商店 -->
+    <section id="screen-shop" class="screen screen-shop" hidden>
+      <div class="screen-topbar">
+        <button type="button" id="btn-shop-back" class="btn btn-ghost btn-sm">
+          ← 主菜单
+        </button>
+        <h2 class="screen-title">🛒 道具商店</h2>
+      </div>
+      <p class="shop-balance">
+        可用积分：<strong id="shop-balance">0</strong>
+        <span class="shop-lifetime"
+          >（累计 <span id="shop-lifetime">0</span>）</span
+        >
+      </p>
+      <ul id="shop-list" class="shop-list"></ul>
+      <p id="shop-msg" class="shop-msg" role="status"></p>
+    </section>
+
+    <!-- 武器库 -->
+    <section id="screen-weapons" class="screen screen-weapons" hidden>
+      <div class="screen-topbar">
+        <button type="button" id="btn-weapons-back" class="btn btn-ghost btn-sm">
+          ← 主菜单
+        </button>
+        <h2 class="screen-title">🔫 武器库</h2>
+      </div>
+      <p class="shop-balance">
+        可用积分：<strong id="weapon-shop-balance">0</strong>
+      </p>
+      <ul id="weapon-list" class="shop-list"></ul>
+      <p id="weapon-msg" class="shop-msg" role="status"></p>
+      <p class="weapon-hint">进关前装备一种武器；每关弹药有限，不能打穿外墙哦。</p>
+    </section>
+
+    <!-- 对局 -->
+    <section id="screen-game" class="screen screen-game" hidden>
+      <section class="stats-bar stats-bar-game">
+        <div class="stat">
+          <span class="label">关卡</span>
+          <span id="stat-level" class="value">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">苹果</span>
+          <span id="stat-food" class="value">0 / 0</span>
+        </div>
+        <div class="stat">
+          <span class="label">本局</span>
+          <span id="stat-score" class="value">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">弹药</span>
+          <span id="stat-ammo" class="value">—</span>
+        </div>
+      </section>
+
+      <p id="level-hint" class="hint"></p>
+      <p id="equipped-weapon-hint" class="hint weapon-equipped-hint"></p>
+
+      <div class="canvas-wrap">
+        <div class="canvas-stage">
+          <canvas id="game-canvas" aria-label="贪吃蛇游戏区域"></canvas>
+          <div id="effect-bar" class="effect-bar" aria-label="当前道具效果"></div>
+          <div id="game-toast" class="game-toast" hidden></div>
+          <button
+            type="button"
+            id="btn-fire"
+            class="fire-btn"
+            aria-label="发射武器"
+          >
+            🔫 发射
+          </button>
+          <div class="dpad-overlay" aria-label="方向控制">
+            <button type="button" class="dpad-btn dpad-up" data-dir="up" aria-label="上">
+              ▲
+            </button>
+            <button
+              type="button"
+              class="dpad-btn dpad-left"
+              data-dir="left"
+              aria-label="左"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              class="dpad-btn dpad-right"
+              data-dir="right"
+              aria-label="右"
+            >
+              ▶
+            </button>
+            <button
+              type="button"
+              class="dpad-btn dpad-down"
+              data-dir="down"
+              aria-label="下"
+            >
+              ▼
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="toolbar">
-      <button type="button" id="btn-pause" class="btn">暂停</button>
-      <button type="button" id="btn-restart" class="btn">重开本关</button>
-      <button type="button" id="btn-shop" class="btn btn-shop">道具商店</button>
-      <button type="button" id="btn-home" class="btn btn-ghost">回导航页</button>
-    </div>
+      <div class="toolbar toolbar-game">
+        <button type="button" id="btn-pause" class="btn">暂停</button>
+        <button type="button" id="btn-restart" class="btn">重开本关</button>
+        <button type="button" id="btn-exit-game" class="btn btn-primary">
+          退出游戏
+        </button>
+      </div>
+    </section>
 
     <section class="side-panel">
       <label class="nick-label">
@@ -76,19 +184,6 @@
         <h2 id="overlay-title"></h2>
         <p id="overlay-msg"></p>
         <div id="overlay-actions" class="overlay-actions"></div>
-      </div>
-    </div>
-
-    <div id="shop-overlay" class="overlay shop-overlay" hidden>
-      <div class="overlay-card shop-card">
-        <h2>🛒 道具商店</h2>
-        <p class="shop-balance">
-          可用积分：<strong id="shop-balance">0</strong>
-          <span class="shop-lifetime">（累计 <span id="shop-lifetime">0</span>）</span>
-        </p>
-        <ul id="shop-list" class="shop-list"></ul>
-        <p id="shop-msg" class="shop-msg" role="status"></p>
-        <button type="button" id="btn-shop-close" class="btn btn-primary">关闭</button>
       </div>
     </div>
 

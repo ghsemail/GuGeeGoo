@@ -3,6 +3,7 @@
  */
 import { getLevel, TOTAL_LEVELS } from './levels.js';
 import { createDefaultEffects } from './item-effects.js';
+import { tickWeaponSystems, isMoverFrozen } from './game-combat.js';
 
 export const DIR = {
   up: { x: 0, y: -1 },
@@ -127,6 +128,9 @@ export function createLevelState(levelIndex) {
     allComplete: false,
     tickCount: 0,
     effects: createDefaultEffects(),
+    projectiles: [],
+    weaponRuntime: null,
+    moverFreezeTicks: {},
   };
 }
 
@@ -144,6 +148,7 @@ function getMoverCells(state) {
 function advanceMovers(state, now) {
   const { level, moverStates } = state;
   level.movers.forEach((m, i) => {
+    if (isMoverFrozen(state, i)) return;
     const st = moverStates[i];
     if (now - st.lastStep >= m.stepMs) {
       st.lastStep = now;
@@ -217,6 +222,7 @@ export function tick(state, now) {
   }
 
   advanceMovers(state, now);
+  tickWeaponSystems(state);
 
   const fx = state.effects || createDefaultEffects();
   if (fx.ghostTicksLeft > 0) {
@@ -331,3 +337,8 @@ export function advanceToNextLevel(state) {
 }
 
 export { getLevel, TOTAL_LEVELS, getMoverCells, buildBlockedSet };
+export {
+  initWeaponRuntime,
+  tryFireWeapon,
+  isMoverFrozen,
+} from './game-combat.js';

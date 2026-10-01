@@ -60,6 +60,25 @@ export function clampStats(input) {
       .slice(0, 8)
       .map((id) => id.slice(0, 48));
   }
+  let equippedWeaponId = '';
+  if (typeof input.equippedWeaponId === 'string') {
+    equippedWeaponId = input.equippedWeaponId.slice(0, 48);
+  }
+  let levelStats = {};
+  if (input.levelStats && typeof input.levelStats === 'object') {
+    for (const [key, val] of Object.entries(input.levelStats)) {
+      if (!/^\d+$/.test(key)) continue;
+      const id = Number(key);
+      if (id < 1 || id > MAX_LEVEL) continue;
+      levelStats[key] = {
+        cleared: !!val?.cleared,
+        bestScore: Math.min(
+          MAX_SCORE,
+          Math.max(0, Math.floor(Number(val?.bestScore) || 0))
+        ),
+      };
+    }
+  }
   let nickname = String(input.nickname || '景源').trim();
   if (!nickname) nickname = '景源';
   nickname = nickname.slice(0, MAX_NICK);
@@ -75,9 +94,24 @@ export function clampStats(input) {
     inventory,
     equippedIds,
     loadoutIds,
+    equippedWeaponId,
+    levelStats,
     nickname,
     playerId,
   };
+}
+
+function mergeLevelStats(a, b) {
+  const out = { ...(a || {}) };
+  for (const [key, val] of Object.entries(b || {})) {
+    if (!/^\d+$/.test(key)) continue;
+    const prev = out[key] || { cleared: false, bestScore: 0 };
+    out[key] = {
+      cleared: prev.cleared || !!val?.cleared,
+      bestScore: Math.max(prev.bestScore || 0, Number(val?.bestScore) || 0),
+    };
+  }
+  return out;
 }
 
 function mergeInventory(a, b) {
@@ -116,6 +150,8 @@ export async function writePlayer(kv, data) {
     inventory: data.inventory ?? {},
     equippedIds: data.equippedIds ?? [],
     loadoutIds: data.loadoutIds ?? [],
+    equippedWeaponId: data.equippedWeaponId ?? '',
+    levelStats: data.levelStats ?? {},
     updatedAt: Date.now(),
   };
   await kv.put(playerKey(data.playerId), JSON.stringify(payload));
@@ -152,6 +188,9 @@ export function mergePlayer(existing, incoming) {
         ...(incoming.loadoutIds || []),
       ]),
     ].slice(0, 8),
+    equippedWeaponId:
+      incoming.equippedWeaponId || existing?.equippedWeaponId || '',
+    levelStats: mergeLevelStats(existing?.levelStats, incoming.levelStats),
   };
 }
 

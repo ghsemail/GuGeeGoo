@@ -1,21 +1,36 @@
 #!/usr/bin/env node
 /**
- * 检查贪吃蛇页：canvas 非零、D-pad 在棋盘右下角
- * 用法：先 npm run web:build && npx vite preview -p 4173 -c apps/web/vite.config.js
- *       再 node scripts/verify-snake-layout.mjs
+ * 检查贪吃蛇页：主菜单、选关、商店、对局 canvas / D-pad / 发射钮
  */
 import puppeteer from 'puppeteer';
 
 const BASE = process.env.SNAKE_PREVIEW_URL || 'http://127.0.0.1:4173/snake/';
 
-async function measure(page) {
+async function pageErrors(page) {
+  const errors = [];
+  page.on('pageerror', (err) => errors.push(String(err)));
+  return errors;
+}
+
+async function measureGame(page) {
   return page.evaluate(() => {
     const canvas = document.getElementById('game-canvas');
     const stage = document.querySelector('.canvas-stage');
     const dpad = document.querySelector('.dpad-overlay');
+    const fire = document.getElementById('btn-fire');
     const canvasBox = canvas?.getBoundingClientRect();
     const stageBox = stage?.getBoundingClientRect();
     const dpadBox = dpad?.getBoundingClientRect();
+    const fireBox = fire?.getBoundingClientRect();
+    const overlap =
+      dpadBox &&
+      fireBox &&
+      !(
+        dpadBox.right < fireBox.left ||
+        dpadBox.left > fireBox.right ||
+        dpadBox.bottom < fireBox.top ||
+        dpadBox.top > fireBox.bottom
+      );
     return {
       canvas: canvas
         ? {
@@ -26,6 +41,9 @@ async function measure(page) {
           }
         : null,
       stage: stageBox ? { w: stageBox.width, h: stageBox.height } : null,
+      dpadVisible: !!(dpadBox && dpadBox.width > 20 && dpadBox.height > 20),
+      fireVisible: !!(fireBox && fireBox.width > 20 && fireBox.height > 20),
+      dpadFireOverlap: overlap,
       layout:
         stageBox && dpadBox
           ? {
@@ -51,6 +69,9 @@ async function measure(page) {
 
 async function runViewport(browser, width, height, isMobile) {
   const page = await browser.newPage();
+  const errors = [];
+  page.on('pageerror', (err) => errors.push(String(err)));
+
   await page.setViewport({
     width,
     height,
@@ -59,37 +80,37 @@ async function runViewport(browser, width, height, isMobile) {
   });
   await page.goto(BASE, { waitUntil: 'networkidle0', timeout: 30000 });
 
-  const startBtn = await page.waitForSelector('#overlay-actions .btn-primary', {
-    timeout: 10000,
+  await page.waitForSelector('#screen-menu', { timeout: 10000 });
+  const menuOk = await page.evaluate(() => {
+    const m = document.getElementById('screen-menu');
+    return m && !m.hidden && !!document.getElementById('btn-menu-play');
   });
-  await startBtn.click();
-  await new Promise((r) => setTimeout(r, 1400));
 
-  const data = await measure(page);
+  await page.click('#btn-menu-levels');
+  await page.waitForSelector('#level-grid .level-card', { timeout: 8000 });
+  const levelCount = await page.$$eval('.level-card', (els) => els.length);
 
-  await page.click('#btn-shop');
-  await new Promise((r) => setTimeout(r, 400));
-  data.shop = await page.evaluate(() => {
-    const card = document.querySelector('.shop-card');
-    const box = card?.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const okShop =
-      !!box &&
-      box.width > 200 &&
-      box.height > 120 &&
-      box.top >= -4 &&
-      box.left >= -4 &&
-      box.bottom <= vh + 4 &&
-      box.right <= vw + 4;
-    return {
-      ok: okShop,
-      size: box ? { w: box.width, h: box.height } : null,
-    };
+  await page.click('#btn-levels-back');
+  await page.waitForSelector('#btn-menu-shop', { timeout: 5000 });
+  await page.click('#btn-menu-shop');
+  await page.waitForSelector('#shop-list .shop-item', { timeout: 8000 });
+  const shopOk = await page.evaluate(() => {
+    const s = document.getElementById('screen-shop');
+    return s && !s.hidden;
   });
-  await page.click('#btn-shop-close');
+  await page.click('#btn-shop-back');
 
+  await page.click('#btn-menu-play');
+  await page.waitForSelector('#screen-game:not([hidden])', { timeout: 8000 });
+  await new Promise((r) => setTimeout(r, 1200));
+
+  const data = await measureGame(page);
   data.viewport = `${width}x${height}`;
+  data.menuOk = menuOk;
+  data.levelCount = levelCount;
+  data.shopOk = shopOk;
+  data.pageErrors = errors;
+
   await page.close();
 
   const okCanvas =
@@ -110,14 +131,17 @@ async function runViewport(browser, width, height, isMobile) {
       dpad.top >= stage.top + stage.height * 0.48;
   }
 
-  const okShop = data.shop?.ok === true;
-  return {
-    ...data,
-    okCanvas,
-    okDpad,
-    okShop,
-    pass: okCanvas && okDpad && okShop,
-  };
+  const pass =
+    menuOk &&
+    levelCount === 15 &&
+    shopOk &&
+    okCanvas &&
+    okDpad &&
+    data.fireVisible &&
+    !data.dpadFireOverlap &&
+    errors.length === 0;
+
+  return { ...data, okCanvas, okDpad, pass };
 }
 
 async function main() {

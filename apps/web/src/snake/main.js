@@ -1,5 +1,5 @@
 /**
- * 贪吃蛇页面：画布绘制、输入、UI 与存档
+ * 贪吃蛇：多屏 UI、对局、武器与存档
  */
 import './snake.css';
 import {
@@ -12,11 +12,15 @@ import {
   TOTAL_LEVELS,
   getMoverCells,
   getEffectiveSpeedMs,
+  initWeaponRuntime,
+  tryFireWeapon,
+  isMoverFrozen,
 } from './game.js';
 import {
   getNickname,
   setNickname,
   getLocalBestScore,
+  getLocalMaxLevel,
   getLifetimeEarned,
   getSpendableBalance,
   getEquippedCosmeticIds,
@@ -31,6 +35,9 @@ import {
   DEFAULT_NICK,
   MAX_NICK_LEN,
   getWalletSnapshot,
+  getEquippedWeaponId,
+  getLastSelectedLevelIndex,
+  setLastSelectedLevelIndex,
 } from './storage.js';
 import { drawSnake } from './draw-snake.js';
 import {
@@ -39,27 +46,37 @@ import {
   effectIcons,
   toastForConsumable,
 } from './item-effects.js';
+import { getWeapon } from './weapons.js';
+import { ensureStarterWeapon } from './weapon-shop.js';
+import { recordLevelResult } from './level-progress.js';
 import {
-  ITEMS,
-  redeemItem,
-  canRedeemItem,
-  equipToggle,
-  toggleLoadout,
-  getShopItemState,
-} from './shop.js';
-import { isCosmetic, isConsumable } from './items.js';
+  escapeHtml,
+  renderLevelGrid,
+  renderItemShopList,
+  renderWeaponShopList,
+} from './ui-screens.js';
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
+
+const screens = {
+  menu: document.getElementById('screen-menu'),
+  levels: document.getElementById('screen-levels'),
+  shop: document.getElementById('screen-shop'),
+  weapons: document.getElementById('screen-weapons'),
+  game: document.getElementById('screen-game'),
+};
 
 const el = {
   level: document.getElementById('stat-level'),
   food: document.getElementById('stat-food'),
   score: document.getElementById('stat-score'),
+  ammo: document.getElementById('stat-ammo'),
   lifetime: document.getElementById('stat-lifetime'),
   balance: document.getElementById('stat-balance'),
   best: document.getElementById('stat-best'),
   hint: document.getElementById('level-hint'),
+  weaponHint: document.getElementById('equipped-weapon-hint'),
   overlay: document.getElementById('overlay'),
   overlayTitle: document.getElementById('overlay-title'),
   overlayMsg: document.getElementById('overlay-msg'),
@@ -68,25 +85,36 @@ const el = {
   leaderboard: document.getElementById('leaderboard-list'),
   btnPause: document.getElementById('btn-pause'),
   btnRestart: document.getElementById('btn-restart'),
-  btnShop: document.getElementById('btn-shop'),
-  btnHome: document.getElementById('btn-home'),
-  shopOverlay: document.getElementById('shop-overlay'),
+  btnExitGame: document.getElementById('btn-exit-game'),
+  btnFire: document.getElementById('btn-fire'),
   shopList: document.getElementById('shop-list'),
   shopBalance: document.getElementById('shop-balance'),
   shopLifetime: document.getElementById('shop-lifetime'),
   shopMsg: document.getElementById('shop-msg'),
-  btnShopClose: document.getElementById('btn-shop-close'),
+  weaponList: document.getElementById('weapon-list'),
+  weaponShopBalance: document.getElementById('weapon-shop-balance'),
+  weaponMsg: document.getElementById('weapon-msg'),
+  levelGrid: document.getElementById('level-grid'),
   effectBar: document.getElementById('effect-bar'),
   gameToast: document.getElementById('game-toast'),
 };
 
 let state = wrapNewLevel(0);
 let toastTimer = 0;
-/** 本局已入账到累计积分的分数（避免重复加） */
 let sessionScoreBanked = 0;
 let lastTick = 0;
 let animId = 0;
 let touchStart = null;
+/** 当前是否在「对局」屏且允许 tick */
+let gameSessionActive = false;
+let currentScreen = 'menu';
+
+function showScreen(name) {
+  currentScreen = name;
+  for (const [key, node] of Object.entries(screens)) {
+    if (node) node.hidden = key !== name;
+  }
+}
 
 function showGameToast(message) {
   if (!el.gameToast) return;
@@ -105,7 +133,6 @@ function refreshEffectBar(forState = state) {
   el.effectBar.hidden = icons.length === 0;
 }
 
-/** 消耗「下关使用」栏中的道具并生效（每关开始调用一次） */
 async function applyLoadoutForLevel(gameState) {
   const ids = [...getLoadoutIds()];
   clearLoadout();
@@ -131,12 +158,37 @@ function wrapNewLevel(levelIndex) {
 function refreshWalletUI() {
   el.lifetime.textContent = String(getLifetimeEarned());
   el.balance.textContent = String(getSpendableBalance());
+  el.best.textContent = String(getLocalBestScore());
   if (el.shopBalance) {
     el.shopBalance.textContent = String(getSpendableBalance());
   }
   if (el.shopLifetime) {
     el.shopLifetime.textContent = String(getLifetimeEarned());
   }
+  if (el.weaponShopBalance) {
+    el.weaponShopBalance.textContent = String(getSpendableBalance());
+  }
+}
+
+function refreshAmmoUI() {
+  const wr = state.weaponRuntime;
+  if (!el.ammo) return;
+  if (!wr) {
+    el.ammo.textContent = '—';
+    return;
+  }
+  el.ammo.textContent = String(wr.ammo);
+  if (el.btnFire) {
+    const ready = wr.ammo > 0 && wr.cooldown <= 0;
+    el.btnFire.disabled = !ready;
+    el.btnFire.classList.toggle('fire-ready', ready);
+  }
+}
+
+function refreshWeaponHint() {
+  if (!el.weaponHint) return;
+  const w = getWeapon(getEquippedWeaponId());
+  el.weaponHint.textContent = `当前武器：${w.emoji} ${w.name}（J / F 或点「发射」）`;
 }
 
 function refreshStats() {
@@ -144,18 +196,17 @@ function refreshStats() {
   el.level.textContent = `第 ${lv.id} 关 · ${lv.name}`;
   el.food.textContent = `${state.foodEaten} / ${lv.targetFood}`;
   el.score.textContent = String(state.score);
-  el.best.textContent = String(getLocalBestScore());
   el.hint.textContent = lv.hint;
   refreshWalletUI();
+  refreshAmmoUI();
+  refreshWeaponHint();
 }
 
 function cellSize() {
   const lv = state.level;
   const maxW = Math.min(window.innerWidth - 32, 520);
   const maxH = Math.min(window.innerHeight - 320, 420);
-  const cs = Math.floor(
-    Math.min(maxW / lv.cols, maxH / lv.rows, 28)
-  );
+  const cs = Math.floor(Math.min(maxW / lv.cols, maxH / lv.rows, 28));
   return Math.max(cs, 12);
 }
 
@@ -173,6 +224,8 @@ function resizeCanvas() {
   if (stage) {
     const dpadSize = Math.min(44, Math.max(38, Math.round(w * 0.11)));
     stage.style.setProperty('--dpad-size', `${dpadSize}px`);
+    const fireSize = Math.min(52, Math.max(44, Math.round(w * 0.13)));
+    stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
   }
 
   draw();
@@ -209,7 +262,19 @@ function cellCenter(x, y, cs) {
   return { x: (x + 0.5) * cs, y: (y + 0.5) * cs };
 }
 
+function drawProjectiles() {
+  const cs = cellSize();
+  for (const p of state.projectiles || []) {
+    const c = cellCenter(p.x, p.y, cs);
+    ctx.fillStyle = p.kind === 'pierce_line' ? '#ff6b6b' : '#74b9ff';
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, cs * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 function draw() {
+  if (currentScreen !== 'game') return;
   const lv = state.level;
   const cs = cellSize();
   ctx.fillStyle = '#1a472a';
@@ -226,11 +291,15 @@ function draw() {
     drawCell(ox, oy, '#5c4d3c', 0.25);
   }
 
-  for (const { x, y } of getMoverCells(state)) {
-    drawCell(x, y, '#e67e22', 0.3);
-  }
+  lv.movers.forEach((m, i) => {
+    const idx = state.moverStates[i].pathIndex;
+    const [x, y] = m.path[idx];
+    const frozen = isMoverFrozen(state, i);
+    drawCell(x, y, frozen ? '#48dbfb' : '#e67e22', 0.3);
+  });
 
   drawApple(state.food.x, state.food.y);
+  drawProjectiles();
   drawSnake(ctx, state.snake, state.direction, cs, state.effects);
   refreshEffectBar();
 }
@@ -270,14 +339,6 @@ async function renderLeaderboard() {
     .join('');
 }
 
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/** 把本局新增得分计入累计/可用积分（每段只计一次） */
 function bankSessionScore() {
   const delta = state.score - sessionScoreBanked;
   if (delta <= 0) return getWalletSnapshot();
@@ -308,11 +369,61 @@ function resetSession(levelIndex, carryScore = 0) {
   state = wrapNewLevel(levelIndex);
   state.score = carryScore;
   sessionScoreBanked = carryScore > 0 ? carryScore : 0;
+  const weaponId = getEquippedWeaponId();
+  initWeaponRuntime(state, weaponId);
+}
+
+async function startLevel(levelIndex, carryScore = 0) {
+  setLastSelectedLevelIndex(levelIndex);
+  resetSession(levelIndex, carryScore);
+  await applyLoadoutForLevel(state);
+  gameSessionActive = true;
+  state.paused = false;
+  el.btnPause.textContent = '暂停';
+  hideOverlay();
+  showScreen('game');
+  refreshStats();
+  resizeCanvas();
+  lastTick = performance.now();
+  if (!animId) animId = requestAnimationFrame(loop);
+}
+
+function exitToMenu() {
+  if (gameSessionActive) {
+    bankSessionScore();
+    persistProgress({
+      score: state.score,
+      levelUnlocked: Math.max(getLocalMaxLevel(), state.levelIndex + 1),
+      nickname: getNickname(),
+      wallet: getWalletSnapshot(),
+    }).then(() => renderLeaderboard());
+  }
+  gameSessionActive = false;
+  hideOverlay();
+  showScreen('menu');
+  refreshWalletUI();
+}
+
+function fireWeapon() {
+  if (!gameSessionActive || state.gameOver || state.levelComplete) return;
+  const r = tryFireWeapon(state);
+  if (r.ok) {
+    showGameToast('砰！');
+    refreshAmmoUI();
+  } else if (state.weaponRuntime?.ammo <= 0) {
+    showGameToast('弹药用完啦');
+  }
 }
 
 function loop(now) {
   animId = requestAnimationFrame(loop);
-  if (!state.paused && !state.gameOver && !state.levelComplete) {
+  if (
+    gameSessionActive &&
+    currentScreen === 'game' &&
+    !state.paused &&
+    !state.gameOver &&
+    !state.levelComplete
+  ) {
     const delay = getEffectiveSpeedMs(state);
     if (now - lastTick >= delay) {
       lastTick = now;
@@ -329,38 +440,43 @@ function loop(now) {
       }
     }
   }
-  draw();
+  if (currentScreen === 'game') draw();
 }
 
 function onGameOver() {
+  recordLevelResult(getLevel(state.levelIndex).id, {
+    cleared: false,
+    score: state.score,
+  });
   saveProgressIfNeeded();
-  showOverlay('哎呀，撞到了！', `本局得分 ${state.score} 分，已加入累计积分。再试一次？`, [
+  showOverlay('哎呀，撞到了！', `本局得分 ${state.score} 分，已加入累计积分。`, [
     {
       label: '重新开始本关',
       primary: true,
       onClick: () => {
-        hideOverlay();
-        resetSession(state.levelIndex, 0);
-        lastTick = performance.now();
-        refreshStats();
-        resizeCanvas();
+        startLevel(state.levelIndex, 0);
       },
     },
     {
-      label: '从第 1 关开始',
+      label: '选关',
       onClick: () => {
+        gameSessionActive = false;
         hideOverlay();
-        resetSession(0, 0);
-        lastTick = performance.now();
-        refreshStats();
-        resizeCanvas();
+        openLevelsScreen();
       },
+    },
+    {
+      label: '回主菜单',
+      onClick: () => exitToMenu(),
     },
   ]);
 }
 
 function onLevelComplete() {
+  const lvId = getLevel(state.levelIndex).id;
+  recordLevelResult(lvId, { cleared: true, score: state.score });
   saveProgressIfNeeded();
+
   if (state.allComplete) {
     showOverlay(
       '🎉 全部通关！',
@@ -369,25 +485,27 @@ function onLevelComplete() {
         {
           label: '再玩一遍',
           primary: true,
+          onClick: () => startLevel(0, 0),
+        },
+        {
+          label: '选关',
           onClick: () => {
+            gameSessionActive = false;
             hideOverlay();
-            resetSession(0, 0);
-            lastTick = performance.now();
-            refreshStats();
-            resizeCanvas();
+            openLevelsScreen();
           },
         },
         {
-          label: '回导航页',
-          onClick: () => {
-            window.location.href = '/';
-          },
+          label: '回主菜单',
+          onClick: () => exitToMenu(),
         },
       ]
     );
     return;
   }
-  const nextLv = getLevel(state.levelIndex + 1);
+
+  const nextIdx = state.levelIndex + 1;
+  const nextLv = getLevel(nextIdx);
   showOverlay(
     '关卡完成！',
     `第 ${state.level.id} 关过关！本段得分已入账。下一关：${nextLv.name}。`,
@@ -398,131 +516,73 @@ function onLevelComplete() {
         onClick: async () => {
           hideOverlay();
           state = advanceToNextLevel(state);
-          applyEquippedCosmetics(state, getEquippedCosmeticIds());
+          initWeaponRuntime(state, getEquippedWeaponId());
           await applyLoadoutForLevel(state);
+          sessionScoreBanked = state.score;
           lastTick = performance.now();
           refreshStats();
           resizeCanvas();
         },
+      },
+      {
+        label: '选关',
+        onClick: () => {
+          gameSessionActive = false;
+          hideOverlay();
+          openLevelsScreen();
+        },
+      },
+      {
+        label: '回主菜单',
+        onClick: () => exitToMenu(),
       },
     ]
   );
 }
 
 function togglePause() {
-  if (state.gameOver || state.levelComplete) return;
+  if (!gameSessionActive || state.gameOver || state.levelComplete) return;
   state.paused = !state.paused;
   el.btnPause.textContent = state.paused ? '继续' : '暂停';
   if (!state.paused) lastTick = performance.now();
 }
 
-function renderShopList() {
-  el.shopList.innerHTML = ITEMS.map((item) => {
-    const st = getShopItemState(item.id);
-    if (!st) return '';
-
-    let meta = '';
-    if (isCosmetic(item) && st.count > 0) {
-      meta = st.equipped
-        ? '<span class="shop-tag on">已装备</span>'
-        : '<span class="shop-tag">已拥有</span>';
-    } else if (isConsumable(item) && st.count > 0) {
-      meta = `<span class="shop-tag">×${st.count}</span>`;
-      if (st.inLoadout) meta += '<span class="shop-tag on">下关</span>';
-    }
-
-    const buyCheck = canRedeemItem(item.id);
-    const buyDisabled =
-      !buyCheck.ok &&
-      (buyCheck.reason === 'insufficient' ||
-        buyCheck.reason === 'owned' ||
-        buyCheck.reason === 'full')
-        ? 'disabled'
-        : '';
-
-    let extraBtn = '';
-    if (isCosmetic(item) && st.count > 0) {
-      extraBtn = `<button type="button" class="btn btn-mini" data-equip="${escapeHtml(item.id)}">${st.equipped ? '卸下' : '装备'}</button>`;
-    } else if (isConsumable(item) && st.count > 0) {
-      extraBtn = `<button type="button" class="btn btn-mini" data-loadout="${escapeHtml(item.id)}">${st.inLoadout ? '取消下关' : '下关使用'}</button>`;
-    }
-
-    return `
-      <li class="shop-item">
-        <span class="shop-item-emoji">${item.emoji}</span>
-        <div>
-          <div class="shop-item-name">${escapeHtml(item.name)} ${meta}</div>
-          <div class="shop-item-desc">${escapeHtml(item.description)}</div>
-          <div class="shop-item-price">${item.price} 积分</div>
-        </div>
-        <div class="shop-item-action shop-item-actions">
-          <button type="button" class="btn btn-mini" data-buy="${escapeHtml(item.id)}" ${buyDisabled}>兑换</button>
-          ${extraBtn}
-        </div>
-      </li>`;
-  }).join('');
-
-  el.shopList.querySelectorAll('[data-buy]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-buy');
-      el.shopMsg.textContent = '';
-      const result = await redeemItem(id);
-      if (!result.ok) {
-        const msg = {
-          insufficient: '积分不够哦，多玩几局再来～',
-          owned: '永久道具买一次就够啦！',
-          full: '这个道具背包已满。',
-        };
-        el.shopMsg.textContent = msg[result.reason] || '暂时无法兑换';
-        return;
-      }
-      el.shopMsg.textContent = `兑换成功：${result.item.emoji} ${result.item.name}`;
-      refreshWalletUI();
-      renderShopList();
-      applyEquippedCosmetics(state, getEquippedCosmeticIds());
-      refreshEffectBar();
-      draw();
-    });
-  });
-
-  el.shopList.querySelectorAll('[data-equip]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-equip');
-      await equipToggle(id);
-      applyEquippedCosmetics(state, getEquippedCosmeticIds());
-      refreshEffectBar();
-      draw();
-      renderShopList();
-    });
-  });
-
-  el.shopList.querySelectorAll('[data-loadout]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-loadout');
-      const r = await toggleLoadout(id);
-      if (!r.ok) {
-        el.shopMsg.textContent = '先兑换至少 1 个再用「下关使用」哦';
-        return;
-      }
-      el.shopMsg.textContent = '已选好下关要带的道具！';
-      renderShopList();
-    });
-  });
+function openLevelsScreen() {
+  renderLevelGrid(el.levelGrid, (idx) => startLevel(idx, 0));
+  showScreen('levels');
 }
 
-function openShop() {
+function openShopScreen() {
   el.shopMsg.textContent = '';
   refreshWalletUI();
-  renderShopList();
-  el.shopOverlay.hidden = false;
+  renderItemShopList(el, {
+    shopList: el.shopList,
+    shopMsg: el.shopMsg,
+    onAfterChange: refreshWalletUI,
+  });
+  showScreen('shop');
 }
 
-function closeShop() {
-  el.shopOverlay.hidden = true;
+function openWeaponsScreen() {
+  el.weaponMsg.textContent = '';
+  refreshWalletUI();
+  renderWeaponShopList({
+    weaponList: el.weaponList,
+    weaponMsg: el.weaponMsg,
+    onAfterChange: refreshWalletUI,
+  });
+  showScreen('weapons');
 }
 
 function bindControls() {
   document.addEventListener('keydown', (e) => {
+    if (currentScreen !== 'game' || !gameSessionActive) return;
+    const k = e.key.toLowerCase();
+    if (k === 'j' || k === 'f') {
+      e.preventDefault();
+      fireWeapon();
+      return;
+    }
     if (e.key === ' ' || e.key === 'p' || e.key === 'P') {
       e.preventDefault();
       togglePause();
@@ -536,6 +596,7 @@ function bindControls() {
   document.querySelectorAll('.dpad-btn[data-dir]').forEach((btn) => {
     const dir = btn.dataset.dir;
     const steer = (e) => {
+      if (currentScreen !== 'game' || !gameSessionActive) return;
       e.preventDefault();
       e.stopPropagation();
       setDirection(state, dir);
@@ -567,7 +628,7 @@ function bindControls() {
   canvas.addEventListener(
     'touchend',
     (e) => {
-      if (!touchStart) return;
+      if (!touchStart || currentScreen !== 'game') return;
       const t = e.changedTouches[0];
       const dx = t.clientX - touchStart.x;
       const dy = t.clientY - touchStart.y;
@@ -585,21 +646,26 @@ function bindControls() {
 
   el.btnPause.addEventListener('click', togglePause);
   el.btnRestart.addEventListener('click', () => {
-    resetSession(state.levelIndex, 0);
-    state.paused = false;
-    el.btnPause.textContent = '暂停';
-    lastTick = performance.now();
-    refreshStats();
-    hideOverlay();
+    startLevel(state.levelIndex, 0);
   });
-  el.btnShop.addEventListener('click', openShop);
-  el.btnShopClose.addEventListener('click', closeShop);
-  el.shopOverlay.addEventListener('click', (e) => {
-    if (e.target === el.shopOverlay) closeShop();
+  el.btnExitGame.addEventListener('click', () => {
+    bankSessionScore();
+    saveProgressIfNeeded().then(() => exitToMenu());
   });
-  el.btnHome.addEventListener('click', () => {
-    window.location.href = '/';
+  el.btnFire?.addEventListener('click', (e) => {
+    e.preventDefault();
+    fireWeapon();
   });
+
+  document.getElementById('btn-menu-play')?.addEventListener('click', () => {
+    startLevel(getLastSelectedLevelIndex(), 0);
+  });
+  document.getElementById('btn-menu-levels')?.addEventListener('click', openLevelsScreen);
+  document.getElementById('btn-menu-shop')?.addEventListener('click', openShopScreen);
+  document.getElementById('btn-menu-weapons')?.addEventListener('click', openWeaponsScreen);
+  document.getElementById('btn-levels-back')?.addEventListener('click', () => showScreen('menu'));
+  document.getElementById('btn-shop-back')?.addEventListener('click', () => showScreen('menu'));
+  document.getElementById('btn-weapons-back')?.addEventListener('click', () => showScreen('menu'));
 
   el.nickInput.addEventListener('change', () => {
     setNickname(el.nickInput.value);
@@ -615,32 +681,16 @@ async function init() {
   el.nickInput.placeholder = DEFAULT_NICK;
 
   await loadRemoteProgress();
-  refreshStats();
+  ensureStarterWeapon();
+  refreshWalletUI();
   await renderLeaderboard();
 
   bindControls();
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('resize', () => {
+    if (currentScreen === 'game') resizeCanvas();
+  });
 
-  showOverlay(
-    '贪吃蛇 · 关卡模式',
-    `共 ${TOTAL_LEVELS} 关。过关或结束时会把你本局新得到的分数加入「累计积分」，可在道具商店使用。键盘 / 滑动 / 右下角方向键操作。`,
-    [
-      {
-        label: '开始游戏',
-        primary: true,
-        onClick: async () => {
-          hideOverlay();
-          await applyLoadoutForLevel(state);
-          lastTick = performance.now();
-          cancelAnimationFrame(animId);
-          animId = requestAnimationFrame(loop);
-        },
-      },
-    ]
-  );
-
-  draw();
+  showScreen('menu');
 }
 
 init();
