@@ -3,13 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World · GuGeeGoo</title>
+    <title>游戏导航页 · GuGeeGoo</title>
   </head>
-  <body>
-    <div class="card">
-      <h1>Hello World <span class="wave">👋</span></h1>
-      <p>GuGeeGoo · 顾景源的第一个网页</p>
-    </div>
+  <body class="portal-page">
+    <header class="portal-header">
+      <p class="portal-kicker">GuGeeGoo · 顾景源</p>
+      <h1>🎮 游戏导航页</h1>
+      <p class="portal-sub">选一个游戏，开心玩起来！</p>
+    </header>
+
+    <main id="game-list" class="game-list" aria-label="游戏列表"></main>
+
+    <footer class="portal-footer">
+      <p>更多游戏会陆续出现在这里 👋</p>
+    </footer>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

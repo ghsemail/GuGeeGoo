@@ -1,0 +1,310 @@
+.snake-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 16px 16px 32px;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI',
+    sans-serif;
+  background: linear-gradient(160deg, #0f2027 0%, #203a43 45%, #2c5364 100%);
+  color: #f0f4f8;
+  box-sizing: border-box;
+}
+
+.snake-page * {
+  box-sizing: border-box;
+}
+
+.snake-header {
+  text-align: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.back-link {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  color: #a8dadc;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.snake-header h1 {
+  margin: 0;
+  font-size: clamp(26px, 5vw, 36px);
+}
+
+.tagline {
+  margin: 4px 0 0;
+  opacity: 0.75;
+  font-size: 14px;
+}
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-width: 520px;
+  margin: 0 auto 8px;
+}
+
+.stat {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.stat .label {
+  display: block;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.stat .value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hint {
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.85;
+  max-width: 520px;
+  margin: 0 auto 12px;
+  min-height: 1.2em;
+}
+
+.canvas-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+#game-canvas {
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  touch-action: none;
+  max-width: 100%;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 520px;
+  margin: 0 auto 16px;
+}
+
+.btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.btn-primary {
+  background: #2ed573;
+  color: #0f2027;
+}
+
+.btn-primary:hover {
+  background: #7bed9f;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 20px;
+  user-select: none;
+}
+
+.dpad-btn {
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.dpad-btn:active {
+  background: rgba(46, 213, 115, 0.5);
+}
+
+.dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.dpad-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.side-panel {
+  max-width: 520px;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.nick-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.nick-label input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 16px;
+}
+
+.lb-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.leaderboard {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.leaderboard .rank {
+  display: inline-block;
+  width: 1.5em;
+  opacity: 0.6;
+}
+
+.leaderboard .muted {
+  list-style: none;
+  margin-left: -1.2em;
+  opacity: 0.65;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay-card {
+  background: linear-gradient(145deg, #2c5364, #203a43);
+  border-radius: 20px;
+  padding: 28px 24px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-card h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.overlay-card p {
+  margin: 0 0 20px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.overlay-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.overlay-actions .btn {
+  width: 100%;
+}
+
+@media (min-width: 720px) {
+  .snake-page {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    grid-template-rows: auto auto auto auto 1fr;
+    gap: 12px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  .snake-header {
+    grid-column: 1 / -1;
+  }
+
+  .stats-bar,
+  .hint,
+  .canvas-wrap,
+  .toolbar,
+  .dpad {
+    grid-column: 1;
+  }
+
+  .side-panel {
+    grid-column: 2;
+    grid-row: 2 / span 5;
+    align-self: start;
+  }
+
+  .dpad {
+    display: none;
+  }
+}
+
+@media (pointer: fine) and (min-width: 720px) {
+  .dpad {
+    display: none;
+  }
+}
+
+@media (max-width: 719px) {
+  .dpad {
+    display: grid;
+  }
+}

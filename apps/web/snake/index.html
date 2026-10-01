@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>贪吃蛇 · GuGeeGoo</title>
+  </head>
+  <body class="snake-page">
+    <header class="snake-header">
+      <a class="back-link" href="/">← 导航页</a>
+      <h1>🐍 贪吃蛇</h1>
+      <p class="tagline">顾景源 · 关卡挑战</p>
+    </header>
+
+    <section class="stats-bar">
+      <div class="stat">
+        <span class="label">关卡</span>
+        <span id="stat-level" class="value">—</span>
+      </div>
+      <div class="stat">
+        <span class="label">苹果</span>
+        <span id="stat-food" class="value">0 / 0</span>
+      </div>
+      <div class="stat">
+        <span class="label">得分</span>
+        <span id="stat-score" class="value">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">最高</span>
+        <span id="stat-best" class="value">0</span>
+      </div>
+    </section>
+
+    <p id="level-hint" class="hint"></p>
+
+    <div class="canvas-wrap">
+      <canvas id="game-canvas" aria-label="贪吃蛇游戏区域"></canvas>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" id="btn-pause" class="btn">暂停</button>
+      <button type="button" id="btn-restart" class="btn">重开本关</button>
+      <button type="button" id="btn-home" class="btn btn-ghost">回导航页</button>
+    </div>
+
+    <div class="dpad" aria-label="方向控制">
+      <button type="button" class="dpad-btn dpad-up" data-dir="up" aria-label="上">▲</button>
+      <button type="button" class="dpad-btn dpad-left" data-dir="left" aria-label="左">◀</button>
+      <button type="button" class="dpad-btn dpad-right" data-dir="right" aria-label="右">▶</button>
+      <button type="button" class="dpad-btn dpad-down" data-dir="down" aria-label="下">▼</button>
+    </div>
+
+    <section class="side-panel">
+      <label class="nick-label">
+        昵称（排行榜用）
+        <input type="text" id="nick-input" autocomplete="nickname" />
+      </label>
+      <h2 class="lb-title">🏆 排行榜 TOP 10</h2>
+      <ol id="leaderboard-list" class="leaderboard"></ol>
+    </section>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="overlay-card">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-msg"></p>
+        <div id="overlay-actions" class="overlay-actions"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/snake/main.js"></script>
+  </body>
+</html>

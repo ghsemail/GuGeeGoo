@@ -10,6 +10,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        snake: path.resolve(__dirname, 'snake/index.html'),
+      },
+    },
   },
   server: {
     port: 5173,
