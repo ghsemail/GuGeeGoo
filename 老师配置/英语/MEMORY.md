@@ -18,6 +18,7 @@
 | Day 4（11 题） | **8/11** | live 误写 recycle；选词 food waste / lots of 互换 |
 | Unit 1 薄弱点回顾（5 题） | **5/5** | WP-002→MP-009 |
 | Unit 2 单元小测（7 题） | **6/7** | Q4 live a green life 错 |
+| 复习单词听写 Unit 1–2（19 词） | **11/19** | 只写英文；错 stomach、enough、potato、snack、sugar、sleepy、problem、choose |
 | 复习单词听写 Unit 1–2（21 词） | **17/21** | 只写英文；错 recycle、a few、stomach、enough |
 
 ---
@@ -26,8 +27,8 @@
 
 | 项目 | 内容 |
 |------|------|
-| 待巩固 | recycle（U2）、a few、stomach、enough（U1），均为不熟悉 0/2 |
-| 固定表下次先补 | heavy、healthy、teaspoon（09-30 未读到） |
+| 待巩固 | recycle、a few 巩固中 1/2；stomach、enough、potato、snack、sugar、sleepy、problem、choose 不熟悉 0/2（共 10 词） |
+| 固定表 | 10-01 表已听写 11/19，change 未读；待巩固增多，下次复习听写前换表 |
 | 详情 | `学科学习/英语/五年级/词汇/听写单词本.md` |
 
 ---
@@ -130,6 +131,7 @@
 
 | 日期 | 内容 |
 |------|------|
+| 2026-10-01 | 复习单词听写 11/19（19 词）；recycle、a few 升巩固中；U1 首次听写 healthy/teaspoon/heavy/candy/bottle/always/fruit 已掌握，potato/snack/sugar/sleepy/problem/choose 不熟悉；stomach、enough 再错；change 未读；待巩固 10 词，换表后再复习听写 |
 | 2026-10-01 | 听写单词本.md 被 09-30 21:19 vault backup 覆盖回旧版，已恢复到 be53b49（含 09-30 记录、待巩固 4 词、需中文提示备注、10-01 固定表） |
 | 2026-09-30 | 备好 10-01 一二单元复习单词听写固定表（20 词，前三个 off、healthy、teaspoon） |
 | 2026-09-30 | 听写规则新增四条：先备词表、报序号、读完即停不加话、要中文意思的词标「需中文提示」优先复习 |
