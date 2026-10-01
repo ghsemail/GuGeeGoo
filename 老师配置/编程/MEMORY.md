@@ -22,7 +22,7 @@
 |------|------|------|
 | 游戏导航页 | `apps/web/index.html`、`src/games.js` | ✅ |
 | 贪吃蛇 | `apps/web/snake/`、`src/snake/` | ✅ 15 关 + 通关画面 |
-| 积分与商店 | `src/snake/storage.js`、`items.js`、`shop.js` | ✅ localStorage + KV 字段预留 |
+| 积分与商店 | `items.js`、`item-effects.js`、`shop.js` | ✅ 7 种道具（永久外观 + 消耗品），下关携带 |
 | Pages Functions | `apps/web/functions/api/game/` | ✅ 含 lifetimeEarned / spent / ownedItemIds |
 
 ---

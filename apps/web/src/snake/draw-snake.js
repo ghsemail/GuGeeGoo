@@ -14,10 +14,22 @@ function dirNameFromVector(dx, dy) {
   return 'right';
 }
 
+function segmentColor(index, total, rainbow) {
+  if (rainbow) {
+    const hue = (index * 36 + total * 8) % 360;
+    return `hsl(${hue}, 78%, 58%)`;
+  }
+  const t = index / Math.max(total - 1, 1);
+  const green = Math.floor(180 + t * 40);
+  return index === 0 ? '#7bed9f' : `rgb(46, ${green}, 100)`;
+}
+
 /** @param {CanvasRenderingContext2D} ctx */
-export function drawSnake(ctx, snake, direction, cs) {
+export function drawSnake(ctx, snake, direction, cs, effects = {}) {
   if (!snake.length) return;
 
+  const rainbow = !!effects.rainbowSkin;
+  const partyHat = !!effects.partyHat;
   const n = snake.length;
   const points = snake.map((seg) => cellCenter(seg.x, seg.y, cs));
 
@@ -25,7 +37,7 @@ export function drawSnake(ctx, snake, direction, cs) {
   ctx.lineJoin = 'round';
 
   if (n >= 2) {
-    ctx.strokeStyle = '#1fa855';
+    ctx.strokeStyle = rainbow ? 'rgba(255,255,255,0.35)' : '#1fa855';
     ctx.lineWidth = cs * 0.72;
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
@@ -38,8 +50,7 @@ export function drawSnake(ctx, snake, direction, cs) {
   for (let i = n - 1; i >= 0; i--) {
     const t = i / Math.max(n - 1, 1);
     const radius = cs * (0.22 + (1 - t) * 0.18);
-    const green = Math.floor(180 + t * 40);
-    ctx.fillStyle = i === 0 ? '#7bed9f' : `rgb(46, ${green}, 100)`;
+    ctx.fillStyle = segmentColor(i, n, rainbow);
     ctx.beginPath();
     ctx.arc(points[i].x, points[i].y, radius, 0, Math.PI * 2);
     ctx.fill();
@@ -50,7 +61,7 @@ export function drawSnake(ctx, snake, direction, cs) {
 
   const head = points[0];
   const headR = cs * 0.38;
-  ctx.fillStyle = '#9dffbd';
+  ctx.fillStyle = rainbow ? segmentColor(0, n, true) : '#9dffbd';
   ctx.beginPath();
   ctx.arc(head.x, head.y, headR, 0, Math.PI * 2);
   ctx.fill();
@@ -59,6 +70,33 @@ export function drawSnake(ctx, snake, direction, cs) {
   if (n >= 2) {
     const neck = points[1];
     face = dirNameFromVector(head.x - neck.x, head.y - neck.y);
+  }
+
+  if (partyHat) {
+    ctx.fillStyle = '#e74c3c';
+    ctx.beginPath();
+    const hatW = cs * 0.35;
+    const hatH = cs * 0.28;
+    let hx = head.x;
+    let hy = head.y - headR * 0.9;
+    if (face === 'down') hy = head.y + headR * 0.5;
+    if (face === 'left') {
+      hx = head.x - headR * 0.85;
+      hy = head.y;
+    }
+    if (face === 'right') {
+      hx = head.x + headR * 0.85;
+      hy = head.y;
+    }
+    ctx.moveTo(hx, hy - hatH);
+    ctx.lineTo(hx - hatW / 2, hy);
+    ctx.lineTo(hx + hatW / 2, hy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(hx, hy - hatH, cs * 0.05, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   const eyeOffset = cs * 0.14;

@@ -1,12 +1,16 @@
 /**
- * 道具商店：兑换与占位逻辑
+ * 道具商店：兑换、装备、下关携带
  */
-import { ITEMS, getItemById } from './items.js';
+import { ITEMS, getItemById, isCosmetic, isConsumable } from './items.js';
 import {
   getSpendableBalance,
-  getOwnedItemIds,
+  getItemCount,
+  addInventoryItem,
+  toggleEquippedCosmetic,
+  toggleLoadoutConsumable,
+  getEquippedCosmeticIds,
+  getLoadoutIds,
   spendPoints,
-  recordOwnedItem,
   persistWallet,
 } from './storage.js';
 
@@ -15,9 +19,14 @@ export { ITEMS };
 export function canRedeemItem(itemId) {
   const item = getItemById(itemId);
   if (!item) return { ok: false, reason: 'unknown' };
-  if (item.placeholder) return { ok: false, reason: 'placeholder' };
-  if (getOwnedItemIds().includes(itemId)) {
+  if (isCosmetic(item) && getItemCount(itemId) >= 1) {
     return { ok: false, reason: 'owned' };
+  }
+  if (isConsumable(item)) {
+    const max = item.maxStack ?? 20;
+    if (getItemCount(itemId) >= max) {
+      return { ok: false, reason: 'full' };
+    }
   }
   if (getSpendableBalance() < item.price) {
     return { ok: false, reason: 'insufficient' };
@@ -25,7 +34,6 @@ export function canRedeemItem(itemId) {
   return { ok: true, item };
 }
 
-/** 兑换道具（占位商品不可兑换；真道具将来走同一入口） */
 export async function redeemItem(itemId) {
   const check = canRedeemItem(itemId);
   if (!check.ok) return check;
@@ -33,7 +41,43 @@ export async function redeemItem(itemId) {
   const spend = spendPoints(check.item.price);
   if (!spend.ok) return spend;
 
-  recordOwnedItem(itemId);
+  addInventoryItem(itemId, 1);
+  if (isCosmetic(check.item)) {
+    const equipped = getEquippedCosmeticIds();
+    if (!equipped.includes(itemId)) {
+      toggleEquippedCosmetic(itemId);
+    }
+  }
+
   await persistWallet();
   return { ok: true, item: check.item, wallet: spend };
+}
+
+export async function equipToggle(itemId) {
+  const item = getItemById(itemId);
+  if (!item || !isCosmetic(item) || getItemCount(itemId) < 1) {
+    return { ok: false, reason: 'not_owned' };
+  }
+  toggleEquippedCosmetic(itemId);
+  await persistWallet();
+  return { ok: true, equipped: getEquippedCosmeticIds() };
+}
+
+export async function toggleLoadout(itemId) {
+  const item = getItemById(itemId);
+  if (!item || !isConsumable(item) || getItemCount(itemId) < 1) {
+    return { ok: false, reason: 'not_owned' };
+  }
+  const next = toggleLoadoutConsumable(itemId);
+  await persistWallet();
+  return { ok: true, loadout: next };
+}
+
+export function getShopItemState(itemId) {
+  const item = getItemById(itemId);
+  if (!item) return null;
+  const count = getItemCount(itemId);
+  const equipped = getEquippedCosmeticIds().includes(itemId);
+  const inLoadout = getLoadoutIds().includes(itemId);
+  return { item, count, equipped, inLoadout };
 }

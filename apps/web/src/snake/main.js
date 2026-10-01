@@ -11,6 +11,7 @@ import {
   getLevel,
   TOTAL_LEVELS,
   getMoverCells,
+  getEffectiveSpeedMs,
 } from './game.js';
 import {
   getNickname,
@@ -18,18 +19,35 @@ import {
   getLocalBestScore,
   getLifetimeEarned,
   getSpendableBalance,
-  getOwnedItemIds,
+  getEquippedCosmeticIds,
+  consumeInventoryItem,
+  clearLoadout,
+  getLoadoutIds,
   addLifetimePoints,
   loadRemoteProgress,
   persistProgress,
+  persistWallet,
   fetchLeaderboard,
   DEFAULT_NICK,
   MAX_NICK_LEN,
   getWalletSnapshot,
 } from './storage.js';
 import { drawSnake } from './draw-snake.js';
-import { applyOwnedItems } from './items.js';
-import { ITEMS, redeemItem, canRedeemItem } from './shop.js';
+import {
+  applyEquippedCosmetics,
+  applyConsumableEffect,
+  effectIcons,
+  toastForConsumable,
+} from './item-effects.js';
+import {
+  ITEMS,
+  redeemItem,
+  canRedeemItem,
+  equipToggle,
+  toggleLoadout,
+  getShopItemState,
+} from './shop.js';
+import { isCosmetic, isConsumable } from './items.js';
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
@@ -58,18 +76,56 @@ const el = {
   shopLifetime: document.getElementById('shop-lifetime'),
   shopMsg: document.getElementById('shop-msg'),
   btnShopClose: document.getElementById('btn-shop-close'),
+  effectBar: document.getElementById('effect-bar'),
+  gameToast: document.getElementById('game-toast'),
 };
 
 let state = wrapNewLevel(0);
+let toastTimer = 0;
 /** 本局已入账到累计积分的分数（避免重复加） */
 let sessionScoreBanked = 0;
 let lastTick = 0;
 let animId = 0;
 let touchStart = null;
 
+function showGameToast(message) {
+  if (!el.gameToast) return;
+  el.gameToast.textContent = message;
+  el.gameToast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.gameToast.hidden = true;
+  }, 2200);
+}
+
+function refreshEffectBar(forState = state) {
+  if (!el.effectBar || !forState) return;
+  const icons = effectIcons(forState);
+  el.effectBar.textContent = icons.length ? icons.join(' ') : '';
+  el.effectBar.hidden = icons.length === 0;
+}
+
+/** 消耗「下关使用」栏中的道具并生效（每关开始调用一次） */
+async function applyLoadoutForLevel(gameState) {
+  const ids = [...getLoadoutIds()];
+  clearLoadout();
+  for (const id of ids) {
+    if (consumeInventoryItem(id)) {
+      applyConsumableEffect(gameState, id);
+      showGameToast(toastForConsumable(id));
+    }
+  }
+  applyEquippedCosmetics(gameState, getEquippedCosmeticIds());
+  refreshEffectBar();
+  await persistWallet();
+  return gameState;
+}
+
 function wrapNewLevel(levelIndex) {
   const base = createLevelState(levelIndex);
-  return applyOwnedItems(base, getOwnedItemIds());
+  applyEquippedCosmetics(base, getEquippedCosmeticIds());
+  refreshEffectBar(base);
+  return base;
 }
 
 function refreshWalletUI() {
@@ -175,7 +231,8 @@ function draw() {
   }
 
   drawApple(state.food.x, state.food.y);
-  drawSnake(ctx, state.snake, state.direction, cs);
+  drawSnake(ctx, state.snake, state.direction, cs, state.effects);
+  refreshEffectBar();
 }
 
 function hideOverlay() {
@@ -255,12 +312,16 @@ function resetSession(levelIndex, carryScore = 0) {
 
 function loop(now) {
   animId = requestAnimationFrame(loop);
-  const lv = state.level;
   if (!state.paused && !state.gameOver && !state.levelComplete) {
-    if (now - lastTick >= lv.speedMs) {
+    const delay = getEffectiveSpeedMs(state);
+    if (now - lastTick >= delay) {
       lastTick = now;
-      tick(state, now);
+      const result = tick(state, now);
       refreshStats();
+      if (result.shieldUsed) {
+        showGameToast('🫧 护盾生效！');
+        refreshEffectBar();
+      }
       if (state.gameOver) {
         onGameOver();
       } else if (state.levelComplete) {
@@ -334,10 +395,11 @@ function onLevelComplete() {
       {
         label: '进入下一关',
         primary: true,
-        onClick: () => {
+        onClick: async () => {
           hideOverlay();
           state = advanceToNextLevel(state);
-          state = applyOwnedItems(state, getOwnedItemIds());
+          applyEquippedCosmetics(state, getEquippedCosmeticIds());
+          await applyLoadoutForLevel(state);
           lastTick = performance.now();
           refreshStats();
           resizeCanvas();
@@ -355,35 +417,47 @@ function togglePause() {
 }
 
 function renderShopList() {
-  const owned = new Set(getOwnedItemIds());
   el.shopList.innerHTML = ITEMS.map((item) => {
-    const ownedMark = owned.has(item.id)
-      ? '<span class="shop-owned">已拥有</span>'
-      : '';
-    let actionLabel = '兑换';
-    let disabled = '';
-    if (item.placeholder) {
-      actionLabel = '敬请期待';
-      disabled = 'disabled';
-    } else if (owned.has(item.id)) {
-      actionLabel = '已拥有';
-      disabled = 'disabled';
-    } else {
-      const check = canRedeemItem(item.id);
-      if (!check.ok && check.reason === 'insufficient') {
-        disabled = 'disabled';
-      }
+    const st = getShopItemState(item.id);
+    if (!st) return '';
+
+    let meta = '';
+    if (isCosmetic(item) && st.count > 0) {
+      meta = st.equipped
+        ? '<span class="shop-tag on">已装备</span>'
+        : '<span class="shop-tag">已拥有</span>';
+    } else if (isConsumable(item) && st.count > 0) {
+      meta = `<span class="shop-tag">×${st.count}</span>`;
+      if (st.inLoadout) meta += '<span class="shop-tag on">下关</span>';
     }
+
+    const buyCheck = canRedeemItem(item.id);
+    const buyDisabled =
+      !buyCheck.ok &&
+      (buyCheck.reason === 'insufficient' ||
+        buyCheck.reason === 'owned' ||
+        buyCheck.reason === 'full')
+        ? 'disabled'
+        : '';
+
+    let extraBtn = '';
+    if (isCosmetic(item) && st.count > 0) {
+      extraBtn = `<button type="button" class="btn btn-mini" data-equip="${escapeHtml(item.id)}">${st.equipped ? '卸下' : '装备'}</button>`;
+    } else if (isConsumable(item) && st.count > 0) {
+      extraBtn = `<button type="button" class="btn btn-mini" data-loadout="${escapeHtml(item.id)}">${st.inLoadout ? '取消下关' : '下关使用'}</button>`;
+    }
+
     return `
       <li class="shop-item">
         <span class="shop-item-emoji">${item.emoji}</span>
         <div>
-          <div class="shop-item-name">${escapeHtml(item.name)} ${ownedMark}</div>
+          <div class="shop-item-name">${escapeHtml(item.name)} ${meta}</div>
           <div class="shop-item-desc">${escapeHtml(item.description)}</div>
           <div class="shop-item-price">${item.price} 积分</div>
         </div>
-        <div class="shop-item-action">
-          <button type="button" class="btn" data-buy="${escapeHtml(item.id)}" ${disabled}>${actionLabel}</button>
+        <div class="shop-item-action shop-item-actions">
+          <button type="button" class="btn btn-mini" data-buy="${escapeHtml(item.id)}" ${buyDisabled}>兑换</button>
+          ${extraBtn}
         </div>
       </li>`;
   }).join('');
@@ -394,17 +468,43 @@ function renderShopList() {
       el.shopMsg.textContent = '';
       const result = await redeemItem(id);
       if (!result.ok) {
-        if (result.reason === 'placeholder') {
-          el.shopMsg.textContent = '这个道具还在制作中，先攒积分吧！';
-        } else if (result.reason === 'insufficient') {
-          el.shopMsg.textContent = '积分不够哦，多玩几局再来～';
-        } else if (result.reason === 'owned') {
-          el.shopMsg.textContent = '你已经拥有啦！';
-        }
+        const msg = {
+          insufficient: '积分不够哦，多玩几局再来～',
+          owned: '永久道具买一次就够啦！',
+          full: '这个道具背包已满。',
+        };
+        el.shopMsg.textContent = msg[result.reason] || '暂时无法兑换';
         return;
       }
-      el.shopMsg.textContent = `兑换成功：${result.item.name}（效果以后开放）`;
+      el.shopMsg.textContent = `兑换成功：${result.item.emoji} ${result.item.name}`;
       refreshWalletUI();
+      renderShopList();
+      applyEquippedCosmetics(state, getEquippedCosmeticIds());
+      refreshEffectBar();
+      draw();
+    });
+  });
+
+  el.shopList.querySelectorAll('[data-equip]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-equip');
+      await equipToggle(id);
+      applyEquippedCosmetics(state, getEquippedCosmeticIds());
+      refreshEffectBar();
+      draw();
+      renderShopList();
+    });
+  });
+
+  el.shopList.querySelectorAll('[data-loadout]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-loadout');
+      const r = await toggleLoadout(id);
+      if (!r.ok) {
+        el.shopMsg.textContent = '先兑换至少 1 个再用「下关使用」哦';
+        return;
+      }
+      el.shopMsg.textContent = '已选好下关要带的道具！';
       renderShopList();
     });
   });
@@ -529,8 +629,9 @@ async function init() {
       {
         label: '开始游戏',
         primary: true,
-        onClick: () => {
+        onClick: async () => {
           hideOverlay();
+          await applyLoadoutForLevel(state);
           lastTick = performance.now();
           cancelAnimationFrame(animId);
           animId = requestAnimationFrame(loop);

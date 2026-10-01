@@ -2,6 +2,7 @@
  * 贪吃蛇核心逻辑：网格、蛇身、食物、障碍与移动块
  */
 import { getLevel, TOTAL_LEVELS } from './levels.js';
+import { createDefaultEffects } from './item-effects.js';
 
 export const DIR = {
   up: { x: 0, y: -1 },
@@ -50,7 +51,6 @@ function randomEmptyCell(cols, rows, blocked, avoidDpad = false) {
   return { x: 0, y: 0 };
 }
 
-/** 选出生点：避开 D-pad 区域与障碍，优先靠左上 */
 function pickSpawn(level, blocked) {
   const { cols, rows } = level;
   const candidates = [];
@@ -126,6 +126,7 @@ export function createLevelState(levelIndex) {
     levelComplete: false,
     allComplete: false,
     tickCount: 0,
+    effects: createDefaultEffects(),
   };
 }
 
@@ -168,13 +169,59 @@ function buildBlockedSet(state, includeSnake = true) {
   return set;
 }
 
-/** 移动一格；返回 { ok, reason } */
+function buildSnakeBodySet(state, excludeTail = false) {
+  const set = new Set();
+  const snake = state.snake;
+  const limit = excludeTail ? snake.length - 1 : snake.length;
+  for (let i = 0; i < limit; i++) {
+    const seg = snake[i];
+    set.add(cellKey(seg.x, seg.y));
+  }
+  return set;
+}
+
+function tryUseShield(state) {
+  const fx = state.effects;
+  if (!fx || fx.shieldCharges <= 0) return false;
+  fx.shieldCharges -= 1;
+  return true;
+}
+
+function pullFoodWithMagnet(state) {
+  const fx = state.effects;
+  if (!fx?.magnetActive) return;
+  const head = state.snake[0];
+  const food = state.food;
+  const dx = food.x - head.x;
+  const dy = food.y - head.y;
+  const dist = Math.abs(dx) + Math.abs(dy);
+  if (dist <= 0 || dist > 4) return;
+  if (dx !== 0 && dy !== 0) return;
+
+  let nx = food.x;
+  let ny = food.y;
+  if (dx !== 0) nx += dx > 0 ? -1 : 1;
+  if (dy !== 0) ny += dy > 0 ? -1 : 1;
+
+  const blocked = buildBlockedSet(state, true);
+  blocked.delete(cellKey(food.x, food.y));
+  if (!blocked.has(cellKey(nx, ny))) {
+    state.food = { x: nx, y: ny };
+  }
+}
+
+/** 移动一格 */
 export function tick(state, now) {
   if (state.paused || state.gameOver || state.levelComplete) {
     return { moved: false };
   }
 
   advanceMovers(state, now);
+
+  const fx = state.effects || createDefaultEffects();
+  if (fx.ghostTicksLeft > 0) {
+    fx.ghostTicksLeft -= 1;
+  }
 
   if (!opposite(state.direction, state.nextDirection)) {
     state.direction = state.nextDirection;
@@ -184,51 +231,80 @@ export function tick(state, now) {
   const d = state.direction;
   const newHead = { x: head.x + d.x, y: head.y + d.y };
   const { cols, rows, targetFood } = state.level;
+  const ghost = fx.ghostTicksLeft > 0;
 
-  if (
+  const outOfBounds =
     newHead.x < 0 ||
     newHead.x >= cols ||
     newHead.y < 0 ||
-    newHead.y >= rows
-  ) {
+    newHead.y >= rows;
+
+  if (outOfBounds) {
+    if (tryUseShield(state)) {
+      return { moved: false, shieldUsed: true };
+    }
     state.gameOver = true;
     return { moved: false, reason: 'wall' };
   }
 
-  const blocked = buildBlockedSet(state, true);
   const tail = state.snake[state.snake.length - 1];
   const willGrow =
     newHead.x === state.food.x && newHead.y === state.food.y;
-  if (!willGrow) {
-    blocked.delete(cellKey(tail.x, tail.y));
-  }
 
-  if (blocked.has(cellKey(newHead.x, newHead.y))) {
+  const bodyBlocked = buildSnakeBodySet(state, !willGrow);
+  if (bodyBlocked.has(cellKey(newHead.x, newHead.y))) {
+    if (tryUseShield(state)) {
+      return { moved: false, shieldUsed: true };
+    }
     state.gameOver = true;
     return { moved: false, reason: 'hit' };
+  }
+
+  if (!ghost) {
+    const blocked = buildBlockedSet(state, true);
+    if (!willGrow) {
+      blocked.delete(cellKey(tail.x, tail.y));
+    }
+    if (blocked.has(cellKey(newHead.x, newHead.y))) {
+      if (tryUseShield(state)) {
+        return { moved: false, shieldUsed: true };
+      }
+      state.gameOver = true;
+      return { moved: false, reason: 'hit' };
+    }
   }
 
   state.snake.unshift(newHead);
   state.tickCount += 1;
 
+  const scoreMul = fx.scoreMultiplier || 1;
+
   if (willGrow) {
     state.foodEaten += 1;
-    state.score += 10;
+    state.score += Math.round(10 * scoreMul);
     if (state.foodEaten >= targetFood) {
       state.levelComplete = true;
-      state.score += 50;
+      state.score += Math.round(50 * scoreMul);
       if (state.levelIndex >= TOTAL_LEVELS - 1) {
         state.allComplete = true;
       }
     } else {
       const blockedFood = buildBlockedSet(state, true);
-      state.food = randomEmptyCell(cols, rows, blockedFood);
+      state.food = randomEmptyCell(cols, rows, blockedFood, true);
     }
   } else {
     state.snake.pop();
   }
 
+  pullFoodWithMagnet(state);
+
   return { moved: true };
+}
+
+export function getEffectiveSpeedMs(state) {
+  const lv = state.level;
+  const bonus = state.effects?.speedBonusMs || 0;
+  return lv.speedMs + bonus;
 }
 
 export function setDirectionFromKey(state, key) {
@@ -245,11 +321,6 @@ export function setDirection(state, dirName) {
   if (!nd || opposite(state.direction, nd)) return false;
   state.nextDirection = nd;
   return true;
-}
-
-export function restartCurrentLevel(levelIndex) {
-  const prevScore = 0;
-  return createLevelState(levelIndex);
 }
 
 export function advanceToNextLevel(state) {

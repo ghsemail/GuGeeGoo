@@ -46,6 +46,9 @@ export async function onRequestPost(context) {
     lifetimeEarned: merged.lifetimeEarned,
     lifetimeSpent: merged.lifetimeSpent,
     ownedItemIds: merged.ownedItemIds,
+    inventory: merged.inventory,
+    equippedIds: merged.equippedIds,
+    loadoutIds: merged.loadoutIds,
     leaderboard: leaderboard.map(({ nickname, bestScore, maxLevel }) => ({
       nickname,
       bestScore,

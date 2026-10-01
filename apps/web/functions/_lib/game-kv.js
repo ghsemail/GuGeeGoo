@@ -38,6 +38,28 @@ export function clampStats(input) {
       .slice(0, MAX_OWNED_ITEMS)
       .map((id) => id.slice(0, 48));
   }
+  let inventory = {};
+  if (input.inventory && typeof input.inventory === 'object') {
+    for (const [key, val] of Object.entries(input.inventory)) {
+      if (typeof key !== 'string') continue;
+      const n = Math.min(99, Math.max(0, Math.floor(Number(val) || 0)));
+      if (n > 0) inventory[key.slice(0, 48)] = n;
+    }
+  }
+  let equippedIds = [];
+  if (Array.isArray(input.equippedIds)) {
+    equippedIds = input.equippedIds
+      .filter((id) => typeof id === 'string')
+      .slice(0, 8)
+      .map((id) => id.slice(0, 48));
+  }
+  let loadoutIds = [];
+  if (Array.isArray(input.loadoutIds)) {
+    loadoutIds = input.loadoutIds
+      .filter((id) => typeof id === 'string')
+      .slice(0, 8)
+      .map((id) => id.slice(0, 48));
+  }
   let nickname = String(input.nickname || '景源').trim();
   if (!nickname) nickname = '景源';
   nickname = nickname.slice(0, MAX_NICK);
@@ -50,9 +72,21 @@ export function clampStats(input) {
     lifetimeEarned,
     lifetimeSpent: spentClamped,
     ownedItemIds,
+    inventory,
+    equippedIds,
+    loadoutIds,
     nickname,
     playerId,
   };
+}
+
+function mergeInventory(a, b) {
+  const out = { ...(a || {}) };
+  for (const [id, count] of Object.entries(b || {})) {
+    const n = Math.floor(Number(count) || 0);
+    out[id] = Math.max(out[id] || 0, n);
+  }
+  return out;
 }
 
 function playerKey(playerId) {
@@ -79,6 +113,9 @@ export async function writePlayer(kv, data) {
     lifetimeEarned: data.lifetimeEarned ?? 0,
     lifetimeSpent: data.lifetimeSpent ?? 0,
     ownedItemIds: data.ownedItemIds ?? [],
+    inventory: data.inventory ?? {},
+    equippedIds: data.equippedIds ?? [],
+    loadoutIds: data.loadoutIds ?? [],
     updatedAt: Date.now(),
   };
   await kv.put(playerKey(data.playerId), JSON.stringify(payload));
@@ -102,6 +139,19 @@ export function mergePlayer(existing, incoming) {
     lifetimeEarned: earned,
     lifetimeSpent: Math.min(spent, earned),
     ownedItemIds: [...ownedSet].slice(0, MAX_OWNED_ITEMS),
+    inventory: mergeInventory(existing?.inventory, incoming.inventory),
+    equippedIds: [
+      ...new Set([
+        ...(existing?.equippedIds || []),
+        ...(incoming.equippedIds || []),
+      ]),
+    ].slice(0, 8),
+    loadoutIds: [
+      ...new Set([
+        ...(existing?.loadoutIds || []),
+        ...(incoming.loadoutIds || []),
+      ]),
+    ].slice(0, 8),
   };
 }
 

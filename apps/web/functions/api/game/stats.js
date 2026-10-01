@@ -28,6 +28,9 @@ export async function onRequestGet(context) {
         lifetimeEarned: 0,
         lifetimeSpent: 0,
         ownedItemIds: [],
+        inventory: {},
+        equippedIds: [],
+        loadoutIds: [],
         kv: false,
       },
       200
@@ -43,6 +46,9 @@ export async function onRequestGet(context) {
       lifetimeEarned: 0,
       lifetimeSpent: 0,
       ownedItemIds: [],
+      inventory: {},
+      equippedIds: [],
+      loadoutIds: [],
       kv: true,
     });
   }
@@ -54,6 +60,9 @@ export async function onRequestGet(context) {
     lifetimeEarned: saved.lifetimeEarned ?? 0,
     lifetimeSpent: saved.lifetimeSpent ?? 0,
     ownedItemIds: saved.ownedItemIds ?? [],
+    inventory: saved.inventory ?? {},
+    equippedIds: saved.equippedIds ?? [],
+    loadoutIds: saved.loadoutIds ?? [],
     kv: true,
   });
 }

@@ -1,8 +1,20 @@
 /**
- * 道具商店配置。以后要加真道具：在这里加条目并实现 apply。
+ * 道具商店配置
+ * type: cosmetic（永久，可装备）| consumable（消耗品，可叠数量）
  */
 
-/** @typedef {{ id: string, name: string, description: string, price: number, emoji: string, placeholder?: boolean, apply?: (state: object) => object }} ShopItem */
+/** @typedef {'cosmetic' | 'consumable'} ItemType */
+
+/**
+ * @typedef {object} ShopItem
+ * @property {string} id
+ * @property {string} name
+ * @property {string} description
+ * @property {number} price
+ * @property {string} emoji
+ * @property {ItemType} type
+ * @property {number} [maxStack]
+ */
 
 /** @type {ShopItem[]} */
 export const ITEMS = [
@@ -10,25 +22,64 @@ export const ITEMS = [
     id: 'skin_rainbow',
     name: '彩虹蛇皮肤',
     emoji: '🌈',
-    description: '敬请期待 — 以后让蛇变成彩虹色！',
-    price: 500,
-    placeholder: true,
+    type: 'cosmetic',
+    description: '永久：蛇身变成彩虹色（可在商店装备/卸下）。',
+    price: 400,
+    maxStack: 1,
+  },
+  {
+    id: 'cosmetic_hat',
+    name: '派对帽',
+    emoji: '🎩',
+    type: 'cosmetic',
+    description: '永久：蛇头上多一顶小帽子（可装备/卸下）。',
+    price: 350,
+    maxStack: 1,
   },
   {
     id: 'power_slow',
     name: '慢速糖果',
     emoji: '🍬',
-    description: '敬请期待 — 下一关开始时短暂变慢。',
-    price: 300,
-    placeholder: true,
+    type: 'consumable',
+    description: '下一关整关变慢，更容易转弯（兑换后点「下关使用」）。',
+    price: 90,
+    maxStack: 20,
   },
   {
     id: 'power_shield',
     name: '护盾气泡',
     emoji: '🫧',
-    description: '敬请期待 — 多一次撞墙保护。',
-    price: 800,
-    placeholder: true,
+    type: 'consumable',
+    description: '下关多一次保护：撞墙或石头时不输，护盾消失。',
+    price: 120,
+    maxStack: 20,
+  },
+  {
+    id: 'power_magnet',
+    name: '苹果磁铁',
+    emoji: '🧲',
+    type: 'consumable',
+    description: '下关苹果会朝你慢慢靠近（同一条直线时）。',
+    price: 100,
+    maxStack: 20,
+  },
+  {
+    id: 'power_double',
+    name: '双倍积分',
+    emoji: '✨',
+    type: 'consumable',
+    description: '下关吃苹果和过关奖励分数 ×2。',
+    price: 130,
+    maxStack: 20,
+  },
+  {
+    id: 'power_ghost',
+    name: '幽灵斗篷',
+    emoji: '👻',
+    type: 'consumable',
+    description: '下关开始约 6 秒可穿过石头（仍不能撞墙和身体）。',
+    price: 150,
+    maxStack: 20,
   },
 ];
 
@@ -36,27 +87,10 @@ export function getItemById(id) {
   return ITEMS.find((item) => item.id === id);
 }
 
-/**
- * 开局或进入关卡时应用已拥有道具（占位道具暂无效果）
- * @param {object} gameState
- * @param {string[]} ownedIds
- */
-export function applyOwnedItems(gameState, ownedIds) {
-  let next = gameState;
-  for (const id of ownedIds) {
-    const item = getItemById(id);
-    if (item?.apply && !item.placeholder) {
-      next = item.apply(next) ?? next;
-    }
-  }
-  return next;
+export function isCosmetic(item) {
+  return item?.type === 'cosmetic';
 }
 
-/**
- * 单个道具效果（供将来在关卡内主动使用）
- */
-export function applyItem(itemId, gameState) {
-  const item = getItemById(itemId);
-  if (!item?.apply || item.placeholder) return gameState;
-  return item.apply(gameState) ?? gameState;
+export function isConsumable(item) {
+  return item?.type === 'consumable';
 }

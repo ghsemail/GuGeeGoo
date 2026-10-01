@@ -9,6 +9,9 @@ const LS_MAX_LEVEL = 'gugeegoo_snake_max_level';
 const LS_LIFETIME_EARNED = 'gugeegoo_snake_lifetime_earned';
 const LS_LIFETIME_SPENT = 'gugeegoo_snake_lifetime_spent';
 const LS_OWNED_ITEMS = 'gugeegoo_snake_owned_items';
+const LS_INVENTORY = 'gugeegoo_snake_inventory';
+const LS_EQUIPPED = 'gugeegoo_snake_equipped';
+const LS_LOADOUT = 'gugeegoo_snake_loadout';
 
 const DEFAULT_NICK = '景源';
 const MAX_NICK_LEN = 12;
@@ -68,10 +71,74 @@ function clampPoints(n) {
   return Math.min(MAX_POINTS, Math.max(0, Math.floor(Number(n) || 0)));
 }
 
-/** @returns {string[]} */
-export function getOwnedItemIds() {
+function migrateLegacyOwned() {
   try {
     const raw = localStorage.getItem(LS_OWNED_ITEMS);
+    if (!raw) return;
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr) || !arr.length) return;
+    const inv = getInventoryCounts();
+    for (const id of arr) {
+      if (typeof id === 'string' && !inv[id]) {
+        inv[id] = 1;
+      }
+    }
+    setInventoryCounts(inv);
+    localStorage.removeItem(LS_OWNED_ITEMS);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** @returns {Record<string, number>} */
+export function getInventoryCounts() {
+  migrateLegacyOwned();
+  try {
+    const raw = localStorage.getItem(LS_INVENTORY);
+    const obj = raw ? JSON.parse(raw) : {};
+    if (!obj || typeof obj !== 'object') return {};
+    const out = {};
+    for (const [k, v] of Object.entries(obj)) {
+      const n = Math.floor(Number(v) || 0);
+      if (n > 0) out[k] = n;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function setInventoryCounts(counts) {
+  localStorage.setItem(LS_INVENTORY, JSON.stringify(counts));
+  return counts;
+}
+
+export function getItemCount(itemId) {
+  return getInventoryCounts()[itemId] || 0;
+}
+
+export function addInventoryItem(itemId, amount = 1) {
+  const inv = getInventoryCounts();
+  inv[itemId] = (inv[itemId] || 0) + amount;
+  setInventoryCounts(inv);
+  return inv[itemId];
+}
+
+/** 消耗 1 个，成功返回 true */
+export function consumeInventoryItem(itemId) {
+  const inv = getInventoryCounts();
+  const n = inv[itemId] || 0;
+  if (n <= 0) return false;
+  if (n === 1) delete inv[itemId];
+  else inv[itemId] = n - 1;
+  setInventoryCounts(inv);
+  return true;
+}
+
+/** @returns {string[]} */
+export function getEquippedCosmeticIds() {
+  try {
+    const raw = localStorage.getItem(LS_EQUIPPED);
     const arr = raw ? JSON.parse(raw) : [];
     return Array.isArray(arr) ? arr.filter((id) => typeof id === 'string') : [];
   } catch {
@@ -79,10 +146,46 @@ export function getOwnedItemIds() {
   }
 }
 
-function setOwnedItemIds(ids) {
-  const unique = [...new Set(ids.filter((id) => typeof id === 'string'))];
-  localStorage.setItem(LS_OWNED_ITEMS, JSON.stringify(unique));
-  return unique;
+export function toggleEquippedCosmetic(itemId) {
+  const set = new Set(getEquippedCosmeticIds());
+  if (set.has(itemId)) set.delete(itemId);
+  else set.add(itemId);
+  const next = [...set];
+  localStorage.setItem(LS_EQUIPPED, JSON.stringify(next));
+  return next;
+}
+
+/** 下关要带的消耗品 id 列表（每种最多 1 个） */
+export function getLoadoutIds() {
+  try {
+    const raw = localStorage.getItem(LS_LOADOUT);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter((id) => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function toggleLoadoutConsumable(itemId) {
+  const current = getLoadoutIds();
+  if (current.includes(itemId)) {
+    const next = current.filter((id) => id !== itemId);
+    localStorage.setItem(LS_LOADOUT, JSON.stringify(next));
+    return next;
+  }
+  if (getItemCount(itemId) <= 0) return current;
+  const next = [...current, itemId];
+  localStorage.setItem(LS_LOADOUT, JSON.stringify(next));
+  return next;
+}
+
+export function clearLoadout() {
+  localStorage.setItem(LS_LOADOUT, JSON.stringify([]));
+}
+
+/** 兼容旧代码 */
+export function getOwnedItemIds() {
+  return Object.keys(getInventoryCounts());
 }
 
 function saveLocalRunStats(bestScore, maxLevel) {
@@ -115,20 +218,15 @@ export function spendPoints(amount) {
   return { ok: true, ...getWalletSnapshot() };
 }
 
-export function recordOwnedItem(itemId) {
-  const ids = getOwnedItemIds();
-  if (!ids.includes(itemId)) {
-    setOwnedItemIds([...ids, itemId]);
-  }
-  return getOwnedItemIds();
-}
-
 export function getWalletSnapshot() {
   return {
     lifetimeEarned: getLifetimeEarned(),
     lifetimeSpent: getLifetimeSpent(),
     spendableBalance: getSpendableBalance(),
     ownedItemIds: getOwnedItemIds(),
+    inventory: getInventoryCounts(),
+    equippedIds: getEquippedCosmeticIds(),
+    loadoutIds: getLoadoutIds(),
   };
 }
 
@@ -149,11 +247,38 @@ function mergeWalletFromRemote(remote) {
     localStorage.setItem(LS_LIFETIME_SPENT, String(spent));
   }
 
-  const remoteOwned = Array.isArray(remote.ownedItemIds)
-    ? remote.ownedItemIds
-    : [];
-  const mergedOwned = [...new Set([...getOwnedItemIds(), ...remoteOwned])];
-  setOwnedItemIds(mergedOwned);
+  const localInv = getInventoryCounts();
+  const remoteInv =
+    remote.inventory && typeof remote.inventory === 'object'
+      ? remote.inventory
+      : {};
+  const mergedInv = { ...localInv };
+  for (const [id, count] of Object.entries(remoteInv)) {
+    const n = Math.floor(Number(count) || 0);
+    mergedInv[id] = Math.max(mergedInv[id] || 0, n);
+  }
+  if (Array.isArray(remote.ownedItemIds)) {
+    for (const id of remote.ownedItemIds) {
+      if (typeof id === 'string') {
+        mergedInv[id] = Math.max(mergedInv[id] || 0, 1);
+      }
+    }
+  }
+  setInventoryCounts(mergedInv);
+
+  const mergeList = (local, remote) => {
+    const a = Array.isArray(local) ? local : [];
+    const b = Array.isArray(remote) ? remote : [];
+    return [...new Set([...a, ...b])];
+  };
+  localStorage.setItem(
+    LS_EQUIPPED,
+    JSON.stringify(mergeList(getEquippedCosmeticIds(), remote.equippedIds))
+  );
+  localStorage.setItem(
+    LS_LOADOUT,
+    JSON.stringify(mergeList(getLoadoutIds(), remote.loadoutIds))
+  );
 
   return getWalletSnapshot();
 }
@@ -215,6 +340,9 @@ export async function persistProgress({
         lifetimeEarned: snap.lifetimeEarned,
         lifetimeSpent: snap.lifetimeSpent,
         ownedItemIds: snap.ownedItemIds,
+        inventory: snap.inventory,
+        equippedIds: snap.equippedIds,
+        loadoutIds: snap.loadoutIds,
       }),
     });
     if (data.lifetimeEarned != null) {
@@ -241,6 +369,9 @@ export async function persistWallet() {
         lifetimeEarned: snap.lifetimeEarned,
         lifetimeSpent: snap.lifetimeSpent,
         ownedItemIds: snap.ownedItemIds,
+        inventory: snap.inventory,
+        equippedIds: snap.equippedIds,
+        loadoutIds: snap.loadoutIds,
       }),
     });
     mergeWalletFromRemote(data);

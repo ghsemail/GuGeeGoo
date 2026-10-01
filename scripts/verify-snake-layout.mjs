@@ -66,6 +66,29 @@ async function runViewport(browser, width, height, isMobile) {
   await new Promise((r) => setTimeout(r, 1400));
 
   const data = await measure(page);
+
+  await page.click('#btn-shop');
+  await new Promise((r) => setTimeout(r, 400));
+  data.shop = await page.evaluate(() => {
+    const card = document.querySelector('.shop-card');
+    const box = card?.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const okShop =
+      !!box &&
+      box.width > 200 &&
+      box.height > 120 &&
+      box.top >= -4 &&
+      box.left >= -4 &&
+      box.bottom <= vh + 4 &&
+      box.right <= vw + 4;
+    return {
+      ok: okShop,
+      size: box ? { w: box.width, h: box.height } : null,
+    };
+  });
+  await page.click('#btn-shop-close');
+
   data.viewport = `${width}x${height}`;
   await page.close();
 
@@ -87,7 +110,14 @@ async function runViewport(browser, width, height, isMobile) {
       dpad.top >= stage.top + stage.height * 0.48;
   }
 
-  return { ...data, okCanvas, okDpad, pass: okCanvas && okDpad };
+  const okShop = data.shop?.ok === true;
+  return {
+    ...data,
+    okCanvas,
+    okDpad,
+    okShop,
+    pass: okCanvas && okDpad && okShop,
+  };
 }
 
 async function main() {
