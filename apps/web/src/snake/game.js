@@ -27,8 +27,21 @@ function cellKey(x, y) {
   return `${x},${y}`;
 }
 
-function randomEmptyCell(cols, rows, blocked) {
+/** 右下角方向键占用的安全区（蛇不在此出生） */
+export function isDpadSafeZone(x, y, cols, rows) {
+  const reserveX = Math.min(6, Math.max(4, Math.ceil(cols * 0.34)));
+  const reserveY = Math.min(6, Math.max(4, Math.ceil(rows * 0.34)));
+  return x >= cols - reserveX && y >= rows - reserveY;
+}
+
+function randomEmptyCell(cols, rows, blocked, avoidDpad = false) {
   const tries = cols * rows;
+  for (let i = 0; i < tries; i++) {
+    const x = Math.floor(Math.random() * cols);
+    const y = Math.floor(Math.random() * rows);
+    if (avoidDpad && isDpadSafeZone(x, y, cols, rows)) continue;
+    if (!blocked.has(cellKey(x, y))) return { x, y };
+  }
   for (let i = 0; i < tries; i++) {
     const x = Math.floor(Math.random() * cols);
     const y = Math.floor(Math.random() * rows);
@@ -37,28 +50,61 @@ function randomEmptyCell(cols, rows, blocked) {
   return { x: 0, y: 0 };
 }
 
+/** 选出生点：避开 D-pad 区域与障碍，优先靠左上 */
+function pickSpawn(level, blocked) {
+  const { cols, rows } = level;
+  const candidates = [];
+
+  for (let y = 1; y < rows - 1; y++) {
+    for (let x = 1; x < cols - 1; x++) {
+      if (isDpadSafeZone(x, y, cols, rows)) continue;
+      const segs = [
+        { x, y },
+        { x: x - 1, y },
+        { x: x - 2, y },
+      ];
+      if (segs.some((s) => s.x < 0 || s.y < 0 || s.y >= rows)) continue;
+      if (segs.some((s) => blocked.has(cellKey(s.x, s.y)))) continue;
+      if (segs.some((s) => isDpadSafeZone(s.x, s.y, cols, rows))) continue;
+      candidates.push({ head: segs[0], snake: segs, score: x + y });
+    }
+  }
+
+  if (!candidates.length) {
+    const hx = Math.max(2, Math.floor(cols * 0.2));
+    const hy = Math.floor(rows / 2);
+    return {
+      snake: [
+        { x: hx, y: hy },
+        { x: hx - 1, y: hy },
+        { x: hx - 2, y: hy },
+      ],
+      direction: DIR.right,
+    };
+  }
+
+  candidates.sort((a, b) => a.score - b.score);
+  return { snake: candidates[0].snake, direction: DIR.right };
+}
+
 /** 创建某一关的初始状态 */
 export function createLevelState(levelIndex) {
   const level = getLevel(levelIndex);
-  const startX = Math.floor(level.cols / 2);
-  const startY = Math.floor(level.rows / 2);
-  const snake = [
-    { x: startX, y: startY },
-    { x: startX - 1, y: startY },
-    { x: startX - 2, y: startY },
-  ];
   const blocked = new Set();
   for (const [ox, oy] of level.obstacles) {
     blocked.add(cellKey(ox, oy));
-  }
-  for (const seg of snake) {
-    blocked.add(cellKey(seg.x, seg.y));
   }
   for (const m of level.movers) {
     const p = m.path[0];
     blocked.add(cellKey(p[0], p[1]));
   }
-  const food = randomEmptyCell(level.cols, level.rows, blocked);
+
+  const spawn = pickSpawn(level, blocked);
+  const snake = spawn.snake;
+  for (const seg of snake) {
+    blocked.add(cellKey(seg.x, seg.y));
+  }
+  const food = randomEmptyCell(level.cols, level.rows, blocked, true);
 
   const moverStates = level.movers.map((m) => ({
     pathIndex: 0,
@@ -69,8 +115,8 @@ export function createLevelState(levelIndex) {
     levelIndex,
     level,
     snake,
-    direction: DIR.right,
-    nextDirection: DIR.right,
+    direction: spawn.direction,
+    nextDirection: spawn.direction,
     food,
     foodEaten: 0,
     score: 0,

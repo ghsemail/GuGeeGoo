@@ -86,6 +86,7 @@
   display: inline-block;
   max-width: 100%;
   line-height: 0;
+  container-type: inline-size;
 }
 
 #game-canvas {
@@ -100,17 +101,17 @@
 .dpad-overlay {
   position: absolute;
   z-index: 2;
-  right: clamp(4px, 1.5%, 10px);
-  bottom: clamp(4px, 1.5%, 10px);
-  --dpad-size: clamp(44px, 11vw, 52px);
+  right: 3px;
+  bottom: 3px;
+  /* 约占棋盘宽 36%，单键仍 ≥ 约 40px（小屏用 38px 下限） */
+  --dpad-size: clamp(38px, 12cqw, 44px);
   display: grid;
   grid-template-columns: repeat(3, var(--dpad-size));
   grid-template-rows: repeat(3, var(--dpad-size));
-  gap: clamp(3px, 1vw, 6px);
-  padding: clamp(4px, 1.2vw, 8px);
-  background: rgba(15, 32, 39, 0.52);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  gap: 2px;
+  padding: 0;
+  background: transparent;
+  border: none;
   touch-action: manipulation;
   pointer-events: none;
   user-select: none;
@@ -247,20 +248,24 @@
 .dpad-btn {
   margin: 0;
   padding: 0;
+  min-width: var(--dpad-size);
+  min-height: var(--dpad-size);
   border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-  font-size: clamp(18px, 4.5vw, 22px);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(16px, 4cqw, 20px);
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(2px);
 }
 
 .dpad-btn:active,
 .dpad-btn.is-pressed {
-  background: rgba(46, 213, 115, 0.72);
+  background: rgba(46, 213, 115, 0.82);
   color: #0f2027;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
 .dpad-up {
