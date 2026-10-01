@@ -106,8 +106,19 @@ function cellSize() {
 function resizeCanvas() {
   const lv = state.level;
   const cs = cellSize();
-  canvas.width = lv.cols * cs;
-  canvas.height = lv.rows * cs;
+  const w = lv.cols * cs;
+  const h = lv.rows * cs;
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${h}px`;
+
+  const stage = canvas.closest('.canvas-stage');
+  if (stage) {
+    const dpadSize = Math.min(44, Math.max(38, Math.round(w * 0.11)));
+    stage.style.setProperty('--dpad-size', `${dpadSize}px`);
+  }
+
   draw();
 }
 

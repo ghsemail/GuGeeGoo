@@ -83,10 +83,12 @@
 /* 画布 + 叠在右下角的十字方向键（随画布尺寸变化） */
 .canvas-stage {
   position: relative;
-  display: inline-block;
+  /* 不用 container-type：在 flex 居中布局下会导致宽度塌缩为 0 */
+  display: block;
+  width: fit-content;
   max-width: 100%;
+  margin: 0 auto;
   line-height: 0;
-  container-type: inline-size;
 }
 
 #game-canvas {
@@ -96,6 +98,7 @@
   touch-action: none;
   max-width: 100%;
   height: auto;
+  vertical-align: top;
 }
 
 .dpad-overlay {
@@ -103,8 +106,8 @@
   z-index: 2;
   right: 3px;
   bottom: 3px;
-  /* 约占棋盘宽 36%，单键仍 ≥ 约 40px（小屏用 38px 下限） */
-  --dpad-size: clamp(38px, 12cqw, 44px);
+  /* 默认尺寸；resizeCanvas 会按棋盘宽度写入 --dpad-size */
+  --dpad-size: 40px;
   display: grid;
   grid-template-columns: repeat(3, var(--dpad-size));
   grid-template-rows: repeat(3, var(--dpad-size));
@@ -254,7 +257,7 @@
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.14);
   color: rgba(255, 255, 255, 0.92);
-  font-size: clamp(16px, 4cqw, 20px);
+  font-size: clamp(16px, calc(var(--dpad-size) * 0.42), 20px);
   line-height: 1;
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
