@@ -13,9 +13,9 @@ function escapeHtml(text) {
 }
 
 function renderGameCard(game) {
-  const { bestScore, maxLevel, hasPlayed } = readLocalGameStats(game);
+  const { bestScore, maxLevel, lifetime, hasPlayed } = readLocalGameStats(game);
   const statsHtml = hasPlayed
-    ? `<p class="game-card-stats">本地记录：最高 <strong>${bestScore}</strong> 分 · 到过第 <strong>${maxLevel}</strong> 关</p>`
+    ? `<p class="game-card-stats">本地记录：累计 <strong>${lifetime}</strong> 分 · 最高 <strong>${bestScore}</strong> 分 · 第 <strong>${maxLevel}</strong> 关</p>`
     : `<p class="game-card-stats muted">还没玩过，快来挑战吧！</p>`;
 
   return `

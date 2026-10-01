@@ -16,13 +16,20 @@ import {
   getNickname,
   setNickname,
   getLocalBestScore,
-  getLocalMaxLevel,
+  getLifetimeEarned,
+  getSpendableBalance,
+  getOwnedItemIds,
+  addLifetimePoints,
   loadRemoteProgress,
   persistProgress,
   fetchLeaderboard,
   DEFAULT_NICK,
   MAX_NICK_LEN,
+  getWalletSnapshot,
 } from './storage.js';
+import { drawSnake } from './draw-snake.js';
+import { applyOwnedItems } from './items.js';
+import { ITEMS, redeemItem, canRedeemItem } from './shop.js';
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
@@ -31,6 +38,8 @@ const el = {
   level: document.getElementById('stat-level'),
   food: document.getElementById('stat-food'),
   score: document.getElementById('stat-score'),
+  lifetime: document.getElementById('stat-lifetime'),
+  balance: document.getElementById('stat-balance'),
   best: document.getElementById('stat-best'),
   hint: document.getElementById('level-hint'),
   overlay: document.getElementById('overlay'),
@@ -41,16 +50,37 @@ const el = {
   leaderboard: document.getElementById('leaderboard-list'),
   btnPause: document.getElementById('btn-pause'),
   btnRestart: document.getElementById('btn-restart'),
+  btnShop: document.getElementById('btn-shop'),
   btnHome: document.getElementById('btn-home'),
+  shopOverlay: document.getElementById('shop-overlay'),
+  shopList: document.getElementById('shop-list'),
+  shopBalance: document.getElementById('shop-balance'),
+  shopLifetime: document.getElementById('shop-lifetime'),
+  shopMsg: document.getElementById('shop-msg'),
+  btnShopClose: document.getElementById('btn-shop-close'),
 };
 
-let state = createLevelState(0);
+let state = wrapNewLevel(0);
+/** 本局已入账到累计积分的分数（避免重复加） */
+let sessionScoreBanked = 0;
 let lastTick = 0;
 let animId = 0;
 let touchStart = null;
 
-function unlockedMaxLevel() {
-  return Math.max(getLocalMaxLevel(), 1);
+function wrapNewLevel(levelIndex) {
+  const base = createLevelState(levelIndex);
+  return applyOwnedItems(base, getOwnedItemIds());
+}
+
+function refreshWalletUI() {
+  el.lifetime.textContent = String(getLifetimeEarned());
+  el.balance.textContent = String(getSpendableBalance());
+  if (el.shopBalance) {
+    el.shopBalance.textContent = String(getSpendableBalance());
+  }
+  if (el.shopLifetime) {
+    el.shopLifetime.textContent = String(getLifetimeEarned());
+  }
 }
 
 function refreshStats() {
@@ -60,12 +90,13 @@ function refreshStats() {
   el.score.textContent = String(state.score);
   el.best.textContent = String(getLocalBestScore());
   el.hint.textContent = lv.hint;
+  refreshWalletUI();
 }
 
 function cellSize() {
   const lv = state.level;
   const maxW = Math.min(window.innerWidth - 32, 520);
-  const maxH = Math.min(window.innerHeight - 280, 420);
+  const maxH = Math.min(window.innerHeight - 320, 420);
   const cs = Math.floor(
     Math.min(maxW / lv.cols, maxH / lv.rows, 28)
   );
@@ -93,6 +124,24 @@ function drawCell(x, y, color, radius = 0.15) {
   ctx.fill();
 }
 
+function drawApple(x, y) {
+  const cs = cellSize();
+  const c = cellCenter(x, y, cs);
+  const r = cs * 0.32;
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2ecc71';
+  ctx.beginPath();
+  ctx.ellipse(c.x + r * 0.2, c.y - r * 0.7, r * 0.35, r * 0.2, 0.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function cellCenter(x, y, cs) {
+  return { x: (x + 0.5) * cs, y: (y + 0.5) * cs };
+}
+
 function draw() {
   const lv = state.level;
   const cs = cellSize();
@@ -107,19 +156,15 @@ function draw() {
   }
 
   for (const [ox, oy] of lv.obstacles) {
-    drawCell(ox, oy, '#5c4d3c');
+    drawCell(ox, oy, '#5c4d3c', 0.25);
   }
 
   for (const { x, y } of getMoverCells(state)) {
-    drawCell(x, y, '#e67e22');
+    drawCell(x, y, '#e67e22', 0.3);
   }
 
-  drawCell(state.food.x, state.food.y, '#e74c3c', 0.35);
-
-  state.snake.forEach((seg, i) => {
-    const t = i === 0 ? '#7bed9f' : '#2ed573';
-    drawCell(seg.x, seg.y, t, i === 0 ? 0.35 : 0.2);
-  });
+  drawApple(state.food.x, state.food.y);
+  drawSnake(ctx, state.snake, state.direction, cs);
 }
 
 function hideOverlay() {
@@ -164,7 +209,18 @@ function escapeHtml(s) {
     .replace(/>/g, '&gt;');
 }
 
+/** 把本局新增得分计入累计/可用积分（每段只计一次） */
+function bankSessionScore() {
+  const delta = state.score - sessionScoreBanked;
+  if (delta <= 0) return getWalletSnapshot();
+  addLifetimePoints(delta);
+  sessionScoreBanked = state.score;
+  refreshWalletUI();
+  return getWalletSnapshot();
+}
+
 async function saveProgressIfNeeded() {
+  const wallet = bankSessionScore();
   const levelUnlocked = state.allComplete
     ? TOTAL_LEVELS
     : state.levelComplete
@@ -174,9 +230,16 @@ async function saveProgressIfNeeded() {
     score: state.score,
     levelUnlocked: Math.min(levelUnlocked, TOTAL_LEVELS),
     nickname: getNickname(),
+    wallet,
   });
   refreshStats();
   renderLeaderboard();
+}
+
+function resetSession(levelIndex, carryScore = 0) {
+  state = wrapNewLevel(levelIndex);
+  state.score = carryScore;
+  sessionScoreBanked = carryScore > 0 ? carryScore : 0;
 }
 
 function loop(now) {
@@ -199,14 +262,13 @@ function loop(now) {
 
 function onGameOver() {
   saveProgressIfNeeded();
-  showOverlay('哎呀，撞到了！', `本局得分 ${state.score} 分。再试一次？`, [
+  showOverlay('哎呀，撞到了！', `本局得分 ${state.score} 分，已加入累计积分。再试一次？`, [
     {
       label: '重新开始本关',
       primary: true,
       onClick: () => {
         hideOverlay();
-        state = createLevelState(state.levelIndex);
-        state.score = 0;
+        resetSession(state.levelIndex, 0);
         lastTick = performance.now();
         refreshStats();
         resizeCanvas();
@@ -216,7 +278,7 @@ function onGameOver() {
       label: '从第 1 关开始',
       onClick: () => {
         hideOverlay();
-        state = createLevelState(0);
+        resetSession(0, 0);
         lastTick = performance.now();
         refreshStats();
         resizeCanvas();
@@ -230,14 +292,14 @@ function onLevelComplete() {
   if (state.allComplete) {
     showOverlay(
       '🎉 全部通关！',
-      `太厉害了，景源！你完成了全部 ${TOTAL_LEVELS} 关，最终得分 ${state.score} 分！`,
+      `太厉害了，景源！你完成了全部 ${TOTAL_LEVELS} 关，本局 ${state.score} 分已计入累计积分！`,
       [
         {
           label: '再玩一遍',
           primary: true,
           onClick: () => {
             hideOverlay();
-            state = createLevelState(0);
+            resetSession(0, 0);
             lastTick = performance.now();
             refreshStats();
             resizeCanvas();
@@ -256,7 +318,7 @@ function onLevelComplete() {
   const nextLv = getLevel(state.levelIndex + 1);
   showOverlay(
     '关卡完成！',
-    `第 ${state.level.id} 关过关！下一关：${nextLv.name}。`,
+    `第 ${state.level.id} 关过关！本段得分已入账。下一关：${nextLv.name}。`,
     [
       {
         label: '进入下一关',
@@ -264,6 +326,7 @@ function onLevelComplete() {
         onClick: () => {
           hideOverlay();
           state = advanceToNextLevel(state);
+          state = applyOwnedItems(state, getOwnedItemIds());
           lastTick = performance.now();
           refreshStats();
           resizeCanvas();
@@ -278,6 +341,73 @@ function togglePause() {
   state.paused = !state.paused;
   el.btnPause.textContent = state.paused ? '继续' : '暂停';
   if (!state.paused) lastTick = performance.now();
+}
+
+function renderShopList() {
+  const owned = new Set(getOwnedItemIds());
+  el.shopList.innerHTML = ITEMS.map((item) => {
+    const ownedMark = owned.has(item.id)
+      ? '<span class="shop-owned">已拥有</span>'
+      : '';
+    let actionLabel = '兑换';
+    let disabled = '';
+    if (item.placeholder) {
+      actionLabel = '敬请期待';
+      disabled = 'disabled';
+    } else if (owned.has(item.id)) {
+      actionLabel = '已拥有';
+      disabled = 'disabled';
+    } else {
+      const check = canRedeemItem(item.id);
+      if (!check.ok && check.reason === 'insufficient') {
+        disabled = 'disabled';
+      }
+    }
+    return `
+      <li class="shop-item">
+        <span class="shop-item-emoji">${item.emoji}</span>
+        <div>
+          <div class="shop-item-name">${escapeHtml(item.name)} ${ownedMark}</div>
+          <div class="shop-item-desc">${escapeHtml(item.description)}</div>
+          <div class="shop-item-price">${item.price} 积分</div>
+        </div>
+        <div class="shop-item-action">
+          <button type="button" class="btn" data-buy="${escapeHtml(item.id)}" ${disabled}>${actionLabel}</button>
+        </div>
+      </li>`;
+  }).join('');
+
+  el.shopList.querySelectorAll('[data-buy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-buy');
+      el.shopMsg.textContent = '';
+      const result = await redeemItem(id);
+      if (!result.ok) {
+        if (result.reason === 'placeholder') {
+          el.shopMsg.textContent = '这个道具还在制作中，先攒积分吧！';
+        } else if (result.reason === 'insufficient') {
+          el.shopMsg.textContent = '积分不够哦，多玩几局再来～';
+        } else if (result.reason === 'owned') {
+          el.shopMsg.textContent = '你已经拥有啦！';
+        }
+        return;
+      }
+      el.shopMsg.textContent = `兑换成功：${result.item.name}（效果以后开放）`;
+      refreshWalletUI();
+      renderShopList();
+    });
+  });
+}
+
+function openShop() {
+  el.shopMsg.textContent = '';
+  refreshWalletUI();
+  renderShopList();
+  el.shopOverlay.hidden = false;
+}
+
+function closeShop() {
+  el.shopOverlay.hidden = true;
 }
 
 function bindControls() {
@@ -344,12 +474,17 @@ function bindControls() {
 
   el.btnPause.addEventListener('click', togglePause);
   el.btnRestart.addEventListener('click', () => {
-    state = createLevelState(state.levelIndex);
+    resetSession(state.levelIndex, 0);
     state.paused = false;
     el.btnPause.textContent = '暂停';
     lastTick = performance.now();
     refreshStats();
     hideOverlay();
+  });
+  el.btnShop.addEventListener('click', openShop);
+  el.btnShopClose.addEventListener('click', closeShop);
+  el.shopOverlay.addEventListener('click', (e) => {
+    if (e.target === el.shopOverlay) closeShop();
   });
   el.btnHome.addEventListener('click', () => {
     window.location.href = '/';
@@ -378,7 +513,7 @@ async function init() {
 
   showOverlay(
     '贪吃蛇 · 关卡模式',
-    `共 ${TOTAL_LEVELS} 关，每关吃够苹果就升级。键盘方向键 / WASD；手机可以滑动画布，或点右下角十字方向键。`,
+    `共 ${TOTAL_LEVELS} 关。过关或结束时会把你本局新得到的分数加入「累计积分」，可在道具商店使用。键盘 / 滑动 / 右下角方向键操作。`,
     [
       {
         label: '开始游戏',

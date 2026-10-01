@@ -2,6 +2,7 @@ import {
   clampStats,
   readPlayer,
   writePlayer,
+  mergePlayer,
   upsertLeaderboard,
   json,
   corsHeaders,
@@ -11,7 +12,7 @@ export async function onRequestOptions() {
   return new Response(null, { headers: corsHeaders() });
 }
 
-/** POST /api/game/save — 仅在过关或游戏结束时调用 */
+/** POST /api/game/save — 过关、结束或商店兑换后调用 */
 export async function onRequestPost(context) {
   const { env, request } = context;
   let body;
@@ -32,12 +33,7 @@ export async function onRequestPost(context) {
   }
 
   const existing = (await readPlayer(kv, data.playerId)) || {};
-  const merged = {
-    playerId: data.playerId,
-    nickname: data.nickname,
-    bestScore: Math.max(existing.bestScore || 0, data.bestScore),
-    maxLevel: Math.max(existing.maxLevel || 1, data.maxLevel),
-  };
+  const merged = mergePlayer(existing, data);
 
   await writePlayer(kv, merged);
   const leaderboard = await upsertLeaderboard(kv, merged);
@@ -47,6 +43,9 @@ export async function onRequestPost(context) {
     kv: true,
     bestScore: merged.bestScore,
     maxLevel: merged.maxLevel,
+    lifetimeEarned: merged.lifetimeEarned,
+    lifetimeSpent: merged.lifetimeSpent,
+    ownedItemIds: merged.ownedItemIds,
     leaderboard: leaderboard.map(({ nickname, bestScore, maxLevel }) => ({
       nickname,
       bestScore,

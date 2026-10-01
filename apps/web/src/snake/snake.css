@@ -41,7 +41,7 @@
 
 .stats-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   max-width: 520px;
   margin: 0 auto 8px;
@@ -159,6 +159,89 @@
 .btn-ghost {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.btn-shop {
+  background: rgba(255, 214, 102, 0.35);
+}
+
+.shop-overlay .shop-card {
+  max-width: 400px;
+  text-align: left;
+}
+
+.shop-balance {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.shop-balance strong {
+  color: #ffd666;
+  font-size: 18px;
+}
+
+.shop-lifetime {
+  opacity: 0.75;
+  font-size: 13px;
+}
+
+.shop-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.shop-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.shop-item-emoji {
+  font-size: 28px;
+}
+
+.shop-item-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.shop-item-desc {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+.shop-item-price {
+  font-size: 13px;
+  color: #ffd666;
+  margin-top: 4px;
+}
+
+.shop-item-action .btn {
+  font-size: 13px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.shop-msg {
+  min-height: 1.2em;
+  font-size: 13px;
+  margin: 0 0 12px;
+  color: #7bed9f;
+}
+
+#btn-shop-close {
+  width: 100%;
 }
 
 .dpad-btn {

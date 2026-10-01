@@ -22,11 +22,19 @@
         <span id="stat-food" class="value">0 / 0</span>
       </div>
       <div class="stat">
-        <span class="label">得分</span>
+        <span class="label">本局</span>
         <span id="stat-score" class="value">0</span>
       </div>
       <div class="stat">
-        <span class="label">最高</span>
+        <span class="label">累计积分</span>
+        <span id="stat-lifetime" class="value">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">可用积分</span>
+        <span id="stat-balance" class="value">0</span>
+      </div>
+      <div class="stat">
+        <span class="label">单局最高</span>
         <span id="stat-best" class="value">0</span>
       </div>
     </section>
@@ -48,6 +56,7 @@
     <div class="toolbar">
       <button type="button" id="btn-pause" class="btn">暂停</button>
       <button type="button" id="btn-restart" class="btn">重开本关</button>
+      <button type="button" id="btn-shop" class="btn btn-shop">道具商店</button>
       <button type="button" id="btn-home" class="btn btn-ghost">回导航页</button>
     </div>
 
@@ -65,6 +74,19 @@
         <h2 id="overlay-title"></h2>
         <p id="overlay-msg"></p>
         <div id="overlay-actions" class="overlay-actions"></div>
+      </div>
+    </div>
+
+    <div id="shop-overlay" class="overlay shop-overlay" hidden>
+      <div class="overlay-card shop-card">
+        <h2>🛒 道具商店</h2>
+        <p class="shop-balance">
+          可用积分：<strong id="shop-balance">0</strong>
+          <span class="shop-lifetime">（累计 <span id="shop-lifetime">0</span>）</span>
+        </p>
+        <ul id="shop-list" class="shop-list"></ul>
+        <p id="shop-msg" class="shop-msg" role="status"></p>
+        <button type="button" id="btn-shop-close" class="btn btn-primary">关闭</button>
       </div>
     </div>
 

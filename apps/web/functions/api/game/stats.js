@@ -21,20 +21,39 @@ export async function onRequestGet(context) {
   const kv = env.GAME_KV;
   if (!kv) {
     return json(
-      { bestScore: 0, maxLevel: 1, nickname: null, kv: false },
+      {
+        bestScore: 0,
+        maxLevel: 1,
+        nickname: null,
+        lifetimeEarned: 0,
+        lifetimeSpent: 0,
+        ownedItemIds: [],
+        kv: false,
+      },
       200
     );
   }
 
   const saved = await readPlayer(kv, playerId);
   if (!saved) {
-    return json({ bestScore: 0, maxLevel: 1, nickname: null, kv: true });
+    return json({
+      bestScore: 0,
+      maxLevel: 1,
+      nickname: null,
+      lifetimeEarned: 0,
+      lifetimeSpent: 0,
+      ownedItemIds: [],
+      kv: true,
+    });
   }
 
   return json({
     bestScore: saved.bestScore ?? 0,
     maxLevel: saved.maxLevel ?? 1,
     nickname: saved.nickname ?? null,
+    lifetimeEarned: saved.lifetimeEarned ?? 0,
+    lifetimeSpent: saved.lifetimeSpent ?? 0,
+    ownedItemIds: saved.ownedItemIds ?? [],
     kv: true,
   });
 }
