@@ -80,11 +80,47 @@
   margin-bottom: 12px;
 }
 
+/* 画布 + 叠在右下角的十字方向键（随画布尺寸变化） */
+.canvas-stage {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+}
+
 #game-canvas {
+  display: block;
   border-radius: 12px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   touch-action: none;
   max-width: 100%;
+  height: auto;
+}
+
+.dpad-overlay {
+  position: absolute;
+  z-index: 2;
+  right: clamp(4px, 1.5%, 10px);
+  bottom: clamp(4px, 1.5%, 10px);
+  --dpad-size: clamp(44px, 11vw, 52px);
+  display: grid;
+  grid-template-columns: repeat(3, var(--dpad-size));
+  grid-template-rows: repeat(3, var(--dpad-size));
+  gap: clamp(3px, 1vw, 6px);
+  padding: clamp(4px, 1.2vw, 8px);
+  background: rgba(15, 32, 39, 0.52);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  touch-action: manipulation;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dpad-overlay .dpad-btn {
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .toolbar {
@@ -125,27 +161,23 @@
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.dpad {
-  display: grid;
-  grid-template-columns: repeat(3, 52px);
-  grid-template-rows: repeat(3, 52px);
-  gap: 6px;
-  justify-content: center;
-  margin-bottom: 20px;
-  user-select: none;
-}
-
 .dpad-btn {
+  margin: 0;
+  padding: 0;
   border: none;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
   color: #fff;
-  font-size: 20px;
+  font-size: clamp(18px, 4.5vw, 22px);
+  line-height: 1;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.dpad-btn:active {
-  background: rgba(46, 213, 115, 0.5);
+.dpad-btn:active,
+.dpad-btn.is-pressed {
+  background: rgba(46, 213, 115, 0.72);
+  color: #0f2027;
 }
 
 .dpad-up {
@@ -281,8 +313,7 @@
   .stats-bar,
   .hint,
   .canvas-wrap,
-  .toolbar,
-  .dpad {
+  .toolbar {
     grid-column: 1;
   }
 
@@ -290,21 +321,5 @@
     grid-column: 2;
     grid-row: 2 / span 5;
     align-self: start;
-  }
-
-  .dpad {
-    display: none;
-  }
-}
-
-@media (pointer: fine) and (min-width: 720px) {
-  .dpad {
-    display: none;
-  }
-}
-
-@media (max-width: 719px) {
-  .dpad {
-    display: grid;
   }
 }

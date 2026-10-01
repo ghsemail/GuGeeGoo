@@ -21,7 +21,7 @@
 | 类型 | 位置 | 状态 |
 |------|------|------|
 | 游戏导航页 | `apps/web/index.html`、`src/games.js` | ✅ |
-| 贪吃蛇 | `apps/web/snake/`、`src/snake/` | ✅ 9 关 + 通关画面 |
+| 贪吃蛇 | `apps/web/snake/`、`src/snake/` | ✅ 9 关 + 通关画面；画布内十字方向键（触控即时响应） |
 | Pages Functions | `apps/web/functions/api/game/` | ✅ stats / save / leaderboard |
 | KV | 绑定名 `GAME_KV` | ⏳ 待家长在 `wrangler.toml` 填入 namespace id 并在控制台绑定 |
 
@@ -79,6 +79,7 @@
 |------|------|
 | 2026-09-30 | 新建编程老师配置；Hello World 已部署 |
 | 2026-10-01 | 根路径改为游戏导航页；上线贪吃蛇 9 关；Pages Functions + KV（绑定待填 id）；`/snake/` |
+| 2026-10-01 | 贪吃蛇：画布内十字方向键（pointerdown 即时转向，桌面/手机均可用） |
 
 ---
 

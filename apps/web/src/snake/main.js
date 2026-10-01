@@ -292,10 +292,26 @@ function bindControls() {
     }
   });
 
-  document.querySelectorAll('[data-dir]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      setDirection(state, btn.dataset.dir);
+  document.querySelectorAll('.dpad-btn[data-dir]').forEach((btn) => {
+    const dir = btn.dataset.dir;
+    const steer = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDirection(state, dir);
+    };
+    const pressOn = () => btn.classList.add('is-pressed');
+    const pressOff = () => btn.classList.remove('is-pressed');
+
+    btn.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      btn.setPointerCapture(e.pointerId);
+      pressOn();
+      steer(e);
     });
+    btn.addEventListener('pointerup', pressOff);
+    btn.addEventListener('pointercancel', pressOff);
+    btn.addEventListener('lostpointercapture', pressOff);
+    btn.addEventListener('click', (e) => e.preventDefault());
   });
 
   canvas.addEventListener(
@@ -362,7 +378,7 @@ async function init() {
 
   showOverlay(
     '贪吃蛇 · 关卡模式',
-    `共 ${TOTAL_LEVELS} 关，每关吃够苹果就升级。键盘方向键 / WASD，手机上可以滑动或点方向钮。`,
+    `共 ${TOTAL_LEVELS} 关，每关吃够苹果就升级。键盘方向键 / WASD；手机可以滑动画布，或点右下角十字方向键。`,
     [
       {
         label: '开始游戏',
