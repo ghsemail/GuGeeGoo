@@ -131,7 +131,7 @@
 
 | 日期 | 内容 |
 |------|------|
-| 2026-10-01 | 听写规则新增：错词超过 4 个自动只重听写错词一遍 |
+| 2026-10-01 | 听写规则新增错词重听写：错 5 个只重听错词，错 6 个及以上整组重听一遍 |
 | 2026-10-01 | 复习单词听写 11/19（19 词）；recycle、a few 升巩固中；U1 首次听写 healthy/teaspoon/heavy/candy/bottle/always/fruit 已掌握，potato/snack/sugar/sleepy/problem/choose 不熟悉；stomach、enough 再错；change 未读；待巩固 10 词，换表后再复习听写 |
 | 2026-10-01 | 听写单词本.md 被 09-30 21:19 vault backup 覆盖回旧版，已恢复到 be53b49（含 09-30 记录、待巩固 4 词、需中文提示备注、10-01 固定表） |
 | 2026-09-30 | 备好 10-01 一二单元复习单词听写固定表（20 词，前三个 off、healthy、teaspoon） |
