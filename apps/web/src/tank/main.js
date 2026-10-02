@@ -224,7 +224,7 @@ function loop(now) {
     onLose();
   }
 
-  drawFrame(ctx, game);
+  drawFrame(ctx, game, now * 0.001);
 }
 
 function renderLevelGrid() {

@@ -1,20 +1,13 @@
 /**
- * 把地图、坦克、子弹画到 canvas 上（占位造型，以后可换贴图）。
+ * 地图、视差背景、坦克与子弹绘制
  */
 import { TILE } from './constants.js';
-import { DIR } from './constants.js';
-
-const COLORS = {
-  groundA: '#2d3436',
-  groundB: '#353b48',
-  brick: '#c0392b',
-  steel: '#95a5a6',
-  base: '#f1c40f',
-  player: '#2ecc71',
-  enemy: '#e74c3c',
-  bulletPlayer: '#ffeaa7',
-  bulletEnemy: '#fab1a0',
-};
+import { drawParallaxBackground, drawGrassTile } from './render-background.js';
+import {
+  drawDetailedTank,
+  PLAYER_PALETTE,
+  ENEMY_PALETTE,
+} from './render-tanks.js';
 
 export function computeCanvasSize(map) {
   return {
@@ -23,41 +16,82 @@ export function computeCanvasSize(map) {
   };
 }
 
-export function drawFrame(ctx, state) {
+function drawBrickTile(ctx, px, py, ts) {
+  ctx.fillStyle = '#BF360C';
+  ctx.fillRect(px + 1, py + 1, ts - 2, ts - 2);
+  ctx.fillStyle = '#D84315';
+  const bw = (ts - 4) / 2;
+  const bh = (ts - 4) / 2;
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 2; col++) {
+      const ox = px + 2 + col * bw + (row % 2 ? bw / 2 : 0);
+      const oy = py + 2 + row * bh;
+      ctx.fillRect(ox, oy, bw - 1, bh - 1);
+    }
+  }
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 1.5, py + 1.5, ts - 3, ts - 3);
+}
+
+function drawSteelTile(ctx, px, py, ts) {
+  const g = ctx.createLinearGradient(px, py, px + ts, py + ts);
+  g.addColorStop(0, '#ECEFF1');
+  g.addColorStop(0.5, '#90A4AE');
+  g.addColorStop(1, '#546E7A');
+  ctx.fillStyle = g;
+  ctx.fillRect(px + 1, py + 1, ts - 2, ts - 2);
+  ctx.strokeStyle = '#37474F';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 2, py + 2, ts - 4, ts - 4);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fillRect(px + 3, py + 3, ts * 0.35, 2);
+}
+
+export function drawFrame(ctx, state, timeSec = 0) {
   const { map, player, enemies, bullets } = state;
   const ts = map.tileSize;
-  ctx.fillStyle = '#1e272e';
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+
+  drawParallaxBackground(ctx, w, h, timeSec);
 
   for (let y = 0; y < map.rows; y++) {
     for (let x = 0; x < map.cols; x++) {
       const t = map.cells[y][x];
       const px = x * ts;
       const py = y * ts;
-      if ((x + y) % 2 === 0) {
-        ctx.fillStyle = COLORS.groundA;
-      } else {
-        ctx.fillStyle = COLORS.groundB;
-      }
-      ctx.fillRect(px, py, ts, ts);
 
-      if (t === TILE.BRICK) {
-        ctx.fillStyle = COLORS.brick;
-        ctx.fillRect(px + 2, py + 2, ts - 4, ts - 4);
+      if (t === TILE.EMPTY) {
+        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+      } else if (t === TILE.BRICK) {
+        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+        drawBrickTile(ctx, px, py, ts);
       } else if (t === TILE.STEEL) {
-        ctx.fillStyle = COLORS.steel;
-        ctx.fillRect(px + 1, py + 1, ts - 2, ts - 2);
+        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+        drawSteelTile(ctx, px, py, ts);
       } else if (t === TILE.BASE) {
-        ctx.fillStyle = COLORS.base;
+        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+        ctx.fillStyle = '#FDD835';
         ctx.fillRect(px + 4, py + 4, ts - 8, ts - 8);
       }
     }
   }
 
+  ctx.strokeStyle = 'rgba(55, 71, 79, 0.35)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
   for (const e of enemies) {
-    drawTank(ctx, e, COLORS.enemy);
+    drawDetailedTank(ctx, e, ENEMY_PALETTE, timeSec, false);
   }
-  drawTank(ctx, player, COLORS.player, player.invuln > 0);
+  drawDetailedTank(
+    ctx,
+    player,
+    PLAYER_PALETTE,
+    timeSec,
+    player.invuln > 0
+  );
 
   for (const b of bullets) {
     if (b.kind === 'missile') {
@@ -65,13 +99,11 @@ export function drawFrame(ctx, state) {
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.radius + 1, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#fdcb6e';
       ctx.font = '14px sans-serif';
       ctx.fillText('🚀', b.x - 7, b.y + 5);
       continue;
     }
-    ctx.fillStyle =
-      b.ownerKind === 'player' ? COLORS.bulletPlayer : COLORS.bulletEnemy;
+    ctx.fillStyle = b.ownerKind === 'player' ? '#FFF59D' : '#FFAB91';
     ctx.beginPath();
     ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
     ctx.fill();
@@ -85,30 +117,11 @@ export function drawFrame(ctx, state) {
   }
 
   if (state.paused && state.phase === 'playing') {
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#37474F';
     ctx.font = 'bold 22px PingFang SC, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('暂停', ctx.canvas.width / 2, ctx.canvas.height / 2);
+    ctx.fillText('暂停', w / 2, h / 2);
   }
-}
-
-function drawTank(ctx, tank, color, blink = false) {
-  if (blink && Math.floor(performance.now() / 120) % 2 === 0) return;
-
-  const angle = DIR[tank.dir].angle;
-  ctx.save();
-  ctx.translate(tank.x, tank.y);
-  ctx.rotate(angle);
-
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.roundRect(-tank.size / 2, -tank.size / 2, tank.size, tank.size, 4);
-  ctx.fill();
-
-  ctx.fillStyle = '#2d3436';
-  ctx.fillRect(-3, -tank.size / 2 - 6, 6, 10);
-
-  ctx.restore();
 }

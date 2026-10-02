@@ -22,13 +22,13 @@ export function updateEnemyAI(enemy, dt, map, player, bullets) {
 
   const speed = enemy.speed * dt;
   const d = dirVec(enemy.dir);
-  const moved = tryMoveTank(
+  enemy.moving = tryMoveTank(
     enemy,
     enemy.x + d.x * speed,
     enemy.y + d.y * speed,
     map
   );
-  if (!moved) {
+  if (!enemy.moving) {
     enemy.dir = DIR_NAMES[Math.floor(Math.random() * DIR_NAMES.length)];
     enemy.turnTimer = 0.4;
   }

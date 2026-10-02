@@ -111,8 +111,14 @@ function movePlayer(state, dt, input) {
 
   const d = DIR[player.dir];
   const speed = player.speed * dt;
+  player.moving = false;
   if (want) {
-    tryMoveTank(player, player.x + d.x * speed, player.y + d.y * speed, map);
+    player.moving = tryMoveTank(
+      player,
+      player.x + d.x * speed,
+      player.y + d.y * speed,
+      map
+    );
   }
 
   player.fireCooldown -= dt;
