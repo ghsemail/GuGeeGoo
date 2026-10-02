@@ -18,6 +18,16 @@ export const GAMES = [
       lifetime: 'gugeegoo_snake_lifetime_earned',
     },
   },
+  {
+    id: 'tank',
+    title: '坦克大战',
+    emoji: '🛡️',
+    href: '/tank/',
+    description: '驾驶坦克保护基地、击毁敌人！框架已可玩，关卡和道具会陆续加入。',
+    statKeys: {
+      best: 'gugeegoo_tank_best_score',
+    },
+  },
 ];
 
 /** 从 localStorage 读取某游戏的本地最高分与最高关卡（导航页展示用） */

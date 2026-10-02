@@ -7,11 +7,12 @@
 | 路径 | 说明 |
 |------|------|
 | `/` | **游戏导航页** — 列出可选游戏（卡片入口，不会自动跳进某个游戏） |
-| `/snake/` | **贪吃蛇** 15 关；累计/可用积分、**道具商店**（7 种真实效果）；键盘 / 滑动 / 十字方向键 |
+| `/snake/` | **贪吃蛇** 主菜单、15 关选关、道具/武器商店；键盘 / 滑动 / 十字方向键 |
+| `/tank/` | **坦克大战**（框架试玩）— 2 关占位地图、玩家/敌人/子弹/碰撞；道具与设置「敬请期待」 |
 
-新增游戏：在 `src/games.js` 的 `GAMES` 数组加一条，并增加对应 HTML 入口（多页构建）。
+新增游戏：在 `src/games.js` 的 `GAMES` 数组加一条，在 `vite.config.js` 的 `rollupOptions.input` 注册 HTML，并增加 `src/<游戏>/` 源码。
 
-源码：`index.html`（导航页）、`snake/index.html`；样式与逻辑在 `src/`；API 在 `functions/`（Pages Functions + KV）。
+源码：`index.html`（导航页）、`snake/index.html`、`tank/index.html`；逻辑在 `src/`；贪吃蛇 API 在 `functions/`（Pages Functions + KV）。
 
 ## 开发
 
@@ -23,7 +24,8 @@ npm run web:dev
 ```
 
 - 导航页：http://localhost:5173/
-- 游戏：http://localhost:5173/snake/
+- 贪吃蛇：http://localhost:5173/snake/
+- 坦克大战：http://localhost:5173/tank/
 
 本地 Vite **不会**运行 Pages Functions；分数与排行榜使用 **localStorage**，与线上 KV 逻辑一致，API 失败时同样回退本地。
 
@@ -33,12 +35,13 @@ npm run web:dev
 npm run web:build
 ```
 
-产物：`apps/web/dist/`（多页：`index.html`、`snake/index.html` 及对应 JS/CSS）。
+产物：`apps/web/dist/`（多页：`index.html`、`snake/index.html`、`tank/index.html` 及对应 JS/CSS）。
 
-贪吃蛇布局自检（需先 `web:build` 并 `vite preview -p 4173`）：
+布局自检（需先 `web:build` 并 `npx vite preview -p 4173 -c apps/web/vite.config.js`）：
 
 ```bash
 node scripts/verify-snake-layout.mjs
+node scripts/verify-tank-layout.mjs
 ```
 
 验证 Functions 打包（可选）：

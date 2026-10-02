@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>坦克大战 · GuGeeGoo</title>
+  </head>
+  <body class="tank-page">
+    <header class="tank-header">
+      <a class="back-link" href="/">← 导航页</a>
+      <h1>🛡️ 坦克大战</h1>
+      <p class="tagline">顾景源 · 框架试玩版</p>
+    </header>
+
+    <section id="screen-menu" class="screen screen-menu">
+      <p class="menu-welcome">消灭敌方坦克！具体关卡和道具以后会慢慢加。</p>
+      <div class="menu-actions">
+        <button type="button" id="btn-menu-play" class="btn btn-primary btn-lg">
+          开始游戏
+        </button>
+        <button type="button" id="btn-menu-levels" class="btn btn-lg">选关</button>
+        <button type="button" id="btn-menu-items" class="btn btn-lg" disabled>
+          道具 · 敬请期待
+        </button>
+        <button type="button" id="btn-menu-settings" class="btn btn-lg" disabled>
+          设置 · 敬请期待
+        </button>
+        <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
+      </div>
+      <p class="menu-hint">
+        方向键 / WASD 移动，<strong>空格</strong> 或 <strong>J</strong> 发射；手机用左下开火、右下方向键。
+      </p>
+    </section>
+
+    <section id="screen-levels" class="screen screen-levels" hidden>
+      <div class="screen-topbar">
+        <button type="button" id="btn-levels-back" class="btn btn-ghost btn-sm">
+          ← 主菜单
+        </button>
+        <h2 class="screen-title">选关</h2>
+      </div>
+      <div id="level-grid" class="level-grid"></div>
+      <p class="coming-soon">更多关卡敬请期待～</p>
+    </section>
+
+    <section id="screen-game" class="screen screen-game" hidden>
+      <div class="hud-bar">
+        <div class="hud-item">
+          <span class="hud-label">关卡</span>
+          <span id="hud-level" class="hud-value">—</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">得分</span>
+          <span id="hud-score" class="hud-value">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">生命</span>
+          <span id="hud-lives" class="hud-value">♥♥♥</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">敌人</span>
+          <span id="hud-enemies" class="hud-value">0</span>
+        </div>
+      </div>
+      <p id="level-hint" class="hint"></p>
+
+      <div class="canvas-wrap">
+        <div class="canvas-stage">
+          <canvas id="game-canvas" aria-label="坦克大战"></canvas>
+          <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
+            🔫 发射
+          </button>
+          <div class="dpad-overlay" aria-label="方向控制">
+            <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>
+            <button type="button" class="dpad-btn dpad-left" data-dir="left">◀</button>
+            <button type="button" class="dpad-btn dpad-right" data-dir="right">▶</button>
+            <button type="button" class="dpad-btn dpad-down" data-dir="down">▼</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" id="btn-pause" class="btn">暂停</button>
+        <button type="button" id="btn-exit" class="btn btn-primary">退出回菜单</button>
+      </div>
+    </section>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="overlay-card">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-msg"></p>
+        <div id="overlay-actions" class="overlay-actions"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/tank/main.js"></script>
+  </body>
+</html>

@@ -14,6 +14,7 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html'),
         snake: path.resolve(__dirname, 'snake/index.html'),
+        tank: path.resolve(__dirname, 'tank/index.html'),
       },
     },
   },
