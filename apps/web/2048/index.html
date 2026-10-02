@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2048 · GuGeeGoo</title>
+  </head>
+  <body class="arcade-page page-2048">
+    <header class="arcade-header">
+      <a class="back-link" href="/">← 导航页</a>
+      <h1>🔢 2048</h1>
+      <p class="tagline">顾景源 · 合并数字</p>
+    </header>
+
+    <section id="screen-menu" class="screen screen-menu">
+      <p class="menu-welcome">滑动方块，相同数字合并，挑战 2048！</p>
+      <p class="wallet-line">
+        累计 <strong id="menu-lifetime">0</strong> 分 · 最高
+        <strong id="menu-best">0</strong> 分
+      </p>
+      <div class="menu-actions">
+        <button type="button" id="btn-menu-play" class="btn btn-primary btn-lg">
+          开始游戏
+        </button>
+        <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
+      </div>
+      <p class="menu-hint">滑动 / 方向键 / WASD；每局可撤销一步</p>
+    </section>
+
+    <section id="screen-game" class="screen screen-game" hidden>
+      <div class="hud-bar">
+        <div class="hud-item">
+          <span class="hud-label">得分</span>
+          <span id="hud-score" class="hud-value">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">最高</span>
+          <span id="hud-best" class="hud-value">0</span>
+        </div>
+      </div>
+
+      <div class="game-2048-board-wrap game-controls-block">
+        <div id="game-board" aria-label="2048 棋盘"></div>
+      </div>
+
+      <div class="game-2048-toolbar toolbar">
+        <button type="button" id="btn-undo" class="btn">撤销一步</button>
+        <button type="button" id="btn-new" class="btn">新游戏</button>
+        <button type="button" id="btn-exit" class="btn btn-primary">退出回菜单</button>
+      </div>
+    </section>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="overlay-card">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-msg"></p>
+        <div id="overlay-actions" class="overlay-actions"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/2048/main.js"></script>
+  </body>
+</html>

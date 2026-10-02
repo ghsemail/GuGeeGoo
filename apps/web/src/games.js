@@ -30,6 +30,39 @@ export const GAMES = [
       lifetime: 'gugeegoo_tank_lifetime_earned',
     },
   },
+  {
+    id: 'whack',
+    title: '打地鼠',
+    emoji: '🔨',
+    href: '/whack/',
+    description: '60 秒敲地鼠！⭐ 加分、💣 小心，分数高了格子变多。',
+    statKeys: {
+      best: 'gugeegoo_whack_best_score',
+      lifetime: 'gugeegoo_whack_lifetime_earned',
+    },
+  },
+  {
+    id: 'breakout',
+    title: '打砖块',
+    emoji: '🧱',
+    href: '/breakout/',
+    description: '五关砖块、道具掉落，手指拖挡板或键盘 A/D 都行。',
+    statKeys: {
+      best: 'gugeegoo_breakout_best_score',
+      lifetime: 'gugeegoo_breakout_lifetime_earned',
+    },
+  },
+  {
+    id: '2048',
+    title: '2048',
+    emoji: '🔢',
+    href: '/2048/',
+    description: '滑动合并数字，冲到 2048！每局可撤销一步。',
+    statKeys: {
+      best: 'gugeegoo_2048_best_score',
+      lifetime: 'gugeegoo_2048_lifetime_earned',
+    },
+  },
 ];
 
 /** 从 localStorage 读取某游戏的本地最高分与最高关卡（导航页展示用） */

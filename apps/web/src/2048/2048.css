@@ -1,0 +1,9 @@
+@import '../arcade/arcade-shell.css';
+
+.page-2048 {
+  --page-bg: linear-gradient(165deg, #faf8ef 0%, #ffe0b2 50%, #ffccbc 100%);
+}
+
+.page-2048 .arcade-header h1 {
+  color: #776e65;
+}

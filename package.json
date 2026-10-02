@@ -13,7 +13,8 @@
     "web:dev": "npm run dev -w @gugeegoo/web",
     "web:build": "npm run build -w @gugeegoo/web",
     "deploy:pages": "node scripts/deploy-pages.mjs",
-    "validate:tank-levels": "node scripts/validate-tank-levels.mjs"
+    "validate:tank-levels": "node scripts/validate-tank-levels.mjs",
+    "verify:game-controls": "node scripts/verify-game-controls.mjs"
   },
   "dependencies": {
     "puppeteer": "^24.0.0"

@@ -1,0 +1,11 @@
+@import '../arcade/arcade-shell.css';
+
+.breakout-page {
+  --page-bg: linear-gradient(165deg, #B3E5FC 0%, #E1BEE7 55%, #FFE082 100%);
+}
+
+.breakout-input-zone {
+  touch-action: none;
+  width: min(100%, 720px);
+  margin: 0 auto;
+}

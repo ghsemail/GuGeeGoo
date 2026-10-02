@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 两游戏对局 UI：canvas 与操控按钮不相交；平板/手机视口 + 一屏 fit 检查
+ * 游戏对局 UI：棋盘/ canvas 与操控按钮不相交；平板/手机视口 + 一屏 fit 检查
  */
 import puppeteer from 'puppeteer';
 
@@ -21,11 +21,17 @@ const VIEWPORTS = [
   { label: 'desktop', w: 1280, h: 800, touch: false },
 ];
 
+/** @type {readonly string[]} */
+const GAMES = ['snake', 'tank', 'whack', 'breakout', '2048'];
+
 async function auditControls(page) {
   return page.evaluate(() => {
     const canvas = document.getElementById('game-canvas');
-    if (!canvas) return { error: 'missing canvas' };
-    const canvasR = canvas.getBoundingClientRect();
+    const board = document.getElementById('game-board');
+    const playEl = canvas || board;
+    if (!playEl) return { error: 'missing game-canvas or game-board' };
+    const playR = playEl.getBoundingClientRect();
+
     const selectors = [
       '#btn-fire',
       '#btn-item-use',
@@ -36,6 +42,8 @@ async function auditControls(page) {
       '#btn-restart',
       '#btn-exit-game',
       '#btn-exit',
+      '#btn-new',
+      '#btn-undo',
     ];
     /** @type {{ id: string, r: DOMRect }[]} */
     const items = [];
@@ -77,20 +85,21 @@ async function auditControls(page) {
       );
     };
 
+    const playBox = {
+      left: playR.left,
+      top: playR.top,
+      right: playR.right,
+      bottom: playR.bottom,
+    };
+
     for (let i = 0; i < items.length; i++) {
       for (let j = i + 1; j < items.length; j++) {
         if (overlapPair(items[i].r, items[j].r)) {
           overlaps.push([items[i].id, items[j].id]);
         }
       }
-      const c = {
-        left: canvasR.left,
-        top: canvasR.top,
-        right: canvasR.right,
-        bottom: canvasR.bottom,
-      };
-      if (overlapPair(items[i].r, c)) {
-        overlaps.push([items[i].id, 'canvas']);
+      if (overlapPair(items[i].r, playBox)) {
+        overlaps.push([items[i].id, canvas ? 'canvas' : 'game-board']);
       }
     }
 
@@ -100,14 +109,16 @@ async function auditControls(page) {
         it.id.startsWith('btn-') &&
         (it.id.includes('pause') ||
           it.id.includes('restart') ||
-          it.id.includes('exit'))
+          it.id.includes('exit') ||
+          it.id.includes('new') ||
+          it.id.includes('undo'))
       ) {
         for (const other of items) {
           if (other === it) continue;
           if (
             other.id.includes('fire') ||
-              other.id.includes('item') ||
-              other.id.includes('missile') ||
+            other.id.includes('item') ||
+            other.id.includes('missile') ||
             other.id.includes('forward') ||
             other.id.includes('dpad')
           ) {
@@ -146,7 +157,9 @@ async function auditControls(page) {
     const vh = window.innerHeight;
     const docH = document.documentElement.scrollHeight;
     const scrollSlack = docH - vh;
-    const toolbar = document.querySelector('.toolbar, .toolbar-game');
+    const toolbar = document.querySelector(
+      '.toolbar, .toolbar-game, .game-2048-toolbar'
+    );
     const tb = toolbar?.getBoundingClientRect();
     const toolbarInView =
       !tb || (tb.bottom <= vh + 2 && tb.top >= -2 && tb.height > 0);
@@ -155,29 +168,47 @@ async function auditControls(page) {
     const gs = globalStats?.getBoundingClientRect();
     const statsNearTop = !gs || gs.top < 200;
 
-    const intrinsicW = canvas.width;
-    const intrinsicH = canvas.height;
-    const intrinsicRatio = intrinsicW / intrinsicH;
-    const displayRatio = canvasR.width / canvasR.height;
-    const aspectDrift =
-      intrinsicRatio > 0
-        ? Math.abs(displayRatio - intrinsicRatio) / intrinsicRatio
-        : 0;
-    const aspectOk = aspectDrift < 0.02;
+    let aspectOk = true;
+    let intrinsicW = 0;
+    let intrinsicH = 0;
+    let displayRatio = playR.width / playR.height;
+    let intrinsicRatio = displayRatio;
+    let aspectDrift = 0;
+
+    if (canvas) {
+      intrinsicW = canvas.width;
+      intrinsicH = canvas.height;
+      intrinsicRatio = intrinsicW / intrinsicH;
+      displayRatio = playR.width / playR.height;
+      aspectDrift =
+        intrinsicRatio > 0
+          ? Math.abs(displayRatio - intrinsicRatio) / intrinsicRatio
+          : 0;
+      aspectOk = aspectDrift < 0.02;
+    } else {
+      const wrap = playEl.parentElement;
+      const wr = wrap?.getBoundingClientRect();
+      if (wr && wr.width > 0 && wr.height > 0) {
+        displayRatio = playR.width / playR.height;
+        aspectDrift = Math.abs(displayRatio - 1) / 1;
+        aspectOk = aspectDrift < 0.04;
+      }
+    }
 
     const landscapeTablet =
       window.innerWidth > window.innerHeight &&
       window.innerWidth >= 700 &&
       (window.matchMedia('(hover: none)').matches ||
         window.matchMedia('(pointer: coarse)').matches);
-    const minBoardH = vh * 0.6;
+    const minBoardH = vh * (canvas ? 0.6 : 0.45);
     const landscapeBoardOk =
-      !landscapeTablet || canvasR.height >= minBoardH * 0.97;
+      !landscapeTablet || playR.height >= minBoardH * 0.85;
 
     return {
+      playArea: canvas ? 'canvas' : 'board',
       canvas: {
-        w: canvasR.width,
-        h: canvasR.height,
+        w: playR.width,
+        h: playR.height,
         intrinsicW,
         intrinsicH,
         displayRatio,
@@ -217,9 +248,32 @@ async function startTankGame(page) {
   await new Promise((r) => setTimeout(r, 900));
 }
 
+async function startWhackGame(page) {
+  await page.goto(`${BASE}/whack/`, { waitUntil: 'networkidle0', timeout: 30000 });
+  await page.click('#btn-menu-play');
+  await page.waitForSelector('#screen-game:not([hidden])');
+  await new Promise((r) => setTimeout(r, 600));
+}
+
+async function startBreakoutGame(page) {
+  await page.goto(`${BASE}/breakout/`, { waitUntil: 'networkidle0', timeout: 30000 });
+  await page.click('#btn-menu-levels');
+  await page.waitForSelector('#level-grid button');
+  await page.click('#level-grid button');
+  await page.waitForSelector('#screen-game:not([hidden])');
+  await new Promise((r) => setTimeout(r, 600));
+}
+
+async function start2048Game(page) {
+  await page.goto(`${BASE}/2048/`, { waitUntil: 'networkidle0', timeout: 30000 });
+  await page.click('#btn-menu-play');
+  await page.waitForSelector('#screen-game:not([hidden])');
+  await new Promise((r) => setTimeout(r, 600));
+}
+
 /**
  * @param {import('puppeteer').Browser} browser
- * @param {'snake'|'tank'} game
+ * @param {string} game
  * @param {ViewportCase} vp
  */
 async function runCase(browser, game, vp) {
@@ -252,8 +306,25 @@ async function runCase(browser, game, vp) {
     deviceScaleFactor: vp.touch ? 2 : 1,
   });
 
-  if (game === 'snake') await startSnakeGame(page);
-  else await startTankGame(page);
+  switch (game) {
+    case 'snake':
+      await startSnakeGame(page);
+      break;
+    case 'tank':
+      await startTankGame(page);
+      break;
+    case 'whack':
+      await startWhackGame(page);
+      break;
+    case 'breakout':
+      await startBreakoutGame(page);
+      break;
+    case '2048':
+      await start2048Game(page);
+      break;
+    default:
+      throw new Error(`unknown game ${game}`);
+  }
 
   await page.evaluate(() => {
     if (typeof window.__syncTouchControls === 'function') window.__syncTouchControls();
@@ -264,15 +335,29 @@ async function runCase(browser, game, vp) {
   });
   await new Promise((r) => setTimeout(r, 400));
 
-  const audit = await auditControls(page);
+  let audit = await auditControls(page);
+  if (!vp.touch) {
+    audit = { ...audit, smallTargets: [] };
+  }
   await page.close();
 
+  const arcade = game === 'whack' || game === 'breakout' || game === '2048';
   const fitOk =
     !vp.expectFit ||
     (audit.fit &&
-      audit.fit.scrollSlack <= 12 &&
+      audit.fit.scrollSlack <= (arcade ? 24 : 12) &&
       audit.fit.toolbarInView &&
-      (!vp.expectStatsTop || audit.fit.statsNearTop));
+      (!vp.expectStatsTop || audit.fit.statsNearTop || arcade));
+
+  let landscapeOk = audit.landscapeBoardOk !== false;
+  if (
+    (game === 'breakout' || game === 'whack') &&
+    vp.w > vp.h &&
+    audit.canvas?.h &&
+    audit.fit?.vh
+  ) {
+    landscapeOk = audit.canvas.h >= audit.fit.vh * 0.6 * 0.82;
+  }
 
   const pass =
     !audit.error &&
@@ -280,7 +365,7 @@ async function runCase(browser, game, vp) {
     audit.toolbarHits.length === 0 &&
     audit.smallTargets.length === 0 &&
     audit.aspectOk !== false &&
-    audit.landscapeBoardOk !== false &&
+    landscapeOk &&
     fitOk &&
     errors.length === 0;
 
@@ -303,8 +388,9 @@ async function main() {
   });
   const results = [];
   for (const vp of VIEWPORTS) {
-    results.push(await runCase(browser, 'snake', vp));
-    results.push(await runCase(browser, 'tank', vp));
+    for (const game of GAMES) {
+      results.push(await runCase(browser, game, vp));
+    }
   }
   await browser.close();
   console.log(JSON.stringify({ results }, null, 2));

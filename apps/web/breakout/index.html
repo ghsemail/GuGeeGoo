@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>打砖块 · GuGeeGoo</title>
+  </head>
+  <body class="arcade-page breakout-page">
+    <header class="arcade-header">
+      <a class="back-link" href="/">← 导航页</a>
+      <h1>🧱 打砖块</h1>
+      <p class="tagline">顾景源 · 五关挑战</p>
+    </header>
+
+    <section id="screen-menu" class="screen screen-menu">
+      <p class="menu-welcome">拖动手指或鼠标移动挡板，打掉所有砖块！</p>
+      <p class="wallet-line">
+        累计 <strong id="menu-lifetime">0</strong> 分 · 最高
+        <strong id="menu-best">0</strong> 分
+      </p>
+      <div class="menu-actions">
+        <button type="button" id="btn-menu-play" class="btn btn-primary btn-lg">
+          开始游戏
+        </button>
+        <button type="button" id="btn-menu-levels" class="btn btn-lg">选关</button>
+        <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
+      </div>
+      <p class="menu-hint">
+        平板：在画面下方滑动控制挡板；键盘：← → 或 A D，空格发球
+      </p>
+    </section>
+
+    <section id="screen-levels" class="screen screen-levels" hidden>
+      <div class="screen-topbar">
+        <button type="button" id="btn-levels-back" class="btn btn-ghost btn-sm">
+          ← 主菜单
+        </button>
+        <h2 class="screen-title">选关</h2>
+      </div>
+      <div id="level-grid" class="level-grid"></div>
+    </section>
+
+    <section id="screen-game" class="screen screen-game" hidden>
+      <div class="hud-bar">
+        <div class="hud-item">
+          <span class="hud-label">关卡</span>
+          <span id="hud-level" class="hud-value">—</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">得分</span>
+          <span id="hud-score" class="hud-value">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">生命</span>
+          <span id="hud-lives" class="hud-value">❤️❤️❤️</span>
+        </div>
+      </div>
+
+      <div class="canvas-wrap game-controls-block breakout-input-zone">
+        <div class="canvas-board-wrap">
+          <canvas id="game-canvas" aria-label="打砖块"></canvas>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" id="btn-pause" class="btn">暂停</button>
+        <button type="button" id="btn-exit" class="btn btn-primary">退出回菜单</button>
+      </div>
+    </section>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="overlay-card">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-msg"></p>
+        <div id="overlay-actions" class="overlay-actions"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/breakout/main.js"></script>
+  </body>
+</html>
