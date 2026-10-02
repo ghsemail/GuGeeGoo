@@ -12,7 +12,8 @@
     "sync:cos": "node scripts/sync-cos.mjs",
     "web:dev": "npm run dev -w @gugeegoo/web",
     "web:build": "npm run build -w @gugeegoo/web",
-    "deploy:pages": "node scripts/deploy-pages.mjs"
+    "deploy:pages": "node scripts/deploy-pages.mjs",
+    "validate:tank-levels": "node scripts/validate-tank-levels.mjs"
   },
   "dependencies": {
     "puppeteer": "^24.0.0"

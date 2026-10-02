@@ -4,6 +4,19 @@
  */
 import { TILE, TILE_SIZE } from './constants.js';
 
+/** 外圈强制钢墙（内圈 P/E 不会被覆盖，因仅改边界格） */
+function enforceSteelBorder(cells) {
+  const rows = cells.length;
+  const cols = cells[0]?.length || 0;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (y === 0 || y === rows - 1 || x === 0 || x === cols - 1) {
+        cells[y][x] = TILE.STEEL;
+      }
+    }
+  }
+}
+
 const CHAR_TO_TILE = {
   '.': TILE.EMPTY,
   ' ': TILE.EMPTY,
@@ -30,6 +43,11 @@ export function createMapFromLevel(levelDef) {
 
   for (let y = 0; y < rows; y++) {
     const row = levelDef.grid[y] || '';
+    if (row.length !== cols) {
+      throw new Error(
+        `关卡「${levelDef.name}」第 ${y + 1} 行宽度 ${row.length}，应为 ${cols}`
+      );
+    }
     cells[y] = [];
     for (let x = 0; x < cols; x++) {
       const ch = row[x] || '.';
@@ -44,6 +62,8 @@ export function createMapFromLevel(levelDef) {
       }
     }
   }
+
+  enforceSteelBorder(cells);
 
   return {
     cols,

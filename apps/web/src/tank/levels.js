@@ -1,20 +1,24 @@
 /**
  * 关卡数据（19×19 或 21×17）
+ * 每行：S + 内区 + S，内区长度固定（19 宽地图 → 17，21 宽 → 19）
  */
 
 /** @typedef {{ id: number, name: string, hint: string, grid: string[] }} TankLevel */
 
-function pad19(line) {
-  const s = line.padEnd(19, '.').slice(0, 19);
-  if (s.length !== 19) throw new Error(`row not 19: ${s}`);
-  return s;
+/** @param {number} innerW @param {string} inner */
+function bordered(innerW, inner) {
+  if (inner.length !== innerW) {
+    throw new Error(`内区应为 ${innerW} 字，实际 ${inner.length}：${JSON.stringify(inner)}`);
+  }
+  const line = `S${inner}S`;
+  if (line.length !== innerW + 2) {
+    throw new Error(`行宽错误：${line.length}`);
+  }
+  return line;
 }
 
-function pad21(line) {
-  const s = line.padEnd(21, '.').slice(0, 21);
-  if (s.length !== 21) throw new Error(`row not 21: ${s}`);
-  return s;
-}
+const b17 = (inner) => bordered(17, inner);
+const b19 = (inner) => bordered(19, inner);
 
 /** @type {TankLevel[]} */
 export const LEVELS = [
@@ -23,25 +27,25 @@ export const LEVELS = [
     name: '练习场',
     hint: '大地图练手！打掉所有敌人；砖墙可打穿，钢墙不行。Q 切换道具，L 使用。',
     grid: [
-      pad19('SSSSSSSSSSSSSSSSSSS'),
-      pad19('S.................S'),
-      pad19('S..BBBB.....BBBB..S'),
-      pad19('S..B..B.....B..B..S'),
-      pad19('S..B..B..E..B..B..S'),
-      pad19('S..BBBB.....BBBB..S'),
-      pad19('S.................S'),
-      pad19('S....BBBBSSBBBB....S'),
-      pad19('S....B........B....S'),
-      pad19('S..E.B....P....B.E.S'),
-      pad19('S....B........B....S'),
-      pad19('S....BBBBSSBBBB....S'),
-      pad19('S.................S'),
-      pad19('S..BBBB.....BBBB..S'),
-      pad19('S..B..B..E..B..B..S'),
-      pad19('S..B..B.....B..B..S'),
-      pad19('S..BBBB.....BBBB..S'),
-      pad19('S.................S'),
-      pad19('SSSSSSSSSSSSSSSSSSS'),
+      b17('SSSSSSSSSSSSSSSSS'),
+      b17('.................'),
+      b17('..BBBB.....BBBB..'),
+      b17('..B..B.....B..B..'),
+      b17('..B..B..E..B..B..'),
+      b17('..BBBB.....BBBB..'),
+      b17('.................'),
+      b17('..BBBBSSBBBB.....'),
+      b17('..B.........B....'),
+      b17('.E.B...P...B.E...'),
+      b17('..B.........B....'),
+      b17('..BBBBSSBBBB.....'),
+      b17('.................'),
+      b17('..BBBB.....BBBB..'),
+      b17('..B..B..E..B..B..'),
+      b17('..B..B.....B..B..'),
+      b17('..BBBB.....BBBB..'),
+      b17('.................'),
+      b17('SSSSSSSSSSSSSSSSS'),
     ],
   },
   {
@@ -49,25 +53,25 @@ export const LEVELS = [
     name: '砖堡攻防',
     hint: '敌人更多了，利用砖墙当掩体；试试 💣 地雷和 🚀 导弹！',
     grid: [
-      pad19('SSSSSSSSSSSSSSSSSSS'),
-      pad19('S.E.......E.......E.S'),
-      pad19('S.BBBB...BBB...BBBB.S'),
-      pad19('S.B..B...B.B...B..B.S'),
-      pad19('S.B..B...B.B...B..B.S'),
-      pad19('S..BB.....B.....BB..S'),
-      pad19('S.....BBBBSBBBB.....S'),
-      pad19('S.....B.......B.....S'),
-      pad19('S..E..B...P...B..E..S'),
-      pad19('S.....B.......B.....S'),
-      pad19('S.....BBBBSBBBB.....S'),
-      pad19('S..BB.....B.....BB..S'),
-      pad19('S.B..B...B.B...B..B.S'),
-      pad19('S.B..B...B.B...B..B.S'),
-      pad19('S.BBBB...BBB...BBBB.S'),
-      pad19('S.......E...E.......S'),
-      pad19('S..BBBBBBBBBBBBBB..S'),
-      pad19('S..................S'),
-      pad19('SSSSSSSSSSSSSSSSSSS'),
+      b17('SSSSSSSSSSSSSSSSS'),
+      b17('.E.....E.....E...'),
+      b17('.BBBB..BBB..BBBB.'),
+      b17('.B..B..B.B..B..B.'),
+      b17('.B..B..B.B..B..B.'),
+      b17('..BB....B....BB..'),
+      b17('...BBBBSBBBB.....'),
+      b17('...B.......B.....'),
+      b17('.E..B...P...B.E..'),
+      b17('...B.......B.....'),
+      b17('...BBBBSBBBB.....'),
+      b17('..BB....B....BB..'),
+      b17('.B..B..B.B..B..B.'),
+      b17('.B..B..B.B..B..B.'),
+      b17('.BBBB..BBB..BBBB.'),
+      b17('....E.....E......'),
+      b17('..BBBBBBBBBBBBB..'),
+      b17('.................'),
+      b17('SSSSSSSSSSSSSSSSS'),
     ],
   },
   {
@@ -75,23 +79,23 @@ export const LEVELS = [
     name: '横向争夺',
     hint: '21×17 宽地图！左右包抄，注意别被堵在窄道里。',
     grid: [
-      pad21('SSSSSSSSSSSSSSSSSSSSS'),
-      pad21('S...................S'),
-      pad21('S.BBBB..BBBB..BBBBB.S'),
-      pad21('S.B..B..B..B..B..B..S'),
-      pad21('S.E..B..B..E..B..E..S'),
-      pad21('S.BBBB..BBBB..BBBBB.S'),
-      pad21('S......B......B.....S'),
-      pad21('S..SSSSB..SSSSB..SSS.S'),
-      pad21('S..S...B..S.P.B..S..S'),
-      pad21('S..SSSSB..SSSSB..SSS.S'),
-      pad21('S......B......B.....S'),
-      pad21('S.BBBB..BBBB..BBBBB.S'),
-      pad21('S.B..B..B..B..B..B..S'),
-      pad21('S.E..B..B..E..B..E..S'),
-      pad21('S.BBBB..BBBB..BBBBB.S'),
-      pad21('S...................S'),
-      pad21('SSSSSSSSSSSSSSSSSSSSS'),
+      b19('SSSSSSSSSSSSSSSSSSS'),
+      b19('...................'),
+      b19('.BBBB..BBBB..BBBBB.'),
+      b19('.B..B..B..B..B..B..'),
+      b19('.E..B..B.E.B..E..B.'),
+      b19('.BBBB..BBBB..BBBBB.'),
+      b19('......B......B.....'),
+      b19('..SSSSB.SSSSB..SSS.'),
+      b19('..S..B..S.P.B..S..S'),
+      b19('..SSSSB.SSSSB..SSS.'),
+      b19('......B......B.....'),
+      b19('.BBBB..BBBB..BBBBB.'),
+      b19('.B..B..B..B..B..B..'),
+      b19('.E..B..B.E.B..E..B.'),
+      b19('.BBBB..BBBB..BBBBB.'),
+      b19('...................'),
+      b19('SSSSSSSSSSSSSSSSSSS'),
     ],
   },
   {
@@ -99,25 +103,25 @@ export const LEVELS = [
     name: '钢铁迷宫',
     hint: '钢墙更多！囤 🔥 穿甲弹打穿钢墙，或 ❄️ 冰冻敌人再慢慢打。',
     grid: [
-      pad19('SSSSSSSSSSSSSSSSSSS'),
-      pad19('S.E.....SSS.....E.S'),
-      pad19('S.BBBB..S.S..BBBB.S'),
-      pad19('S.B..B..S.S..B..B.S'),
-      pad19('S.B..B..S.S..B..B.S'),
-      pad19('S..BB...S.S...BB..S'),
-      pad19('S......BS.SB......S'),
-      pad19('S.SSSSS.S.S.SSSSS.S'),
-      pad19('S.S...S.S.S.S...S.S'),
-      pad19('S.S.E.S.P.S.E.S.S.S'),
-      pad19('S.S...S.S.S.S...S.S'),
-      pad19('S.SSSSS.S.S.SSSSS.S'),
-      pad19('S......BS.SB......S'),
-      pad19('S..BB...S.S...BB..S'),
-      pad19('S.B..B..S.S..B..B.S'),
-      pad19('S.BBBB..S.S..BBBB.S'),
-      pad19('S.E.....SSS.....E.S'),
-      pad19('S.................S'),
-      pad19('SSSSSSSSSSSSSSSSSSS'),
+      b17('SSSSSSSSSSSSSSSSS'),
+      b17('.E.....S.....E...'),
+      b17('.BBBB.S.S.BBBB...'),
+      b17('.B..B.S.S.B..B...'),
+      b17('.E....S....E.....'),
+      b17('..BBB.S.S.BBB....'),
+      b17('...B..S.S..B.....'),
+      b17('.......P.........'),
+      b17('...B..S.S..B.....'),
+      b17('..BBB.S.S.BBB....'),
+      b17('.E....S....E.....'),
+      b17('.B..B.S.S.B..B...'),
+      b17('.BBBB.S.S.BBBB...'),
+      b17('.E.....S.....E...'),
+      b17('.................'),
+      b17('.................'),
+      b17('.................'),
+      b17('.................'),
+      b17('SSSSSSSSSSSSSSSSS'),
     ],
   },
 ];
