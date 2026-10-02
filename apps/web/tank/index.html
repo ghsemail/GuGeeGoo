@@ -87,19 +87,21 @@
       </div>
       <p id="level-hint" class="hint"></p>
 
-      <div class="canvas-wrap">
+      <div class="canvas-wrap game-controls-block">
         <div class="canvas-stage">
-          <canvas id="game-canvas" aria-label="坦克大战"></canvas>
+          <div class="canvas-board-wrap">
+            <canvas id="game-canvas" aria-label="坦克大战"></canvas>
+          </div>
           <div class="touch-bar" aria-label="触屏操作">
             <div class="touch-left-col">
-              <button type="button" id="btn-forward" class="forward-btn" aria-label="背景前进">
+              <button type="button" id="btn-forward" class="forward-btn game-touch-btn" aria-label="背景前进">
                 前进 ▶
               </button>
               <div class="touch-fire-group">
-                <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
+                <button type="button" id="btn-fire" class="fire-btn game-touch-btn" aria-label="发射">
                   🔫
                 </button>
-                <button type="button" id="btn-missile" class="fire-btn missile-btn" aria-label="导弹">
+                <button type="button" id="btn-missile" class="fire-btn missile-btn game-touch-btn" aria-label="导弹">
                   🚀
                 </button>
               </div>

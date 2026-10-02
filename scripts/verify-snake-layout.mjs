@@ -31,6 +31,12 @@ async function measureGame(page) {
         dpadBox.bottom < fireBox.top ||
         dpadBox.top > fireBox.bottom
       );
+    const canvasClear =
+      canvasBox &&
+      fireBox &&
+      dpadBox &&
+      fireBox.top >= canvasBox.bottom - 2 &&
+      dpadBox.top >= canvasBox.bottom - 2;
     return {
       canvas: canvas
         ? {
@@ -44,8 +50,9 @@ async function measureGame(page) {
       dpadVisible: !!(dpadBox && dpadBox.width > 20 && dpadBox.height > 20),
       fireVisible: !!(fireBox && fireBox.width > 20 && fireBox.height > 20),
       dpadFireOverlap: overlap,
+      canvasClear,
       layout:
-        stageBox && dpadBox
+        stageBox && dpadBox && canvasBox
           ? {
               stage: {
                 left: stageBox.left,
@@ -55,12 +62,16 @@ async function measureGame(page) {
                 width: stageBox.width,
                 height: stageBox.height,
               },
+              canvas: { bottom: canvasBox.bottom },
               dpad: {
                 left: dpadBox.left,
                 top: dpadBox.top,
                 right: dpadBox.right,
                 bottom: dpadBox.bottom,
               },
+              fire: fireBox
+                ? { top: fireBox.top, bottom: fireBox.bottom }
+                : null,
             }
           : null,
     };
@@ -132,16 +143,10 @@ async function runViewport(browser, width, height, isMobile) {
     data.canvas.attrW > 0 &&
     data.canvas.attrH > 0;
 
-  let okDpad = false;
-  if (data.layout) {
-    const { stage, dpad } = data.layout;
-    const margin = 12;
-    okDpad =
-      dpad.right <= stage.right + margin &&
-      dpad.bottom <= stage.bottom + margin &&
-      dpad.left >= stage.left + stage.width * 0.48 &&
-      dpad.top >= stage.top + stage.height * 0.48;
-  }
+  const controlsBelow =
+    data.fireVisible &&
+    data.dpadVisible &&
+    data.canvasClear === true;
 
   const weaponsOk =
     weaponCount >= 5 &&
@@ -154,12 +159,12 @@ async function runViewport(browser, width, height, isMobile) {
     shopOk &&
     weaponsOk &&
     okCanvas &&
-    okDpad &&
-    data.fireVisible &&
+    data.canvasClear !== false &&
+    controlsBelow !== false &&
     !data.dpadFireOverlap &&
     errors.length === 0;
 
-  return { ...data, okCanvas, okDpad, pass };
+  return { ...data, okCanvas, controlsBelow, pass };
 }
 
 async function main() {

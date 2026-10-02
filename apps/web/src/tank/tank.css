@@ -274,7 +274,21 @@
 .canvas-wrap {
   display: flex;
   justify-content: center;
-  margin-bottom: 12px;
+}
+
+.game-controls-block {
+  margin-bottom: 10px;
+}
+
+.game-touch-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  line-height: 1;
+  overflow: hidden;
 }
 
 .canvas-stage {
@@ -284,6 +298,9 @@
   align-items: center;
   width: fit-content;
   max-width: 100%;
+}
+
+.canvas-board-wrap {
   line-height: 0;
 }
 
@@ -293,8 +310,8 @@
   width: 100%;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 16px;
+  margin-top: 12px;
   line-height: normal;
   pointer-events: none;
 }
@@ -311,7 +328,7 @@
 }
 
 .forward-btn {
-  padding: 8px 14px;
+  padding: 0 14px;
   border: none;
   border-radius: 12px;
   background: rgba(79, 195, 247, 0.85);
@@ -320,7 +337,8 @@
   font-weight: 800;
   cursor: pointer;
   touch-action: manipulation;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .forward-btn.is-pressed {
@@ -330,8 +348,8 @@
 
 .touch-fire-group {
   display: flex;
-  gap: 8px;
-  align-items: flex-end;
+  gap: 10px;
+  align-items: center;
 }
 
 .missile-btn {
@@ -350,20 +368,22 @@
 
 .fire-btn {
   position: relative;
-  z-index: 2;
   --fire-btn-size: 44px;
+  width: var(--fire-btn-size);
+  height: var(--fire-btn-size);
   min-width: var(--fire-btn-size);
   min-height: var(--fire-btn-size);
-  padding: 6px 10px;
+  padding: 0;
   border: none;
   border-radius: 12px;
-  background: rgba(233, 69, 96, 0.72);
+  background: rgba(233, 69, 96, 0.88);
   color: #fff;
-  font-size: clamp(12px, 3.2vw, 15px);
+  font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
   flex-shrink: 0;
+  box-shadow: none;
 }
 
 .fire-btn.is-pressed {
@@ -373,12 +393,11 @@
 
 .dpad-overlay {
   position: relative;
-  z-index: 2;
-  --dpad-size: 36px;
+  --dpad-size: 44px;
   display: grid;
   grid-template-columns: repeat(3, var(--dpad-size));
   grid-template-rows: repeat(3, var(--dpad-size));
-  gap: 2px;
+  gap: 3px;
   flex-shrink: 0;
 }
 
@@ -394,40 +413,6 @@
   color: #fff;
   font-size: clamp(14px, calc(var(--dpad-size) * 0.42), 20px);
   cursor: pointer;
-}
-
-@media (min-width: 520px) {
-  .canvas-stage {
-    display: block;
-  }
-
-  .touch-bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin-top: 0;
-    padding: 3px;
-    pointer-events: none;
-  }
-
-  .fire-btn {
-    position: absolute;
-    left: 3px;
-    bottom: 3px;
-    background: rgba(233, 69, 96, 0.55);
-  }
-
-  .dpad-overlay {
-    position: absolute;
-    right: 3px;
-    bottom: 3px;
-    --dpad-size: 40px;
-  }
-
-  .dpad-overlay .dpad-btn {
-    background: rgba(255, 255, 255, 0.14);
-  }
 }
 
 .dpad-btn.is-pressed {
@@ -456,6 +441,11 @@
   gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.toolbar .btn {
+  min-height: 44px;
 }
 
 .overlay {
