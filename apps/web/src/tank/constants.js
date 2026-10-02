@@ -33,14 +33,15 @@ export const LOGIC_STEPS_PER_SEC = 60;
 
 /** 坦克移动速度（像素/秒） */
 export const PLAYER_SPEED = 120;
-export const ENEMY_SPEED = 90;
+/** ~2.7 格/秒（TILE_SIZE 22）；玩家约 5.5 格/秒 */
+export const ENEMY_SPEED = 60;
 
 /** 子弹速度（像素/秒） */
 export const BULLET_SPEED = 220;
 
 /** 双方开火冷却（秒） */
 export const PLAYER_FIRE_COOLDOWN = 0.45;
-export const ENEMY_FIRE_COOLDOWN = 1.6;
+export const ENEMY_FIRE_COOLDOWN = 2.0;
 
 /** 敌人随机转向间隔（秒） */
 export const ENEMY_TURN_MIN = 0.8;
