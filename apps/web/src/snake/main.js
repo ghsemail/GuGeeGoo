@@ -47,6 +47,8 @@ import {
   toastForConsumable,
 } from './item-effects.js';
 import { getWeapon } from './weapons.js';
+import { drawPicnicBoard, cellGroundColor } from './draw-board.js';
+import { drawWeaponEffects } from './game-combat.js';
 import { ensureStarterWeapon } from './weapon-shop.js';
 import { recordLevelResult } from './level-progress.js';
 import {
@@ -277,29 +279,28 @@ function draw() {
   if (currentScreen !== 'game') return;
   const lv = state.level;
   const cs = cellSize();
-  ctx.fillStyle = '#1a472a';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawPicnicBoard(ctx, canvas.width, canvas.height, lv.cols, lv.rows, cs);
 
   for (let y = 0; y < lv.rows; y++) {
     for (let x = 0; x < lv.cols; x++) {
-      const checker = (x + y) % 2 === 0;
-      drawCell(x, y, checker ? '#1e5230' : '#1a472a', 0.05);
+      drawCell(x, y, cellGroundColor(x, y), 0.08);
     }
   }
 
   for (const [ox, oy] of lv.obstacles) {
-    drawCell(ox, oy, '#5c4d3c', 0.25);
+    drawCell(ox, oy, '#5D4037', 0.2);
   }
 
   lv.movers.forEach((m, i) => {
     const idx = state.moverStates[i].pathIndex;
     const [x, y] = m.path[idx];
     const frozen = isMoverFrozen(state, i);
-    drawCell(x, y, frozen ? '#48dbfb' : '#e67e22', 0.3);
+    drawCell(x, y, frozen ? '#4FC3F7' : '#FB8C00', 0.28);
   });
 
   drawApple(state.food.x, state.food.y);
   drawProjectiles();
+  drawWeaponEffects(ctx, state, cs);
   drawSnake(ctx, state.snake, state.direction, cs, state.effects);
   refreshEffectBar();
 }
@@ -408,8 +409,13 @@ function fireWeapon() {
   if (!gameSessionActive || state.gameOver || state.levelComplete) return;
   const r = tryFireWeapon(state);
   if (r.ok) {
-    showGameToast('砰！');
+    const kind = state.weaponRuntime?.kind;
+    if (kind === 'air_strike') showGameToast('✈️ 飞机出动！');
+    else if (kind === 'tank_buddy') showGameToast('🚜 小坦克来帮忙！');
+    else showGameToast('砰！');
     refreshAmmoUI();
+  } else if (r.reason === 'busy') {
+    showGameToast('小坦克还在呢～');
   } else if (state.weaponRuntime?.ammo <= 0) {
     showGameToast('弹药用完啦');
   }

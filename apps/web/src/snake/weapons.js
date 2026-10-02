@@ -34,6 +34,29 @@ export const WEAPONS = [
     cooldownTicks: 8,
     kind: 'pierce_line',
   },
+  {
+    id: 'weapon_plane',
+    name: '飞机',
+    emoji: '✈️',
+    description:
+      '召唤小飞机沿你朝向的那一行或一列飞过，经过的固定石头都会被炸掉（每关 2 次）。',
+    price: 520,
+    ammoPerLevel: 2,
+    cooldownTicks: 14,
+    kind: 'air_strike',
+  },
+  {
+    id: 'weapon_tank',
+    name: '小坦克',
+    emoji: '🚜',
+    description:
+      '在蛇旁边召唤小坦克约 4 秒，自动朝蛇头方向帮你看前方向上的石头（每关 2 次）。',
+    price: 450,
+    ammoPerLevel: 2,
+    cooldownTicks: 10,
+    kind: 'tank_buddy',
+    buddyTicks: 48,
+  },
 ];
 
 export const DEFAULT_WEAPON_ID = 'weapon_sling';

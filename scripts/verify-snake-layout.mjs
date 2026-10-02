@@ -100,6 +100,16 @@ async function runViewport(browser, width, height, isMobile) {
   });
   await page.click('#btn-shop-back');
 
+  await page.click('#btn-menu-weapons');
+  await page.waitForSelector('#weapon-list .shop-item', { timeout: 8000 });
+  const weaponCount = await page.$$eval('#weapon-list .shop-item', (els) => els.length);
+  const weaponNames = await page.evaluate(() =>
+    [...document.querySelectorAll('#weapon-list .shop-item-name')].map((n) =>
+      n.textContent?.trim()
+    )
+  );
+  await page.click('#btn-weapons-back');
+
   await page.click('#btn-menu-play');
   await page.waitForSelector('#screen-game:not([hidden])', { timeout: 8000 });
   await new Promise((r) => setTimeout(r, 1200));
@@ -109,6 +119,8 @@ async function runViewport(browser, width, height, isMobile) {
   data.menuOk = menuOk;
   data.levelCount = levelCount;
   data.shopOk = shopOk;
+  data.weaponCount = weaponCount;
+  data.weaponNames = weaponNames;
   data.pageErrors = errors;
 
   await page.close();
@@ -131,10 +143,16 @@ async function runViewport(browser, width, height, isMobile) {
       dpad.top >= stage.top + stage.height * 0.48;
   }
 
+  const weaponsOk =
+    weaponCount >= 5 &&
+    weaponNames.some((t) => t?.includes('飞机')) &&
+    weaponNames.some((t) => t?.includes('小坦克'));
+
   const pass =
     menuOk &&
     levelCount === 15 &&
     shopOk &&
+    weaponsOk &&
     okCanvas &&
     okDpad &&
     data.fireVisible &&
