@@ -18,7 +18,7 @@
 | Day 4（11 题） | **8/11** | live 误写 recycle；选词 food waste / lots of 互换 |
 | Unit 1 薄弱点回顾（5 题） | **5/5** | WP-002→MP-009 |
 | Unit 2 单元小测（7 题） | **6/7** | Q4 live a green life 错 |
-| 复习单词听写 Unit 1–2（20 词） | **18/20** | 只写英文；错 throw、stomach；中文提示 2 次待确认 |
+| 复习单词听写 Unit 1–2（20 词） | **19/20** | 只写英文；错 stomach；中文提示 2 次待确认 |
 | 复习单词听写 Unit 1–2（19 词） | **11/19** | 只写英文；错 stomach、enough、potato、snack、sugar、sleepy、problem、choose |
 | 复习单词听写 Unit 1–2（21 词） | **17/21** | 只写英文；错 recycle、a few、stomach、enough |
 
@@ -28,8 +28,8 @@
 
 | 项目 | 内容 |
 |------|------|
-| 待巩固 | throw、stomach 不熟悉 0/2；sleepy、choose、sugar、problem、snack、potato、enough 巩固中 1/2（共 9 词） |
-| 固定表 | 10-02 表已听写 18/20；有新待巩固词 throw，下次复习听写前换表；中文提示 2 次待家长确认 |
+| 待巩固 | stomach 不熟悉 0/2；sleepy、choose、sugar、problem、snack、potato、enough 巩固中 1/2（共 8 词） |
+| 固定表 | 10-02 表已听写 19/20；中文提示 2 次待家长确认 |
 | 详情 | `学科学习/英语/五年级/词汇/听写单词本.md` |
 
 ---
@@ -132,7 +132,8 @@
 
 | 日期 | 内容 |
 |------|------|
-| 2026-10-02 | 复习单词听写 18/20；recycle、a few 已掌握；sleepy/choose/sugar/problem/snack/potato/enough 升巩固中；chips/bar/oats 首听已掌握；throw（threw）退回不熟悉；stomach（stemck）再错；待巩固 9 词；中文提示 2 次待确认 |
+| 2026-10-02 | 更正：throw 家长核对写对，听写改为 19/20，待巩固 8 词 |
+| 2026-10-02 | 复习单词听写 19/20；recycle、a few 已掌握；sleepy/choose/sugar/problem/snack/potato/enough 升巩固中；chips/bar/oats 首听已掌握；throw 已掌握；stomach（stemck）再错；待巩固 8 词；中文提示 2 次待确认 |
 | 2026-10-01 | 听写规则：每次听写（含重听写）都重新打乱顺序，固定表只固定词 |
 | 2026-10-01 | 听写规则新增错词重听写：错 5 个只重听错词，错 6 个及以上整组重听一遍 |
 | 2026-10-01 | 复习单词听写 11/19（19 词）；recycle、a few 升巩固中；U1 首次听写 healthy/teaspoon/heavy/candy/bottle/always/fruit 已掌握，potato/snack/sugar/sleepy/problem/choose 不熟悉；stomach、enough 再错；change 未读；待巩固 10 词，换表后再复习听写 |
