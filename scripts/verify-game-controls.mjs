@@ -1,19 +1,25 @@
 #!/usr/bin/env node
 /**
- * 两游戏对局 UI：canvas 与所有操控按钮两两不相交（390×844、360×640）
+ * 两游戏对局 UI：canvas 与操控按钮不相交；平板/手机视口 + 一屏 fit 检查
  */
 import puppeteer from 'puppeteer';
 
 const BASE = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
 
-function rectsOverlap(a, b, gap = 1) {
-  return !(
-    a.right + gap <= b.left ||
-    a.left >= b.right + gap ||
-    a.bottom + gap <= b.top ||
-    a.top >= b.bottom + gap
-  );
-}
+/** @typedef {{ w: number, h: number, touch: boolean, label: string, expectFit?: boolean, expectStatsTop?: boolean }} ViewportCase */
+
+/** @type {ViewportCase[]} */
+const VIEWPORTS = [
+  { label: 'phone', w: 390, h: 844, touch: true },
+  { label: 'phone-small', w: 360, h: 640, touch: true },
+  { label: 'tablet-portrait', w: 768, h: 1024, touch: true, expectFit: true, expectStatsTop: true },
+  { label: 'tablet-portrait', w: 820, h: 1180, touch: true, expectFit: true, expectStatsTop: true },
+  { label: 'tablet-portrait', w: 1024, h: 1366, touch: true, expectFit: true, expectStatsTop: true },
+  { label: 'tablet-landscape', w: 1024, h: 768, touch: true, expectFit: true },
+  { label: 'tablet-landscape', w: 1180, h: 820, touch: true, expectFit: true },
+  { label: 'tablet-landscape', w: 1366, h: 1024, touch: true, expectFit: true },
+  { label: 'desktop', w: 1280, h: 800, touch: false },
+];
 
 async function auditControls(page) {
   return page.evaluate(() => {
@@ -36,6 +42,9 @@ async function auditControls(page) {
       document.querySelectorAll(sel).forEach((el, idx) => {
         const screen = el.closest('[hidden]');
         if (screen) return;
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') return;
+        if (el.closest('.touch-rail')?.getBoundingClientRect().width === 0) return;
         const r = el.getBoundingClientRect();
         if (r.width < 2 || r.height < 2) return;
         const id = el.id || `${sel.replace(/[^\w#.-]/g, '')}:${idx}`;
@@ -80,37 +89,58 @@ async function auditControls(page) {
       }
     }
 
-    const toolbar = document.querySelector('.toolbar');
-    const toolbarR = toolbar?.getBoundingClientRect();
     const toolbarHits = [];
-    if (toolbarR) {
-      for (const it of items) {
-        if (
-          it.id.startsWith('btn-') &&
-          (it.id.includes('pause') ||
-            it.id.includes('restart') ||
-            it.id.includes('exit'))
-        ) {
-          for (const other of items) {
-            if (other === it) continue;
-            if (
-              other.id.includes('fire') ||
-              other.id.includes('missile') ||
-              other.id.includes('forward') ||
-              other.id.includes('dpad')
-            ) {
-              if (overlapPair(it.r, other.r)) {
-                toolbarHits.push([other.id, it.id]);
-              }
+    for (const it of items) {
+      if (
+        it.id.startsWith('btn-') &&
+        (it.id.includes('pause') ||
+          it.id.includes('restart') ||
+          it.id.includes('exit'))
+      ) {
+        for (const other of items) {
+          if (other === it) continue;
+          if (
+            other.id.includes('fire') ||
+            other.id.includes('missile') ||
+            other.id.includes('forward') ||
+            other.id.includes('dpad')
+          ) {
+            if (overlapPair(it.r, other.r)) {
+              toolbarHits.push([other.id, it.id]);
             }
           }
         }
       }
     }
 
+    const isTouchControl = (id) =>
+      id.includes('fire') ||
+      id.includes('missile') ||
+      id.includes('forward') ||
+      id.includes('dpad');
+    const tabletTouch =
+      window.matchMedia('(pointer: coarse) and (min-width: 481px)').matches ||
+      (window.matchMedia('(hover: none)').matches && window.innerWidth >= 481);
+    const minTap = tabletTouch ? 63 : 43;
     const smallTargets = items
-      .filter((it) => it.r.width < 43 || it.r.height < 43)
+      .filter(
+        (it) =>
+          isTouchControl(it.id) &&
+          (it.r.width < minTap || it.r.height < minTap)
+      )
       .map((it) => ({ id: it.id, w: it.r.width, h: it.r.height }));
+
+    const vh = window.innerHeight;
+    const docH = document.documentElement.scrollHeight;
+    const scrollSlack = docH - vh;
+    const toolbar = document.querySelector('.toolbar, .toolbar-game');
+    const tb = toolbar?.getBoundingClientRect();
+    const toolbarInView =
+      !tb || (tb.bottom <= vh + 2 && tb.top >= -2 && tb.height > 0);
+
+    const globalStats = document.querySelector('.stats-bar-global');
+    const gs = globalStats?.getBoundingClientRect();
+    const statsNearTop = !gs || gs.top < 200;
 
     return {
       canvas: { w: canvasR.width, h: canvasR.height },
@@ -118,6 +148,13 @@ async function auditControls(page) {
       overlaps,
       toolbarHits,
       smallTargets,
+      fit: {
+        scrollSlack,
+        toolbarInView,
+        statsNearTop,
+        docH,
+        vh,
+      },
     };
   });
 }
@@ -137,30 +174,70 @@ async function startTankGame(page) {
   await new Promise((r) => setTimeout(r, 900));
 }
 
-async function runCase(browser, game, width, height) {
+/**
+ * @param {import('puppeteer').Browser} browser
+ * @param {'snake'|'tank'} game
+ * @param {ViewportCase} vp
+ */
+async function runCase(browser, game, vp) {
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
+
+  const cdp = await page.createCDPSession();
+  if (vp.touch) {
+    await cdp.send('Emulation.setEmulatedMedia', {
+      features: [
+        { name: 'pointer', value: 'coarse' },
+        { name: 'hover', value: 'none' },
+      ],
+    });
+  } else {
+    await cdp.send('Emulation.setEmulatedMedia', {
+      features: [
+        { name: 'pointer', value: 'fine' },
+        { name: 'hover', value: 'hover' },
+      ],
+    });
+  }
+
   await page.setViewport({
-    width,
-    height,
-    isMobile: true,
-    deviceScaleFactor: 2,
+    width: vp.w,
+    height: vp.h,
+    isMobile: vp.touch,
+    hasTouch: vp.touch,
+    deviceScaleFactor: vp.touch ? 2 : 1,
   });
+
   if (game === 'snake') await startSnakeGame(page);
   else await startTankGame(page);
+
   const audit = await auditControls(page);
   await page.close();
+
+  const fitOk =
+    !vp.expectFit ||
+    (audit.fit &&
+      audit.fit.scrollSlack <= 12 &&
+      audit.fit.toolbarInView &&
+      (!vp.expectStatsTop || audit.fit.statsNearTop));
+
   const pass =
     !audit.error &&
     audit.overlaps.length === 0 &&
     audit.toolbarHits.length === 0 &&
+    audit.smallTargets.length === 0 &&
+    fitOk &&
     errors.length === 0;
+
   return {
     game,
-    viewport: `${width}x${height}`,
+    viewport: `${vp.w}x${vp.h}`,
+    profile: vp.label,
+    touch: vp.touch,
     pass,
     audit,
+    fitOk,
     pageErrors: errors,
   };
 }
@@ -170,14 +247,10 @@ async function main() {
     headless: true,
     args: ['--no-sandbox'],
   });
-  const sizes = [
-    [390, 844],
-    [360, 640],
-  ];
   const results = [];
-  for (const [w, h] of sizes) {
-    results.push(await runCase(browser, 'snake', w, h));
-    results.push(await runCase(browser, 'tank', w, h));
+  for (const vp of VIEWPORTS) {
+    results.push(await runCase(browser, 'snake', vp));
+    results.push(await runCase(browser, 'tank', vp));
   }
   await browser.close();
   console.log(JSON.stringify({ results }, null, 2));

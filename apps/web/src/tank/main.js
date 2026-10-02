@@ -125,6 +125,34 @@ function bankSessionScore() {
   return getWalletSnapshot();
 }
 
+function isTouchUi() {
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(hover: none)').matches
+  );
+}
+
+function touchControlMetrics(displayWidth) {
+  const coarse = isTouchUi();
+  const narrow = window.innerWidth < 520;
+  const tablet = coarse && window.innerWidth >= 481;
+  let dpadSize = narrow
+    ? Math.min(44, Math.max(38, Math.round(displayWidth * 0.1)))
+    : Math.min(44, Math.max(38, Math.round(displayWidth * 0.11)));
+  let fireSize = narrow
+    ? Math.min(52, Math.max(44, Math.round(displayWidth * 0.11)))
+    : Math.min(52, Math.max(44, Math.round(displayWidth * 0.13)));
+  if (coarse) {
+    dpadSize = Math.max(44, dpadSize);
+    fireSize = Math.max(44, fireSize);
+  }
+  if (tablet) {
+    dpadSize = Math.min(72, Math.max(64, dpadSize));
+    fireSize = Math.min(72, Math.max(64, fireSize));
+  }
+  return { dpadSize, fireSize, tablet, dpadGap: tablet ? '12px' : '3px' };
+}
+
 function resizeStage() {
   if (!game) return;
   const { width, height } = computeCanvasSize(game.map);
@@ -134,14 +162,9 @@ function resizeStage() {
   canvas.style.height = `${height}px`;
   const stage = canvas.closest('.canvas-stage');
   if (stage) {
-    const narrow = window.innerWidth < 520;
-    const dpadSize = narrow
-      ? Math.min(36, Math.max(32, Math.round(width * 0.1)))
-      : Math.min(44, Math.max(38, Math.round(width * 0.11)));
+    const { dpadSize, fireSize, dpadGap } = touchControlMetrics(width);
     stage.style.setProperty('--dpad-size', `${dpadSize}px`);
-    const fireSize = narrow
-      ? Math.min(42, Math.max(38, Math.round(width * 0.11)))
-      : Math.min(52, Math.max(44, Math.round(width * 0.13)));
+    stage.style.setProperty('--dpad-gap', dpadGap);
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
   }
 }

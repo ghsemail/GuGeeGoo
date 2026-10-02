@@ -204,10 +204,37 @@ function refreshStats() {
   refreshWeaponHint();
 }
 
+function isTouchUi() {
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(hover: none)').matches
+  );
+}
+
+function playfieldLayout() {
+  const coarse = isTouchUi();
+  const landscapeSide =
+    coarse &&
+    window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches;
+  let padW = 32;
+  let padH = 320;
+  if (landscapeSide) {
+    padW = 220;
+    padH = 200;
+  } else if (coarse && window.innerWidth >= 481) {
+    padH = 360;
+  }
+  return {
+    maxW: Math.min(window.innerWidth - padW, 520),
+    maxH: Math.min(window.innerHeight - padH, landscapeSide ? 400 : 420),
+    coarse,
+    landscapeSide,
+  };
+}
+
 function cellSize() {
   const lv = state.level;
-  const maxW = Math.min(window.innerWidth - 32, 520);
-  const maxH = Math.min(window.innerHeight - 320, 420);
+  const { maxW, maxH } = playfieldLayout();
   const cs = Math.floor(Math.min(maxW / lv.cols, maxH / lv.rows, 28));
   return Math.max(cs, 12);
 }
@@ -224,9 +251,23 @@ function resizeCanvas() {
 
   const stage = canvas.closest('.canvas-stage');
   if (stage) {
-    const dpadSize = Math.min(44, Math.max(38, Math.round(w * 0.11)));
+    const { coarse, landscapeSide } = playfieldLayout();
+    const tablet = coarse && window.innerWidth >= 481;
+    let dpadSize = Math.min(44, Math.max(38, Math.round(w * 0.11)));
+    let fireSize = Math.min(52, Math.max(44, Math.round(w * 0.13)));
+    if (coarse) {
+      dpadSize = Math.max(44, dpadSize);
+      fireSize = Math.max(44, fireSize);
+    }
+    if (tablet) {
+      dpadSize = Math.min(72, Math.max(64, dpadSize));
+      fireSize = Math.min(72, Math.max(64, fireSize));
+    }
+    if (landscapeSide && tablet) {
+      dpadSize = Math.min(72, Math.max(66, dpadSize));
+    }
     stage.style.setProperty('--dpad-size', `${dpadSize}px`);
-    const fireSize = Math.min(52, Math.max(44, Math.round(w * 0.13)));
+    stage.style.setProperty('--dpad-gap', tablet ? '12px' : '3px');
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
   }
 

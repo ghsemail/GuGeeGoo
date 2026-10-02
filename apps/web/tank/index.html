@@ -88,11 +88,8 @@
       <p id="level-hint" class="hint"></p>
 
       <div class="canvas-wrap game-controls-block">
-        <div class="canvas-stage">
-          <div class="canvas-board-wrap">
-            <canvas id="game-canvas" aria-label="坦克大战"></canvas>
-          </div>
-          <div class="touch-bar" aria-label="触屏操作">
+        <div class="canvas-stage" aria-label="棋盘与触屏操作">
+          <div class="touch-rail touch-rail-left" aria-label="前进与开火">
             <div class="touch-left-col">
               <button type="button" id="btn-forward" class="forward-btn game-touch-btn" aria-label="背景前进">
                 前进 ▶
@@ -106,7 +103,12 @@
                 </button>
               </div>
             </div>
-            <div class="dpad-overlay" aria-label="方向控制">
+          </div>
+          <div class="canvas-board-wrap">
+            <canvas id="game-canvas" aria-label="坦克大战"></canvas>
+          </div>
+          <div class="touch-rail touch-rail-right" aria-label="方向控制">
+            <div class="dpad-overlay">
               <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>
               <button type="button" class="dpad-btn dpad-left" data-dir="left">◀</button>
               <button type="button" class="dpad-btn dpad-right" data-dir="right">▶</button>

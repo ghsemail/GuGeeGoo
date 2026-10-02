@@ -193,6 +193,7 @@
   --fire-btn-size: 48px;
   min-width: var(--fire-btn-size);
   min-height: var(--fire-btn-size);
+  height: var(--fire-btn-size);
   padding: 0 12px;
   border: none;
   border-radius: 12px;
@@ -251,15 +252,40 @@
 
 .canvas-stage {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: fit-content;
+  --dpad-size: 44px;
+  --dpad-gap: 3px;
+  --fire-btn-size: 48px;
+  display: grid;
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    'board board'
+    'left right';
+  gap: 12px;
+  align-items: end;
+  justify-items: stretch;
+}
+
+.touch-rail-left {
+  grid-area: left;
+  justify-self: start;
+  display: flex;
+  align-items: flex-end;
+}
+
+.touch-rail-right {
+  grid-area: right;
+  justify-self: end;
+  display: flex;
+  align-items: flex-end;
 }
 
 .canvas-board-wrap {
+  grid-area: board;
+  justify-self: center;
   position: relative;
   line-height: 0;
 }
@@ -274,29 +300,12 @@
   vertical-align: top;
 }
 
-.touch-bar {
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  margin-top: 12px;
-  line-height: normal;
-  pointer-events: none;
-}
-
-.touch-bar > * {
-  pointer-events: auto;
-}
-
 .dpad-overlay {
   position: relative;
-  --dpad-size: 44px;
   display: grid;
   grid-template-columns: repeat(3, var(--dpad-size));
   grid-template-rows: repeat(3, var(--dpad-size));
-  gap: 3px;
+  gap: var(--dpad-gap);
   flex-shrink: 0;
 }
 
@@ -637,7 +646,88 @@
   width: 100%;
 }
 
-@media (min-width: 720px) {
+/* 平板横屏：操控在棋盘左右，整页一屏内 */
+@media (orientation: landscape) and (min-width: 700px) and (pointer: coarse) {
+  .snake-page:has(#screen-game:not([hidden])) {
+    padding: 8px 12px 10px;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .snake-header {
+    margin-bottom: 4px;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .snake-header h1 {
+    font-size: clamp(20px, 3vw, 28px);
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .tagline {
+    display: none;
+  }
+
+  .screen-game .hint {
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .canvas-stage {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    grid-template-areas: 'left board right';
+    align-items: center;
+    gap: 14px;
+  }
+
+  .touch-rail-left,
+  .touch-rail-right {
+    align-self: center;
+    align-items: center;
+  }
+
+  .screen-game .toolbar-game {
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+}
+
+@media (pointer: coarse) and (min-width: 481px) {
+  .canvas-stage {
+    --dpad-size: 68px;
+    --dpad-gap: 12px;
+    --fire-btn-size: 64px;
+  }
+
+  .touch-rail-left,
+  .touch-rail-right,
+  .touch-fire-group {
+    gap: 12px;
+  }
+}
+
+@media (pointer: coarse) {
+  .snake-page:has(#screen-game:not([hidden])) .side-panel {
+    display: none;
+  }
+}
+
+@media (pointer: fine) {
+  .touch-rail {
+    display: none !important;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .touch-rail {
+    display: none !important;
+  }
+
+  .canvas-stage {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'board';
+    justify-items: center;
+  }
+}
+
+@media (min-width: 960px) and (hover: hover) and (pointer: fine) {
   .snake-page {
     display: grid;
     grid-template-columns: 1fr 280px;
