@@ -2,7 +2,7 @@
  * 碰撞检测：判断坦克/子弹会不会撞到墙或打到谁。
  * 思路：坦克用「小方块」近似，子弹用「圆点」，去查地图格子或和其他物体距离。
  */
-import { isBlockingTile, tileAt, damageTileAt } from './map.js';
+import { isBlockingTile, tileAt, damageTileAt, breakSteelAt } from './map.js';
 import { tankAabb } from './entities.js';
 import { TILE_SIZE } from './constants.js';
 
@@ -67,7 +67,10 @@ export function bulletHitsMap(bullet, map) {
   const { tx, ty } = bulletTile(bullet, map);
   const result = damageTileAt(map, tx, ty);
   if (result === 'brick' || result === 'base') return 'hit';
-  if (result === 'steel') return 'steel';
+  if (result === 'steel') {
+    if (bullet.pierceSteel && breakSteelAt(map, tx, ty)) return 'hit';
+    return 'steel';
+  }
   if (result === 'oob') return 'steel';
   return 'none';
 }

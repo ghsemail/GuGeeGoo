@@ -1,4 +1,4 @@
-import { buyItem, getShopItemState } from './shop.js';
+import { buyItem, getShopItemState, SHOP_ITEMS } from './shop.js';
 import { getSpendableBalance, getLifetimeEarned } from './storage.js';
 
 export function escapeHtml(s) {
@@ -10,7 +10,7 @@ export function escapeHtml(s) {
 
 export function renderTankShop({ shopList, shopMsg, onRefresh }) {
   shopList.innerHTML = '';
-  for (const st of [getShopItemState('item_missile')].filter(Boolean)) {
+  for (const st of SHOP_ITEMS.map((i) => getShopItemState(i.id)).filter(Boolean)) {
     const { item, count, canBuy } = st;
     const disabled =
       !canBuy.ok &&

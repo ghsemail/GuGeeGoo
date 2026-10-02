@@ -95,6 +95,15 @@ export function explodeArea(map, centerTx, centerTy, radius = 1) {
   return bricks;
 }
 
+export function breakSteelAt(map, tx, ty) {
+  if (ty < 0 || ty >= map.rows || tx < 0 || tx >= map.cols) return false;
+  if (map.cells[ty][tx] === TILE.STEEL) {
+    map.cells[ty][tx] = TILE.EMPTY;
+    return true;
+  }
+  return false;
+}
+
 export function damageTileAt(map, tx, ty) {
   if (ty < 0 || ty >= map.rows || tx < 0 || tx >= map.cols) return 'oob';
   const t = map.cells[ty][tx];

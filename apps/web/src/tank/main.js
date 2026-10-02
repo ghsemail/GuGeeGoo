@@ -7,7 +7,6 @@ import {
   createGameState,
   updateGame,
   togglePause,
-  getMissileCount,
 } from './game-loop.js';
 import { drawFrame, computeCanvasSize } from './render.js';
 import {
@@ -15,9 +14,11 @@ import {
   bindKeyboard,
   bindDpad,
   bindFireButton,
-  bindMissileButton,
+  bindUseItemButton,
+  bindCycleItemButton,
   bindForwardButton,
 } from './input.js';
+import { getSelectedItemHud } from './inventory-select.js';
 import { updateBackgroundScroll } from './parallax-control.js';
 import {
   addLifetimePoints,
@@ -41,7 +42,9 @@ const el = {
   hudScore: document.getElementById('hud-score'),
   hudLives: document.getElementById('hud-lives'),
   hudEnemies: document.getElementById('hud-enemies'),
-  hudMissiles: document.getElementById('hud-missiles'),
+  hudItem: document.getElementById('hud-item'),
+  btnItemCycle: document.getElementById('btn-item-cycle'),
+  btnItemUse: document.getElementById('btn-item-use'),
   hint: document.getElementById('level-hint'),
   overlay: document.getElementById('overlay'),
   overlayTitle: document.getElementById('overlay-title'),
@@ -108,10 +111,22 @@ function refreshHud() {
   el.hudScore.textContent = String(game.score);
   el.hudLives.textContent = livesText(game.lives);
   el.hudEnemies.textContent = String(game.enemies.length);
-  if (el.hudMissiles) {
-    el.hudMissiles.textContent = String(getMissileCount());
-  }
   el.hint.textContent = game.levelDef.hint;
+  refreshItemHud();
+}
+
+function refreshItemHud() {
+  const { item, count } = getSelectedItemHud();
+  if (el.hudItem) {
+    el.hudItem.textContent = `${item?.emoji || '🎒'}×${count}`;
+  }
+  if (el.btnItemCycle) {
+    el.btnItemCycle.textContent = item?.emoji || '🎒';
+    el.btnItemCycle.setAttribute(
+      'aria-label',
+      `切换道具（当前 ${item?.name || '无'}）`
+    );
+  }
 }
 
 function bankSessionScore() {
@@ -363,11 +378,8 @@ function bindUi() {
   bindKeyboard(input, gameInputEnabled);
   bindDpad(document.querySelector('.dpad-overlay'), input, gameInputEnabled);
   bindFireButton(document.getElementById('btn-fire'), input, gameInputEnabled);
-  bindMissileButton(
-    document.getElementById('btn-missile'),
-    input,
-    gameInputEnabled
-  );
+  bindUseItemButton(el.btnItemUse, input, gameInputEnabled);
+  bindCycleItemButton(el.btnItemCycle, gameInputEnabled, refreshItemHud);
   bindForwardButton(
     document.getElementById('btn-forward'),
     input,

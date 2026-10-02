@@ -1,9 +1,10 @@
 /**
- * 输入：键盘 + 画布上的十字键（和贪吃蛇类似）
+ * 输入：键盘 + 触屏
  */
 import { DIR } from './constants.js';
+import { cycleSelectedItem, selectItemByIndex } from './inventory-select.js';
 
-/** @typedef {{ up: boolean, down: boolean, left: boolean, right: boolean, fire: boolean, firePressed: boolean, missile: boolean, missilePressed: boolean, forward: boolean, forwardPressed: boolean }} InputState */
+/** @typedef {{ up: boolean, down: boolean, left: boolean, right: boolean, fire: boolean, firePressed: boolean, useItem: boolean, useItemPressed: boolean, cycleItem: boolean, forward: boolean, forwardPressed: boolean }} InputState */
 
 export function createInputState() {
   return {
@@ -13,8 +14,9 @@ export function createInputState() {
     right: false,
     fire: false,
     firePressed: false,
-    missile: false,
-    missilePressed: false,
+    useItem: false,
+    useItemPressed: false,
+    cycleItem: false,
     forward: false,
     forwardPressed: false,
   };
@@ -51,13 +53,27 @@ export function bindKeyboard(input, enabledRef) {
     if (!down && (e.key === ' ' || e.key === 'j' || e.key === 'J')) {
       input.fire = false;
     }
-    if (down && (e.key === 'k' || e.key === 'K')) {
+    if (down && (e.key === 'k' || e.key === 'K' || e.key === 'l' || e.key === 'L')) {
       e.preventDefault();
-      input.missile = true;
-      input.missilePressed = true;
+      input.useItem = true;
+      input.useItemPressed = true;
     }
-    if (!down && (e.key === 'k' || e.key === 'K')) {
-      input.missile = false;
+    if (!down && (e.key === 'k' || e.key === 'K' || e.key === 'l' || e.key === 'L')) {
+      input.useItem = false;
+    }
+    if (down && (e.key === 'q' || e.key === 'Q')) {
+      e.preventDefault();
+      if (!input.cycleItem) {
+        input.cycleItem = true;
+        cycleSelectedItem(1);
+      }
+    }
+    if (!down && (e.key === 'q' || e.key === 'Q')) {
+      input.cycleItem = false;
+    }
+    if (down && e.key >= '1' && e.key <= '7') {
+      e.preventDefault();
+      selectItemByIndex(Number(e.key));
     }
     if (down && (e.key === 'e' || e.key === 'E' || e.key === 'Shift')) {
       e.preventDefault();
@@ -134,17 +150,17 @@ export function bindForwardButton(btn, input, enabledRef) {
   btn.addEventListener('click', (e) => e.preventDefault());
 }
 
-export function bindMissileButton(btn, input, enabledRef) {
+export function bindUseItemButton(btn, input, enabledRef) {
   if (!btn) return;
   const press = (e) => {
     e.preventDefault();
     if (!enabledRef()) return;
-    input.missile = true;
-    input.missilePressed = true;
+    input.useItem = true;
+    input.useItemPressed = true;
     btn.classList.add('is-pressed');
   };
   const release = () => {
-    input.missile = false;
+    input.useItem = false;
     btn.classList.remove('is-pressed');
   };
   btn.addEventListener('pointerdown', press);
@@ -153,19 +169,20 @@ export function bindMissileButton(btn, input, enabledRef) {
   btn.addEventListener('click', (e) => e.preventDefault());
 }
 
-/** 根据输入决定玩家想朝哪走 */
+export function bindCycleItemButton(btn, enabledRef, onCycle) {
+  if (!btn) return;
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!enabledRef()) return;
+    cycleSelectedItem(1);
+    onCycle?.();
+  });
+}
+
 export function desiredPlayerDir(input) {
   if (input.up) return 'up';
   if (input.down) return 'down';
   if (input.left) return 'left';
   if (input.right) return 'right';
   return null;
-}
-
-export function consumeFirePressed(input) {
-  if (input.firePressed) {
-    input.firePressed = false;
-    return true;
-  }
-  return input.fire;
 }

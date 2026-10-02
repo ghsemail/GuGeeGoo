@@ -29,8 +29,12 @@ export function createPlayer(spawn) {
     lives: 1,
     fireCooldown: 0,
     fireCooldownMax: PLAYER_FIRE_COOLDOWN,
+    fireCooldownMaxBase: PLAYER_FIRE_COOLDOWN,
     missileCooldown: 0,
     invuln: 0,
+    rapidUntil: 0,
+    shieldUntil: 0,
+    armorShotsLeft: 0,
     moving: false,
   };
 }
@@ -69,7 +73,7 @@ export function createMissile(tank) {
   };
 }
 
-export function createBullet(owner, tank) {
+export function createBullet(owner, tank, opts = {}) {
   const m = getBarrelMuzzle(tank);
   return {
     id: nextId++,
@@ -80,6 +84,7 @@ export function createBullet(owner, tank) {
     vx: m.dx * BULLET_SPEED,
     vy: m.dy * BULLET_SPEED,
     radius: BULLET_RADIUS,
+    pierceSteel: !!opts.pierceSteel,
     alive: true,
   };
 }

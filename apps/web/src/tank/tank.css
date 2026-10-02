@@ -361,9 +361,21 @@
   align-items: center;
 }
 
-.missile-btn {
-  background: rgba(253, 203, 110, 0.85);
-  color: #1a1a2e;
+.item-cycle-btn {
+  background: rgba(178, 235, 242, 0.92);
+  color: #006064;
+  font-size: 22px;
+}
+
+.item-use-btn {
+  background: rgba(129, 199, 132, 0.92);
+  color: #1b5e20;
+  font-size: 18px;
+}
+
+.hud-item-wide .hud-value {
+  font-size: 15px;
+  letter-spacing: 0.5px;
 }
 
 #game-canvas {

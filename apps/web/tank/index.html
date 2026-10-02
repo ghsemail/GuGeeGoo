@@ -9,11 +9,11 @@
     <header class="tank-header">
       <a class="back-link" href="/">← 导航页</a>
       <h1>🛡️ 坦克大战</h1>
-      <p class="tagline">顾景源 · 积分与导弹</p>
+      <p class="tagline">顾景源 · 积分与道具</p>
     </header>
 
     <section id="screen-menu" class="screen screen-menu">
-      <p class="menu-welcome">打掉敌人赚积分，去商店买导弹！</p>
+      <p class="menu-welcome">打掉敌人赚积分，去商店买道具！</p>
       <p class="wallet-line">
         累计积分 <strong id="menu-lifetime">0</strong> · 可用
         <strong id="menu-balance">0</strong>
@@ -32,7 +32,7 @@
         <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
       </div>
       <p class="menu-hint">
-        移动：方向键 / WASD；<strong>空格/J</strong> 普通炮；<strong>K</strong> 导弹；<strong>E</strong> 或 <strong>Shift</strong> 背景前进。手机在棋盘下方操作。
+        移动：方向键 / WASD；<strong>空格/J</strong> 普通炮；<strong>Q</strong> 切换道具、<strong>L/K</strong> 使用；<strong>1–7</strong> 直接选道具；<strong>E</strong> 背景前进。
       </p>
     </section>
 
@@ -59,7 +59,6 @@
         <h2 class="screen-title">选关</h2>
       </div>
       <div id="level-grid" class="level-grid"></div>
-      <p class="coming-soon">更多关卡敬请期待～</p>
     </section>
 
     <section id="screen-game" class="screen screen-game" hidden>
@@ -80,9 +79,9 @@
           <span class="hud-label">敌人</span>
           <span id="hud-enemies" class="hud-value">0</span>
         </div>
-        <div class="hud-item">
-          <span class="hud-label">导弹</span>
-          <span id="hud-missiles" class="hud-value">0</span>
+        <div class="hud-item hud-item-wide">
+          <span class="hud-label">道具</span>
+          <span id="hud-item" class="hud-value">🎒×0</span>
         </div>
       </div>
       <p id="level-hint" class="hint"></p>
@@ -98,8 +97,11 @@
                 <button type="button" id="btn-fire" class="fire-btn game-touch-btn" aria-label="发射">
                   🔫
                 </button>
-                <button type="button" id="btn-missile" class="fire-btn missile-btn game-touch-btn" aria-label="导弹">
-                  🚀
+                <button type="button" id="btn-item-cycle" class="fire-btn item-cycle-btn game-touch-btn" aria-label="切换道具">
+                  🎒
+                </button>
+                <button type="button" id="btn-item-use" class="fire-btn item-use-btn game-touch-btn" aria-label="使用道具">
+                  ✅
                 </button>
               </div>
             </div>

@@ -1,9 +1,5 @@
 /**
  * 游戏循环：requestAnimationFrame + 固定时间步更新。
- *
- * 什么是游戏循环？
- * 每一帧：先算「过了多少秒」(delta)，再更新位置/碰撞，最后画到 canvas 上。
- * 固定时间步：把一大段 delta 切成很多小步（例如 1/60 秒一步），避免卡顿时穿墙。
  */
 import {
   LOGIC_STEPS_PER_SEC,
@@ -11,7 +7,6 @@ import {
   SCORE_ENEMY_NORMAL,
   SCORE_MISSILE_KILL_BONUS,
   SCORE_LEVEL_CLEAR,
-  MISSILE_COOLDOWN_SEC,
   MISSILE_EXPLOSION_RADIUS,
 } from './constants.js';
 import { getLevel } from './levels.js';
@@ -20,14 +15,22 @@ import {
   createPlayer,
   createEnemy,
   createBullet,
-  createMissile,
   placeTankAtCell,
 } from './entities.js';
 import { tryMoveTank, bulletHitsMap, bulletHitsTank, tanksOverlap } from './collision.js';
 import { updateEnemyAI } from './ai.js';
 import { desiredPlayerDir } from './input.js';
 import { DIR } from './constants.js';
-import { consumeInventoryItem, getItemCount } from './storage.js';
+import { getItemCount } from './storage.js';
+import { getSelectedItemId } from './inventory-select.js';
+import {
+  tryUseSelectedItem,
+  updateMines,
+  syncPlayerBuffs,
+  isEnemyFrozen,
+  playerFireCooldownMax,
+  isPlayerShielded,
+} from './consumables.js';
 
 const STEP = 1 / LOGIC_STEPS_PER_SEC;
 
@@ -56,26 +59,16 @@ export function createGameState(levelIndex) {
     player,
     enemies,
     bullets: [],
+    mines: [],
     explosions: [],
     score: 0,
     lives: START_LIVES,
     paused: false,
-    phase: 'playing', // playing | win | lose
+    phase: 'playing',
     accumulator: 0,
     bgScroll: 0,
+    time: 0,
   };
-}
-
-function tryFireMissile(state, input) {
-  const want = input.missile || input.missilePressed;
-  if (!want) return;
-  input.missilePressed = false;
-  const p = state.player;
-  if (p.missileCooldown > 0) return;
-  if (getItemCount('item_missile') <= 0) return;
-  if (!consumeInventoryItem('item_missile')) return;
-  p.missileCooldown = MISSILE_COOLDOWN_SEC;
-  state.bullets.push(createMissile(p));
 }
 
 function detonateMissile(state, b) {
@@ -83,7 +76,6 @@ function detonateMissile(state, b) {
   const tx = Math.floor(b.x / ts);
   const ty = Math.floor(b.y / ts);
   explodeArea(state.map, tx, ty, MISSILE_EXPLOSION_RADIUS);
-  let kills = 0;
   for (const e of state.enemies) {
     if (e.hp <= 0) continue;
     const etx = Math.floor(e.x / ts);
@@ -93,7 +85,6 @@ function detonateMissile(state, b) {
       Math.abs(ety - ty) <= MISSILE_EXPLOSION_RADIUS
     ) {
       e.hp = 0;
-      kills += 1;
       state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
     }
   }
@@ -105,8 +96,16 @@ function detonateMissile(state, b) {
   b.alive = false;
 }
 
+function tryUseItemInput(state, input) {
+  const want = input.useItem || input.useItemPressed;
+  if (!want) return;
+  input.useItemPressed = false;
+  tryUseSelectedItem(state);
+}
+
 function movePlayer(state, dt, input) {
   const { player, map } = state;
+  syncPlayerBuffs(player, state.time);
   const want = desiredPlayerDir(input);
   if (want) player.dir = want;
 
@@ -126,14 +125,19 @@ function movePlayer(state, dt, input) {
   player.missileCooldown -= dt;
   if (player.invuln > 0) player.invuln -= dt;
 
+  tryUseItemInput(state, input);
+
   const wantFire = input.fire || input.firePressed;
   if (wantFire && player.fireCooldown <= 0) {
     input.firePressed = false;
-    player.fireCooldown = player.fireCooldownMax;
-    state.bullets.push(createBullet('player', player));
+    const cd = playerFireCooldownMax(player, state.time);
+    player.fireCooldown = cd;
+    const pierce = player.armorShotsLeft > 0;
+    if (pierce) player.armorShotsLeft -= 1;
+    state.bullets.push(
+      createBullet('player', player, { pierceSteel: pierce })
+    );
   }
-
-  tryFireMissile(state, input);
 }
 
 function updateBullets(state, dt) {
@@ -162,7 +166,6 @@ function updateBullets(state, dt) {
         }
       }
       if (!b.alive) continue;
-      const ts = map.tileSize;
       const tx = Math.floor(b.x / ts);
       const ty = Math.floor(b.y / ts);
       if (isBlockingTile(tileAt(map, tx, ty))) {
@@ -189,7 +192,11 @@ function updateBullets(state, dt) {
         }
       }
     } else if (b.ownerKind === 'enemy') {
-      if (player.invuln <= 0 && bulletHitsTank(b, player)) {
+      if (
+        player.invuln <= 0 &&
+        !isPlayerShielded(player, state.time) &&
+        bulletHitsTank(b, player)
+      ) {
         b.alive = false;
         onPlayerHit(state);
       }
@@ -219,17 +226,20 @@ function resolveTankTank(state) {
   const { player, enemies } = state;
   for (const e of enemies) {
     if (tanksOverlap(player, e)) {
-      tryMoveTank(player, player.x - DIR[player.dir].x * 4, player.y - DIR[player.dir].y * 4, state.map);
+      tryMoveTank(
+        player,
+        player.x - DIR[player.dir].x * 4,
+        player.y - DIR[player.dir].y * 4,
+        state.map
+      );
     }
   }
 }
 
-/**
- * 固定时间步：一次 frame 可能跑多步 logic
- */
 export function updateGame(state, frameDelta, input) {
   if (state.phase !== 'playing' || state.paused) return;
 
+  state.time += frameDelta;
   state.accumulator += frameDelta;
   let steps = 0;
   while (state.accumulator >= STEP && steps < 5) {
@@ -243,9 +253,12 @@ function stepGame(state, dt, input) {
   if (state.phase !== 'playing') return;
   movePlayer(state, dt, input);
   for (const e of state.enemies) {
-    updateEnemyAI(e, dt, state.map, state.player, state.bullets);
+    if (!isEnemyFrozen(e, state.time)) {
+      updateEnemyAI(e, dt, state.map, state.player, state.bullets);
+    }
   }
   resolveTankTank(state);
+  updateMines(state);
   updateBullets(state, dt);
 
   if (state.enemies.length === 0) {
@@ -254,11 +267,16 @@ function stepGame(state, dt, input) {
   }
 }
 
-export function getMissileCount() {
-  return getItemCount('item_missile');
+export function getSelectedItemCount() {
+  return getItemCount(getSelectedItemId());
 }
 
 export function togglePause(state) {
   if (state.phase !== 'playing') return;
   state.paused = !state.paused;
+}
+
+/** @deprecated use getSelectedItemCount */
+export function getMissileCount() {
+  return getItemCount('item_missile');
 }

@@ -8,6 +8,7 @@ import {
   PLAYER_PALETTE,
   ENEMY_PALETTE,
 } from './render-tanks.js';
+import { isEnemyFrozen, isPlayerShielded } from './consumables.js';
 
 export function computeCanvasSize(map) {
   return {
@@ -83,16 +84,33 @@ export function drawFrame(ctx, state) {
   ctx.lineWidth = 2;
   ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
 
-  for (const e of enemies) {
-    drawDetailedTank(ctx, e, ENEMY_PALETTE, scroll, false);
+  for (const m of state.mines || []) {
+    ctx.font = `${Math.max(14, map.tileSize * 0.55)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('💣', m.x, m.y + map.tileSize * 0.15);
   }
+
+  for (const e of enemies) {
+    const frozen = isEnemyFrozen(e, state.time);
+    if (frozen) ctx.globalAlpha = 0.55;
+    drawDetailedTank(ctx, e, ENEMY_PALETTE, scroll, frozen);
+    if (frozen) ctx.globalAlpha = 1;
+  }
+  const shielded = isPlayerShielded(player, state.time);
   drawDetailedTank(
     ctx,
     player,
     PLAYER_PALETTE,
     scroll,
-    player.invuln > 0
+    player.invuln > 0 || shielded
   );
+  if (shielded) {
+    ctx.strokeStyle = 'rgba(79, 195, 247, 0.85)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.size * 0.85, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 
   for (const b of bullets) {
     if (b.kind === 'missile') {

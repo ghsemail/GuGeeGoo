@@ -28,7 +28,8 @@ async function auditControls(page) {
     const canvasR = canvas.getBoundingClientRect();
     const selectors = [
       '#btn-fire',
-      '#btn-missile',
+      '#btn-item-use',
+      '#btn-item-cycle',
       '#btn-forward',
       '.dpad-btn',
       '#btn-pause',
@@ -105,7 +106,8 @@ async function auditControls(page) {
           if (other === it) continue;
           if (
             other.id.includes('fire') ||
-            other.id.includes('missile') ||
+              other.id.includes('item') ||
+              other.id.includes('missile') ||
             other.id.includes('forward') ||
             other.id.includes('dpad')
           ) {
@@ -119,6 +121,7 @@ async function auditControls(page) {
 
     const isTouchControl = (id) =>
       id.includes('fire') ||
+      id.includes('item') ||
       id.includes('missile') ||
       id.includes('forward') ||
       id.includes('dpad');
@@ -133,8 +136,8 @@ async function auditControls(page) {
     const smallTargets = items
       .filter(
         (it) =>
-          !finePointer &&
           !touchUiHidden &&
+          !finePointer &&
           isTouchControl(it.id) &&
           (it.r.width < minTap || it.r.height < minTap)
       )
@@ -254,6 +257,9 @@ async function runCase(browser, game, vp) {
 
   await page.evaluate(() => {
     if (typeof window.__syncTouchControls === 'function') window.__syncTouchControls();
+    if (window.matchMedia('(pointer: fine)').matches) {
+      document.documentElement.classList.add('no-touch-controls');
+    }
     window.dispatchEvent(new Event('resize'));
   });
   await new Promise((r) => setTimeout(r, 400));

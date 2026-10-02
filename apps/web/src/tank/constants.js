@@ -3,10 +3,13 @@
  */
 
 /** 一格有多大（像素），画地图和算碰撞都用它 */
-export const TILE_SIZE = 26;
+export const TILE_SIZE = 22;
 
 /** 玩家最多几条命 */
 export const START_LIVES = 3;
+
+/** 加命道具上限 */
+export const MAX_LIVES = 5;
 
 /** 打掉一个敌人加多少分（和贪吃蛇「+10 吃苹果」同量级放大） */
 export const SCORE_PER_ENEMY = 100;
