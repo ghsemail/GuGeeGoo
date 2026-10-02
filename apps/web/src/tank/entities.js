@@ -8,6 +8,7 @@ import {
   DIR,
   ENEMY_FIRE_COOLDOWN,
   ENEMY_SPEED,
+  MISSILE_SPEED,
   PLAYER_FIRE_COOLDOWN,
   PLAYER_SPEED,
   TANK_SIZE,
@@ -28,6 +29,7 @@ export function createPlayer(spawn) {
     lives: 1,
     fireCooldown: 0,
     fireCooldownMax: PLAYER_FIRE_COOLDOWN,
+    missileCooldown: 0,
     invuln: 0,
     moving: false,
   };
@@ -48,6 +50,24 @@ export function createEnemy(spawn, index = 0) {
     fireCooldownMax: ENEMY_FIRE_COOLDOWN,
     turnTimer: 1,
     moving: true,
+  };
+}
+
+export function createMissile(tank) {
+  const d = DIR[tank.dir];
+  const cx = tank.x + (d.x * tank.size) / 2;
+  const cy = tank.y + (d.y * tank.size) / 2;
+  return {
+    id: nextId++,
+    ownerKind: 'player',
+    ownerId: tank.id,
+    kind: 'missile',
+    x: cx,
+    y: cy,
+    vx: d.x * MISSILE_SPEED,
+    vy: d.y * MISSILE_SPEED,
+    radius: BULLET_RADIUS + 2,
+    alive: true,
   };
 }
 

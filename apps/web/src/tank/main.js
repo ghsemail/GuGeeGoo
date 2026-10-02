@@ -1,12 +1,13 @@
 /**
- * 坦克大战入口：切屏、游戏循环、HUD 与弹窗
+ * 坦克大战入口：切屏、积分入账、商店与对局
  */
 import './tank.css';
-import { LEVELS, TOTAL_LEVELS } from './levels.js';
+import { LEVELS } from './levels.js';
 import {
   createGameState,
   updateGame,
   togglePause,
+  getMissileCount,
 } from './game-loop.js';
 import { drawFrame, computeCanvasSize } from './render.js';
 import {
@@ -14,8 +15,14 @@ import {
   bindKeyboard,
   bindDpad,
   bindFireButton,
+  bindMissileButton,
 } from './input.js';
-import { LS_BEST_SCORE } from './constants.js';
+import {
+  addLifetimePoints,
+  saveBestScore,
+  getWalletSnapshot,
+} from './storage.js';
+import { renderTankShop, refreshWalletDisplays } from './ui-shop.js';
 
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
@@ -23,6 +30,7 @@ const ctx = canvas.getContext('2d');
 const screens = {
   menu: document.getElementById('screen-menu'),
   levels: document.getElementById('screen-levels'),
+  shop: document.getElementById('screen-shop'),
   game: document.getElementById('screen-game'),
 };
 
@@ -31,6 +39,7 @@ const el = {
   hudScore: document.getElementById('hud-score'),
   hudLives: document.getElementById('hud-lives'),
   hudEnemies: document.getElementById('hud-enemies'),
+  hudMissiles: document.getElementById('hud-missiles'),
   hint: document.getElementById('level-hint'),
   overlay: document.getElementById('overlay'),
   overlayTitle: document.getElementById('overlay-title'),
@@ -39,6 +48,12 @@ const el = {
   levelGrid: document.getElementById('level-grid'),
   btnPause: document.getElementById('btn-pause'),
   btnExit: document.getElementById('btn-exit'),
+  shopList: document.getElementById('shop-list'),
+  shopBalance: document.getElementById('shop-balance'),
+  shopLifetime: document.getElementById('shop-lifetime'),
+  shopMsg: document.getElementById('shop-msg'),
+  menuBalance: document.getElementById('menu-balance'),
+  menuLifetime: document.getElementById('menu-lifetime'),
 };
 
 const input = createInputState();
@@ -48,6 +63,8 @@ let game = null;
 let lastFrameTime = 0;
 let animId = 0;
 let pendingLevelIndex = 0;
+/** 本局已入账的分数，避免重复加累计积分 */
+let sessionScoreBanked = 0;
 
 function showScreen(name) {
   currentScreen = name;
@@ -89,7 +106,21 @@ function refreshHud() {
   el.hudScore.textContent = String(game.score);
   el.hudLives.textContent = livesText(game.lives);
   el.hudEnemies.textContent = String(game.enemies.length);
+  if (el.hudMissiles) {
+    el.hudMissiles.textContent = String(getMissileCount());
+  }
   el.hint.textContent = game.levelDef.hint;
+}
+
+function bankSessionScore() {
+  if (!game) return getWalletSnapshot();
+  const delta = game.score - sessionScoreBanked;
+  if (delta > 0) {
+    addLifetimePoints(delta);
+    sessionScoreBanked = game.score;
+    refreshWalletDisplays(el);
+  }
+  return getWalletSnapshot();
 }
 
 function resizeStage() {
@@ -107,22 +138,16 @@ function resizeStage() {
       : Math.min(44, Math.max(38, Math.round(width * 0.11)));
     stage.style.setProperty('--dpad-size', `${dpadSize}px`);
     const fireSize = narrow
-      ? Math.min(44, Math.max(40, Math.round(width * 0.12)))
+      ? Math.min(42, Math.max(38, Math.round(width * 0.11)))
       : Math.min(52, Math.max(44, Math.round(width * 0.13)));
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
-  }
-}
-
-function saveBestScore(score) {
-  const prev = Number(localStorage.getItem(LS_BEST_SCORE) || 0) || 0;
-  if (score > prev) {
-    localStorage.setItem(LS_BEST_SCORE, String(score));
   }
 }
 
 function startLevel(levelIndex) {
   pendingLevelIndex = levelIndex;
   game = createGameState(levelIndex);
+  sessionScoreBanked = 0;
   hideOverlay();
   showScreen('game');
   refreshHud();
@@ -133,16 +158,20 @@ function startLevel(levelIndex) {
 }
 
 function exitToMenu() {
+  bankSessionScore();
+  if (game) saveBestScore(game.score);
   game = null;
   hideOverlay();
+  refreshWalletDisplays(el);
   showScreen('menu');
 }
 
 function onWin() {
+  bankSessionScore();
   saveBestScore(game.score);
   showOverlay(
     '🎉 关卡完成！',
-    `太棒了！得分 ${game.score}。以后这里可以加星级、道具奖励。`,
+    `得分 ${game.score} 已计入累计积分，可用积分能去商店买导弹哦！`,
     [
       {
         label: '再玩本关',
@@ -158,10 +187,11 @@ function onWin() {
 }
 
 function onLose() {
+  bankSessionScore();
   saveBestScore(game.score);
   showOverlay(
     '游戏结束',
-    `生命用完了，本局得分 ${game.score}。再试一次？`,
+    `生命用完了，本局 ${game.score} 分已入账。`,
     [
       {
         label: '重新开始',
@@ -212,6 +242,17 @@ function renderLevelGrid() {
   });
 }
 
+function openShop() {
+  el.shopMsg.textContent = '';
+  refreshWalletDisplays(el);
+  renderTankShop({
+    shopList: el.shopList,
+    shopMsg: el.shopMsg,
+    onRefresh: () => refreshWalletDisplays(el),
+  });
+  showScreen('shop');
+}
+
 function bindUi() {
   document.getElementById('btn-menu-play')?.addEventListener('click', () => {
     startLevel(pendingLevelIndex);
@@ -219,6 +260,11 @@ function bindUi() {
   document.getElementById('btn-menu-levels')?.addEventListener('click', () => {
     renderLevelGrid();
     showScreen('levels');
+  });
+  document.getElementById('btn-menu-items')?.addEventListener('click', openShop);
+  document.getElementById('btn-shop-back')?.addEventListener('click', () => {
+    refreshWalletDisplays(el);
+    showScreen('menu');
   });
   document.getElementById('btn-levels-back')?.addEventListener('click', () => {
     showScreen('menu');
@@ -237,6 +283,11 @@ function bindUi() {
   bindKeyboard(input, gameInputEnabled);
   bindDpad(document.querySelector('.dpad-overlay'), input, gameInputEnabled);
   bindFireButton(document.getElementById('btn-fire'), input, gameInputEnabled);
+  bindMissileButton(
+    document.getElementById('btn-missile'),
+    input,
+    gameInputEnabled
+  );
 
   window.addEventListener('resize', () => {
     if (game) resizeStage();
@@ -244,6 +295,7 @@ function bindUi() {
 }
 
 function init() {
+  refreshWalletDisplays(el);
   bindUi();
   showScreen('menu');
 }

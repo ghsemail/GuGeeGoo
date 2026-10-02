@@ -26,6 +26,13 @@ async function runViewport(browser, width, height, isMobile) {
 
   await page.goto(`${BASE}/tank/`, { waitUntil: 'networkidle0', timeout: 30000 });
   await page.waitForSelector('#screen-menu', { timeout: 10000 });
+  await page.click('#btn-menu-items');
+  await page.waitForSelector('#screen-shop:not([hidden])', { timeout: 8000 });
+  const shopOk = await page.evaluate(() =>
+    document.body.textContent.includes('导弹')
+  );
+  await page.click('#btn-shop-back');
+
   await page.click('#btn-menu-play');
   await page.waitForSelector('#screen-game:not([hidden])', { timeout: 8000 });
   await new Promise((r) => setTimeout(r, 900));
@@ -47,12 +54,16 @@ async function runViewport(browser, width, height, isMobile) {
         dpadBox.bottom < fireBox.top ||
         dpadBox.top > fireBox.bottom
       );
+    const missile = document.getElementById('btn-missile');
+    const missileBox = missile?.getBoundingClientRect();
     const controlsClearOfCanvas =
       canvasBox &&
       fireBox &&
       dpadBox &&
       fireBox.top >= canvasBox.bottom - 4 &&
-      dpadBox.top >= canvasBox.bottom - 4;
+      dpadBox.top >= canvasBox.bottom - 4 &&
+      (!missileBox || missileBox.top >= canvasBox.bottom - 4);
+    const hudMissiles = document.getElementById('hud-missiles')?.textContent;
     const controlsOnCanvas =
       canvasBox &&
       fireBox &&
@@ -77,11 +88,13 @@ async function runViewport(browser, width, height, isMobile) {
       controlsClearOfCanvas,
       controlsOnCanvas,
       narrow: window.innerWidth < 520,
+      hudMissiles,
     };
   });
 
   data.viewport = `${width}x${height}`;
   data.navTank = navTank;
+  data.shopOk = shopOk;
   data.pageErrors = errors;
 
   await page.close();
@@ -100,7 +113,12 @@ async function runViewport(browser, width, height, isMobile) {
     (data.narrow ? data.controlsClearOfCanvas : true);
 
   const pass =
-    navTank && okCanvas && okControls && errors.length === 0;
+    navTank &&
+    shopOk &&
+    okCanvas &&
+    okControls &&
+    data.hudMissiles != null &&
+    errors.length === 0;
 
   return { ...data, okCanvas, pass };
 }

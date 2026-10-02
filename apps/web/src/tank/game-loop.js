@@ -5,19 +5,29 @@
  * 每一帧：先算「过了多少秒」(delta)，再更新位置/碰撞，最后画到 canvas 上。
  * 固定时间步：把一大段 delta 切成很多小步（例如 1/60 秒一步），避免卡顿时穿墙。
  */
-import { LOGIC_STEPS_PER_SEC, START_LIVES, SCORE_PER_ENEMY } from './constants.js';
+import {
+  LOGIC_STEPS_PER_SEC,
+  START_LIVES,
+  SCORE_ENEMY_NORMAL,
+  SCORE_MISSILE_KILL_BONUS,
+  SCORE_LEVEL_CLEAR,
+  MISSILE_COOLDOWN_SEC,
+  MISSILE_EXPLOSION_RADIUS,
+} from './constants.js';
 import { getLevel } from './levels.js';
-import { createMapFromLevel } from './map.js';
+import { createMapFromLevel, explodeArea, isBlockingTile, tileAt } from './map.js';
 import {
   createPlayer,
   createEnemy,
   createBullet,
+  createMissile,
   placeTankAtCell,
 } from './entities.js';
 import { tryMoveTank, bulletHitsMap, bulletHitsTank, tanksOverlap } from './collision.js';
 import { updateEnemyAI } from './ai.js';
 import { desiredPlayerDir } from './input.js';
 import { DIR } from './constants.js';
+import { consumeInventoryItem, getItemCount } from './storage.js';
 
 const STEP = 1 / LOGIC_STEPS_PER_SEC;
 
@@ -46,12 +56,52 @@ export function createGameState(levelIndex) {
     player,
     enemies,
     bullets: [],
+    explosions: [],
     score: 0,
     lives: START_LIVES,
     paused: false,
     phase: 'playing', // playing | win | lose
     accumulator: 0,
   };
+}
+
+function tryFireMissile(state, input) {
+  const want = input.missile || input.missilePressed;
+  if (!want) return;
+  input.missilePressed = false;
+  const p = state.player;
+  if (p.missileCooldown > 0) return;
+  if (getItemCount('item_missile') <= 0) return;
+  if (!consumeInventoryItem('item_missile')) return;
+  p.missileCooldown = MISSILE_COOLDOWN_SEC;
+  state.bullets.push(createMissile(p));
+}
+
+function detonateMissile(state, b) {
+  const ts = state.map.tileSize;
+  const tx = Math.floor(b.x / ts);
+  const ty = Math.floor(b.y / ts);
+  explodeArea(state.map, tx, ty, MISSILE_EXPLOSION_RADIUS);
+  let kills = 0;
+  for (const e of state.enemies) {
+    if (e.hp <= 0) continue;
+    const etx = Math.floor(e.x / ts);
+    const ety = Math.floor(e.y / ts);
+    if (
+      Math.abs(etx - tx) <= MISSILE_EXPLOSION_RADIUS &&
+      Math.abs(ety - ty) <= MISSILE_EXPLOSION_RADIUS
+    ) {
+      e.hp = 0;
+      kills += 1;
+      state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
+    }
+  }
+  state.explosions.push({
+    x: b.x,
+    y: b.y,
+    ttl: 0.35,
+  });
+  b.alive = false;
 }
 
 function movePlayer(state, dt, input) {
@@ -66,6 +116,7 @@ function movePlayer(state, dt, input) {
   }
 
   player.fireCooldown -= dt;
+  player.missileCooldown -= dt;
   if (player.invuln > 0) player.invuln -= dt;
 
   const wantFire = input.fire || input.firePressed;
@@ -74,6 +125,8 @@ function movePlayer(state, dt, input) {
     player.fireCooldown = player.fireCooldownMax;
     state.bullets.push(createBullet('player', player));
   }
+
+  tryFireMissile(state, input);
 }
 
 function updateBullets(state, dt) {
@@ -88,7 +141,27 @@ function updateBullets(state, dt) {
     b.y += b.vy * dt;
 
     if (b.x < 0 || b.y < 0 || b.x > maxX || b.y > maxY) {
-      b.alive = false;
+      if (b.kind === 'missile') detonateMissile(state, b);
+      else b.alive = false;
+      continue;
+    }
+
+    if (b.kind === 'missile') {
+      for (const e of enemies) {
+        if (e.hp <= 0) continue;
+        if (bulletHitsTank(b, e)) {
+          detonateMissile(state, b);
+          break;
+        }
+      }
+      if (!b.alive) continue;
+      const ts = map.tileSize;
+      const tx = Math.floor(b.x / ts);
+      const ty = Math.floor(b.y / ts);
+      if (isBlockingTile(tileAt(map, tx, ty))) {
+        detonateMissile(state, b);
+        continue;
+      }
       continue;
     }
 
@@ -104,7 +177,7 @@ function updateBullets(state, dt) {
         if (bulletHitsTank(b, e)) {
           e.hp = 0;
           b.alive = false;
-          state.score += SCORE_PER_ENEMY;
+          state.score += SCORE_ENEMY_NORMAL;
           break;
         }
       }
@@ -118,6 +191,9 @@ function updateBullets(state, dt) {
 
   state.bullets = bullets.filter((b) => b.alive);
   state.enemies = enemies.filter((e) => e.hp > 0);
+  state.explosions = (state.explosions || [])
+    .map((ex) => ({ ...ex, ttl: ex.ttl - dt }))
+    .filter((ex) => ex.ttl > 0);
 }
 
 function onPlayerHit(state) {
@@ -157,6 +233,7 @@ export function updateGame(state, frameDelta, input) {
 }
 
 function stepGame(state, dt, input) {
+  if (state.phase !== 'playing') return;
   movePlayer(state, dt, input);
   for (const e of state.enemies) {
     updateEnemyAI(e, dt, state.map, state.player, state.bullets);
@@ -165,8 +242,13 @@ function stepGame(state, dt, input) {
   updateBullets(state, dt);
 
   if (state.enemies.length === 0) {
+    state.score += SCORE_LEVEL_CLEAR;
     state.phase = 'win';
   }
+}
+
+export function getMissileCount() {
+  return getItemCount('item_missile');
 }
 
 export function togglePause(state) {

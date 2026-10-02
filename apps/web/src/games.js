@@ -27,6 +27,7 @@ export const GAMES = [
     description: '驾驶坦克保护基地、击毁敌人！框架已可玩，关卡和道具会陆续加入。',
     statKeys: {
       best: 'gugeegoo_tank_best_score',
+      lifetime: 'gugeegoo_tank_lifetime_earned',
     },
   },
 ];

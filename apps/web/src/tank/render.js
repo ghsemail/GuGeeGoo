@@ -60,10 +60,27 @@ export function drawFrame(ctx, state) {
   drawTank(ctx, player, COLORS.player, player.invuln > 0);
 
   for (const b of bullets) {
+    if (b.kind === 'missile') {
+      ctx.fillStyle = '#ff7675';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.radius + 1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fdcb6e';
+      ctx.font = '14px sans-serif';
+      ctx.fillText('🚀', b.x - 7, b.y + 5);
+      continue;
+    }
     ctx.fillStyle =
       b.ownerKind === 'player' ? COLORS.bulletPlayer : COLORS.bulletEnemy;
     ctx.beginPath();
     ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  for (const ex of state.explosions || []) {
+    ctx.fillStyle = 'rgba(255, 118, 117, 0.45)';
+    ctx.beginPath();
+    ctx.arc(ex.x, ex.y, map.tileSize * 0.9, 0, Math.PI * 2);
     ctx.fill();
   }
 

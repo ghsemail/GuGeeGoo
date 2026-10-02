@@ -9,18 +9,22 @@
     <header class="tank-header">
       <a class="back-link" href="/">← 导航页</a>
       <h1>🛡️ 坦克大战</h1>
-      <p class="tagline">顾景源 · 框架试玩版</p>
+      <p class="tagline">顾景源 · 积分与导弹</p>
     </header>
 
     <section id="screen-menu" class="screen screen-menu">
-      <p class="menu-welcome">消灭敌方坦克！具体关卡和道具以后会慢慢加。</p>
+      <p class="menu-welcome">打掉敌人赚积分，去商店买导弹！</p>
+      <p class="wallet-line">
+        累计积分 <strong id="menu-lifetime">0</strong> · 可用
+        <strong id="menu-balance">0</strong>
+      </p>
       <div class="menu-actions">
         <button type="button" id="btn-menu-play" class="btn btn-primary btn-lg">
           开始游戏
         </button>
         <button type="button" id="btn-menu-levels" class="btn btn-lg">选关</button>
-        <button type="button" id="btn-menu-items" class="btn btn-lg" disabled>
-          道具 · 敬请期待
+        <button type="button" id="btn-menu-items" class="btn btn-lg btn-shop">
+          道具商店
         </button>
         <button type="button" id="btn-menu-settings" class="btn btn-lg" disabled>
           设置 · 敬请期待
@@ -28,8 +32,23 @@
         <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
       </div>
       <p class="menu-hint">
-        方向键 / WASD 移动，<strong>空格</strong> 或 <strong>J</strong> 发射；手机用左下开火、右下方向键。
+        移动：方向键 / WASD；<strong>空格/J</strong> 普通炮；<strong>K</strong> 导弹。手机在棋盘下方操作。
       </p>
+    </section>
+
+    <section id="screen-shop" class="screen screen-shop" hidden>
+      <div class="screen-topbar">
+        <button type="button" id="btn-shop-back" class="btn btn-ghost btn-sm">
+          ← 主菜单
+        </button>
+        <h2 class="screen-title">🛒 道具商店</h2>
+      </div>
+      <p class="shop-balance">
+        可用积分：<strong id="shop-balance">0</strong>
+        <span class="shop-lifetime">（累计 <span id="shop-lifetime">0</span>）</span>
+      </p>
+      <ul id="shop-list" class="shop-list"></ul>
+      <p id="shop-msg" class="shop-msg" role="status"></p>
     </section>
 
     <section id="screen-levels" class="screen screen-levels" hidden>
@@ -61,6 +80,10 @@
           <span class="hud-label">敌人</span>
           <span id="hud-enemies" class="hud-value">0</span>
         </div>
+        <div class="hud-item">
+          <span class="hud-label">导弹</span>
+          <span id="hud-missiles" class="hud-value">0</span>
+        </div>
       </div>
       <p id="level-hint" class="hint"></p>
 
@@ -68,9 +91,14 @@
         <div class="canvas-stage">
           <canvas id="game-canvas" aria-label="坦克大战"></canvas>
           <div class="touch-bar" aria-label="触屏操作">
-            <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
-              <span class="fire-label">🔫 发射</span>
-            </button>
+            <div class="touch-fire-group">
+              <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
+                🔫
+              </button>
+              <button type="button" id="btn-missile" class="fire-btn missile-btn" aria-label="导弹">
+                🚀
+              </button>
+            </div>
             <div class="dpad-overlay" aria-label="方向控制">
               <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>
               <button type="button" class="dpad-btn dpad-left" data-dir="left">◀</button>

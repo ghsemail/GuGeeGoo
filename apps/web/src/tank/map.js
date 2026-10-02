@@ -78,6 +78,23 @@ export function worldToTile(x, y, map) {
  * 子弹打中墙：砖块变空地，钢块不变
  * @returns {'brick'|'steel'|'empty'|'oob'}
  */
+/** 导弹爆炸：半径内砖块清除，钢块保留 */
+export function explodeArea(map, centerTx, centerTy, radius = 1) {
+  let bricks = 0;
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      const tx = centerTx + dx;
+      const ty = centerTy + dy;
+      if (ty < 0 || ty >= map.rows || tx < 0 || tx >= map.cols) continue;
+      if (map.cells[ty][tx] === TILE.BRICK) {
+        map.cells[ty][tx] = TILE.EMPTY;
+        bricks += 1;
+      }
+    }
+  }
+  return bricks;
+}
+
 export function damageTileAt(map, tx, ty) {
   if (ty < 0 || ty >= map.rows || tx < 0 || tx >= map.cols) return 'oob';
   const t = map.cells[ty][tx];

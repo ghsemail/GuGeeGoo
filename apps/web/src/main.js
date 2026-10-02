@@ -18,6 +18,8 @@ function renderGameCard(game) {
   if (hasPlayed) {
     if (game.statKeys?.level) {
       statsHtml = `<p class="game-card-stats">本地记录：累计 <strong>${lifetime}</strong> 分 · 最高 <strong>${bestScore}</strong> 分 · 第 <strong>${maxLevel}</strong> 关</p>`;
+    } else if (game.statKeys?.lifetime) {
+      statsHtml = `<p class="game-card-stats">本地记录：累计 <strong>${lifetime}</strong> 分 · 最高 <strong>${bestScore}</strong> 分</p>`;
     } else {
       statsHtml = `<p class="game-card-stats">本地记录：最高 <strong>${bestScore}</strong> 分</p>`;
     }
