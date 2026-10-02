@@ -125,10 +125,16 @@ async function auditControls(page) {
     const tabletTouch =
       window.matchMedia('(pointer: coarse) and (min-width: 481px)').matches ||
       (window.matchMedia('(hover: none)').matches && window.innerWidth >= 481);
+    const finePointer = window.matchMedia('(pointer: fine)').matches;
+    const touchUiHidden = document.documentElement.classList.contains(
+      'no-touch-controls'
+    );
     const minTap = tabletTouch ? 63 : 43;
     const smallTargets = items
       .filter(
         (it) =>
+          !finePointer &&
+          !touchUiHidden &&
           isTouchControl(it.id) &&
           (it.r.width < minTap || it.r.height < minTap)
       )
@@ -146,8 +152,37 @@ async function auditControls(page) {
     const gs = globalStats?.getBoundingClientRect();
     const statsNearTop = !gs || gs.top < 200;
 
+    const intrinsicW = canvas.width;
+    const intrinsicH = canvas.height;
+    const intrinsicRatio = intrinsicW / intrinsicH;
+    const displayRatio = canvasR.width / canvasR.height;
+    const aspectDrift =
+      intrinsicRatio > 0
+        ? Math.abs(displayRatio - intrinsicRatio) / intrinsicRatio
+        : 0;
+    const aspectOk = aspectDrift < 0.02;
+
+    const landscapeTablet =
+      window.innerWidth > window.innerHeight &&
+      window.innerWidth >= 700 &&
+      (window.matchMedia('(hover: none)').matches ||
+        window.matchMedia('(pointer: coarse)').matches);
+    const minBoardH = vh * 0.6;
+    const landscapeBoardOk =
+      !landscapeTablet || canvasR.height >= minBoardH * 0.97;
+
     return {
-      canvas: { w: canvasR.width, h: canvasR.height },
+      canvas: {
+        w: canvasR.width,
+        h: canvasR.height,
+        intrinsicW,
+        intrinsicH,
+        displayRatio,
+        intrinsicRatio,
+        aspectDrift,
+      },
+      aspectOk,
+      landscapeBoardOk,
       controlCount: items.length,
       overlaps,
       toolbarHits,
@@ -158,6 +193,7 @@ async function auditControls(page) {
         statsNearTop,
         docH,
         vh,
+        minBoardH,
       },
     };
   });
@@ -218,7 +254,9 @@ async function runCase(browser, game, vp) {
 
   await page.evaluate(() => {
     if (typeof window.__syncTouchControls === 'function') window.__syncTouchControls();
+    window.dispatchEvent(new Event('resize'));
   });
+  await new Promise((r) => setTimeout(r, 400));
 
   const audit = await auditControls(page);
   await page.close();
@@ -235,6 +273,8 @@ async function runCase(browser, game, vp) {
     audit.overlaps.length === 0 &&
     audit.toolbarHits.length === 0 &&
     audit.smallTargets.length === 0 &&
+    audit.aspectOk !== false &&
+    audit.landscapeBoardOk !== false &&
     fitOk &&
     errors.length === 0;
 

@@ -162,13 +162,55 @@ function touchControlMetrics(displayWidth) {
   return { dpadSize, fireSize, tablet, dpadGap: tablet ? '12px' : '3px' };
 }
 
+function tankDisplayBounds() {
+  const landscapeSide =
+    isTouchUi() &&
+    window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches;
+  const padW = landscapeSide ? 250 : 32;
+  const padH = landscapeSide ? 260 : 280;
+  const availW = window.innerWidth - padW;
+  const availH = window.innerHeight - padH;
+  return {
+    maxW: availW,
+    maxH: landscapeSide
+      ? Math.min(availH, Math.floor(window.innerHeight * 0.68))
+      : availH,
+    minDisplayH: landscapeSide ? Math.floor(window.innerHeight * 0.6) : 0,
+    landscapeSide,
+  };
+}
+
+function applyCanvasDisplaySize(
+  canvasEl,
+  intrinsicW,
+  intrinsicH,
+  maxW,
+  maxH,
+  { minDisplayH = 0, allowUpscale = false } = {}
+) {
+  let scale = Math.min(maxW / intrinsicW, maxH / intrinsicH);
+  if (!allowUpscale) scale = Math.min(1, scale);
+  if (minDisplayH > 0 && allowUpscale) {
+    const need = minDisplayH / intrinsicH;
+    scale = Math.min(maxH / intrinsicH, Math.max(scale, need));
+  }
+  const dw = Math.max(1, Math.round(intrinsicW * scale));
+  const dh = Math.max(1, Math.round(intrinsicH * scale));
+  canvasEl.style.width = `${dw}px`;
+  canvasEl.style.height = `${dh}px`;
+  return { dw, dh, scale };
+}
+
 function resizeStage() {
   if (!game) return;
   const { width, height } = computeCanvasSize(game.map);
   canvas.width = width;
   canvas.height = height;
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
+  const { maxW, maxH, minDisplayH, landscapeSide } = tankDisplayBounds();
+  applyCanvasDisplaySize(canvas, width, height, maxW, maxH, {
+    minDisplayH,
+    allowUpscale: landscapeSide,
+  });
   const stage = canvas.closest('.canvas-stage');
   if (stage) {
     const { dpadSize, fireSize, dpadGap } = touchControlMetrics(width);

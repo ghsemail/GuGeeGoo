@@ -370,8 +370,6 @@
   display: block;
   border-radius: 10px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  max-width: 100%;
-  height: auto;
   touch-action: none;
 }
 
@@ -485,23 +483,22 @@
   }
 
   .canvas-stage {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto auto auto;
     grid-template-rows: auto;
     grid-template-areas: 'left board right';
     align-items: center;
+    justify-content: center;
     gap: 14px;
+  }
+
+  .canvas-board-wrap {
+    max-width: min(100%, calc(100vw - 240px));
   }
 
   .touch-rail-left,
   .touch-rail-right {
     align-self: center;
     align-items: center;
-  }
-
-  .canvas-board-wrap #game-canvas {
-    max-height: min(48vh, 360px);
-    width: auto;
-    height: auto;
   }
 
   .screen-game .toolbar {

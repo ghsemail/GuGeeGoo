@@ -294,9 +294,8 @@
   border-radius: 12px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   touch-action: none;
-  max-width: 100%;
-  height: auto;
   vertical-align: top;
+  /* 显示尺寸由 JS 等比缩放；勿单独 max-width 压扁 */
 }
 
 .dpad-overlay {
@@ -669,11 +668,16 @@
   }
 
   .canvas-stage {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto auto auto;
     grid-template-rows: auto;
     grid-template-areas: 'left board right';
     align-items: center;
+    justify-content: center;
     gap: 14px;
+  }
+
+  .canvas-board-wrap {
+    max-width: min(100%, calc(100vw - 240px));
   }
 
   .touch-rail-left,

@@ -228,23 +228,47 @@ function playfieldLayout() {
   let padW = 32;
   let padH = 320;
   if (landscapeSide) {
-    padW = 220;
-    padH = 200;
+    padW = 250;
+    padH = 300;
   } else if (coarse && window.innerWidth >= 481) {
     padH = 360;
   }
+  const availW = window.innerWidth - padW;
+  const availH = window.innerHeight - padH;
+  const maxW = landscapeSide ? availW : Math.min(availW, 520);
+  const maxH = landscapeSide
+    ? Math.min(availH, Math.floor(window.innerHeight * 0.62))
+    : Math.min(availH, 420);
+  const minDisplayH = landscapeSide ? Math.floor(window.innerHeight * 0.6) : 0;
   return {
-    maxW: Math.min(window.innerWidth - padW, 520),
-    maxH: Math.min(window.innerHeight - padH, landscapeSide ? 400 : 420),
+    maxW,
+    maxH,
+    minDisplayH,
     coarse,
     landscapeSide,
   };
 }
 
+/** 等比缩放 canvas 显示尺寸，避免 CSS 只压宽度 */
+function applyCanvasDisplaySize(canvasEl, intrinsicW, intrinsicH, maxW, maxH) {
+  const scale = Math.min(maxW / intrinsicW, maxH / intrinsicH);
+  const dw = Math.max(1, Math.round(intrinsicW * scale));
+  const dh = Math.max(1, Math.round(intrinsicH * scale));
+  canvasEl.style.width = `${dw}px`;
+  canvasEl.style.height = `${dh}px`;
+  return { dw, dh, scale };
+}
+
 function cellSize() {
   const lv = state.level;
-  const { maxW, maxH } = playfieldLayout();
-  const cs = Math.floor(Math.min(maxW / lv.cols, maxH / lv.rows, 28));
+  const { maxW, maxH, minDisplayH, landscapeSide } = playfieldLayout();
+  const csCap = landscapeSide ? 42 : 28;
+  let cs = Math.floor(Math.min(maxW / lv.cols, maxH / lv.rows, csCap));
+  if (minDisplayH > 0) {
+    const csForMin = Math.floor(minDisplayH / lv.rows);
+    cs = Math.max(cs, Math.min(csForMin, csCap));
+  }
+  cs = Math.min(cs, Math.floor(maxW / lv.cols), Math.floor(maxH / lv.rows));
   return Math.max(cs, 12);
 }
 
@@ -255,8 +279,8 @@ function resizeCanvas() {
   const h = lv.rows * cs;
   canvas.width = w;
   canvas.height = h;
-  canvas.style.width = `${w}px`;
-  canvas.style.height = `${h}px`;
+  const { maxW, maxH } = playfieldLayout();
+  applyCanvasDisplaySize(canvas, w, h, maxW, maxH);
 
   const stage = canvas.closest('.canvas-stage');
   if (stage) {
