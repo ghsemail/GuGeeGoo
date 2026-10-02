@@ -3,7 +3,7 @@
  */
 import { DIR } from './constants.js';
 
-/** @typedef {{ up: boolean, down: boolean, left: boolean, right: boolean, fire: boolean, firePressed: boolean, missile: boolean, missilePressed: boolean }} InputState */
+/** @typedef {{ up: boolean, down: boolean, left: boolean, right: boolean, fire: boolean, firePressed: boolean, missile: boolean, missilePressed: boolean, forward: boolean, forwardPressed: boolean }} InputState */
 
 export function createInputState() {
   return {
@@ -15,6 +15,8 @@ export function createInputState() {
     firePressed: false,
     missile: false,
     missilePressed: false,
+    forward: false,
+    forwardPressed: false,
   };
 }
 
@@ -57,6 +59,14 @@ export function bindKeyboard(input, enabledRef) {
     if (!down && (e.key === 'k' || e.key === 'K')) {
       input.missile = false;
     }
+    if (down && (e.key === 'e' || e.key === 'E' || e.key === 'Shift')) {
+      e.preventDefault();
+      input.forward = true;
+      input.forwardPressed = true;
+    }
+    if (!down && (e.key === 'e' || e.key === 'E' || e.key === 'Shift')) {
+      input.forward = false;
+    }
   };
   window.addEventListener('keydown', (e) => onKey(e, true));
   window.addEventListener('keyup', (e) => onKey(e, false));
@@ -97,6 +107,25 @@ export function bindFireButton(btn, input, enabledRef) {
   };
   const release = () => {
     input.fire = false;
+    btn.classList.remove('is-pressed');
+  };
+  btn.addEventListener('pointerdown', press);
+  btn.addEventListener('pointerup', release);
+  btn.addEventListener('pointercancel', release);
+  btn.addEventListener('click', (e) => e.preventDefault());
+}
+
+export function bindForwardButton(btn, input, enabledRef) {
+  if (!btn) return;
+  const press = (e) => {
+    e.preventDefault();
+    if (!enabledRef()) return;
+    input.forward = true;
+    input.forwardPressed = true;
+    btn.classList.add('is-pressed');
+  };
+  const release = () => {
+    input.forward = false;
     btn.classList.remove('is-pressed');
   };
   btn.addEventListener('pointerdown', press);

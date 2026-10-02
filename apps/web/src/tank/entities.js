@@ -5,7 +5,6 @@
 import {
   BULLET_RADIUS,
   BULLET_SPEED,
-  DIR,
   ENEMY_FIRE_COOLDOWN,
   ENEMY_SPEED,
   MISSILE_SPEED,
@@ -14,6 +13,7 @@ import {
   TANK_SIZE,
   TILE_SIZE,
 } from './constants.js';
+import { getBarrelMuzzle } from './tank-geometry.js';
 
 let nextId = 1;
 
@@ -54,35 +54,31 @@ export function createEnemy(spawn, index = 0) {
 }
 
 export function createMissile(tank) {
-  const d = DIR[tank.dir];
-  const cx = tank.x + (d.x * tank.size) / 2;
-  const cy = tank.y + (d.y * tank.size) / 2;
+  const m = getBarrelMuzzle(tank);
   return {
     id: nextId++,
     ownerKind: 'player',
     ownerId: tank.id,
     kind: 'missile',
-    x: cx,
-    y: cy,
-    vx: d.x * MISSILE_SPEED,
-    vy: d.y * MISSILE_SPEED,
+    x: m.x,
+    y: m.y,
+    vx: m.dx * MISSILE_SPEED,
+    vy: m.dy * MISSILE_SPEED,
     radius: BULLET_RADIUS + 2,
     alive: true,
   };
 }
 
 export function createBullet(owner, tank) {
-  const d = DIR[tank.dir];
-  const cx = tank.x + (d.x * tank.size) / 2;
-  const cy = tank.y + (d.y * tank.size) / 2;
+  const m = getBarrelMuzzle(tank);
   return {
     id: nextId++,
     ownerKind: owner,
     ownerId: tank.id,
-    x: cx,
-    y: cy,
-    vx: d.x * BULLET_SPEED,
-    vy: d.y * BULLET_SPEED,
+    x: m.x,
+    y: m.y,
+    vx: m.dx * BULLET_SPEED,
+    vy: m.dy * BULLET_SPEED,
     radius: BULLET_RADIUS,
     alive: true,
   };

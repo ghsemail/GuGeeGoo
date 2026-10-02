@@ -32,7 +32,7 @@
         <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
       </div>
       <p class="menu-hint">
-        移动：方向键 / WASD；<strong>空格/J</strong> 普通炮；<strong>K</strong> 导弹。手机在棋盘下方操作。
+        移动：方向键 / WASD；<strong>空格/J</strong> 普通炮；<strong>K</strong> 导弹；<strong>E</strong> 或 <strong>Shift</strong> 背景前进。手机在棋盘下方操作。
       </p>
     </section>
 
@@ -91,13 +91,18 @@
         <div class="canvas-stage">
           <canvas id="game-canvas" aria-label="坦克大战"></canvas>
           <div class="touch-bar" aria-label="触屏操作">
-            <div class="touch-fire-group">
-              <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
-                🔫
+            <div class="touch-left-col">
+              <button type="button" id="btn-forward" class="forward-btn" aria-label="背景前进">
+                前进 ▶
               </button>
-              <button type="button" id="btn-missile" class="fire-btn missile-btn" aria-label="导弹">
-                🚀
-              </button>
+              <div class="touch-fire-group">
+                <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
+                  🔫
+                </button>
+                <button type="button" id="btn-missile" class="fire-btn missile-btn" aria-label="导弹">
+                  🚀
+                </button>
+              </div>
             </div>
             <div class="dpad-overlay" aria-label="方向控制">
               <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>

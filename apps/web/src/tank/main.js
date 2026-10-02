@@ -16,7 +16,9 @@ import {
   bindDpad,
   bindFireButton,
   bindMissileButton,
+  bindForwardButton,
 } from './input.js';
+import { updateBackgroundScroll } from './parallax-control.js';
 import {
   addLifetimePoints,
   saveBestScore,
@@ -213,6 +215,9 @@ function loop(now) {
   const delta = Math.min(0.05, (now - lastFrameTime) / 1000);
   lastFrameTime = now;
 
+  if (game.phase === 'playing' && !game.paused) {
+    updateBackgroundScroll(game, delta, input);
+  }
   updateGame(game, delta, input);
   refreshHud();
 
@@ -224,7 +229,7 @@ function loop(now) {
     onLose();
   }
 
-  drawFrame(ctx, game, now * 0.001);
+  drawFrame(ctx, game);
 }
 
 function renderLevelGrid() {
@@ -285,6 +290,11 @@ function bindUi() {
   bindFireButton(document.getElementById('btn-fire'), input, gameInputEnabled);
   bindMissileButton(
     document.getElementById('btn-missile'),
+    input,
+    gameInputEnabled
+  );
+  bindForwardButton(
+    document.getElementById('btn-forward'),
     input,
     gameInputEnabled
   );

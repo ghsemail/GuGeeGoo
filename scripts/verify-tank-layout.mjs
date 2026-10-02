@@ -55,14 +55,28 @@ async function runViewport(browser, width, height, isMobile) {
         dpadBox.top > fireBox.bottom
       );
     const missile = document.getElementById('btn-missile');
+    const forward = document.getElementById('btn-forward');
     const missileBox = missile?.getBoundingClientRect();
+    const forwardBox = forward?.getBoundingClientRect();
     const controlsClearOfCanvas =
       canvasBox &&
       fireBox &&
       dpadBox &&
       fireBox.top >= canvasBox.bottom - 4 &&
       dpadBox.top >= canvasBox.bottom - 4 &&
-      (!missileBox || missileBox.top >= canvasBox.bottom - 4);
+      (!missileBox || missileBox.top >= canvasBox.bottom - 4) &&
+      (!forwardBox || forwardBox.top >= canvasBox.bottom - 4);
+    const rectsOverlap = (a, b) =>
+      a &&
+      b &&
+      !(
+        a.right < b.left ||
+        a.left > b.right ||
+        a.bottom < b.top ||
+        a.top > b.bottom
+      );
+    const forwardApartFromDpad =
+      !forwardBox || !dpadBox || !rectsOverlap(forwardBox, dpadBox);
     const hudMissiles = document.getElementById('hud-missiles')?.textContent;
     const controlsOnCanvas =
       canvasBox &&
@@ -89,6 +103,8 @@ async function runViewport(browser, width, height, isMobile) {
       controlsOnCanvas,
       narrow: window.innerWidth < 520,
       hudMissiles,
+      forwardVisible: !!(forwardBox && forwardBox.width > 20),
+      forwardApartFromDpad,
     };
   });
 
@@ -110,7 +126,9 @@ async function runViewport(browser, width, height, isMobile) {
     data.dpadVisible &&
     data.fireVisible &&
     !data.dpadFireOverlap &&
-    (data.narrow ? data.controlsClearOfCanvas : true);
+    (data.narrow ? data.controlsClearOfCanvas : true) &&
+    data.forwardVisible &&
+    data.forwardApartFromDpad;
 
   const pass =
     navTank &&

@@ -303,6 +303,31 @@
   pointer-events: auto;
 }
 
+.touch-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.forward-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(79, 195, 247, 0.85);
+  color: #0D47A1;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  min-height: 40px;
+}
+
+.forward-btn.is-pressed {
+  background: #FFD54F;
+  color: #263238;
+}
+
 .touch-fire-group {
   display: flex;
   gap: 8px;

@@ -48,13 +48,14 @@ function drawSteelTile(ctx, px, py, ts) {
   ctx.fillRect(px + 3, py + 3, ts * 0.35, 2);
 }
 
-export function drawFrame(ctx, state, timeSec = 0) {
+export function drawFrame(ctx, state) {
   const { map, player, enemies, bullets } = state;
   const ts = map.tileSize;
   const w = ctx.canvas.width;
   const h = ctx.canvas.height;
+  const scroll = state.bgScroll || 0;
 
-  drawParallaxBackground(ctx, w, h, timeSec);
+  drawParallaxBackground(ctx, w, h, scroll);
 
   for (let y = 0; y < map.rows; y++) {
     for (let x = 0; x < map.cols; x++) {
@@ -63,15 +64,15 @@ export function drawFrame(ctx, state, timeSec = 0) {
       const py = y * ts;
 
       if (t === TILE.EMPTY) {
-        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+        drawGrassTile(ctx, px, py, ts, x, y, scroll);
       } else if (t === TILE.BRICK) {
-        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+        drawGrassTile(ctx, px, py, ts, x, y, scroll);
         drawBrickTile(ctx, px, py, ts);
       } else if (t === TILE.STEEL) {
-        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+        drawGrassTile(ctx, px, py, ts, x, y, scroll);
         drawSteelTile(ctx, px, py, ts);
       } else if (t === TILE.BASE) {
-        drawGrassTile(ctx, px, py, ts, x, y, timeSec);
+        drawGrassTile(ctx, px, py, ts, x, y, scroll);
         ctx.fillStyle = '#FDD835';
         ctx.fillRect(px + 4, py + 4, ts - 8, ts - 8);
       }
@@ -83,13 +84,13 @@ export function drawFrame(ctx, state, timeSec = 0) {
   ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
 
   for (const e of enemies) {
-    drawDetailedTank(ctx, e, ENEMY_PALETTE, timeSec, false);
+    drawDetailedTank(ctx, e, ENEMY_PALETTE, scroll, false);
   }
   drawDetailedTank(
     ctx,
     player,
     PLAYER_PALETTE,
-    timeSec,
+    scroll,
     player.invuln > 0
   );
 

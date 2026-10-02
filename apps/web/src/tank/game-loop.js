@@ -62,6 +62,7 @@ export function createGameState(levelIndex) {
     paused: false,
     phase: 'playing', // playing | win | lose
     accumulator: 0,
+    bgScroll: 0,
   };
 }
 

@@ -2,20 +2,21 @@
  * 坦克造型：车体、履带、炮塔、炮管（顶视）
  */
 import { DIR } from './constants.js';
+import { BARREL_LENGTH_RATIO } from './tank-geometry.js';
 
 /**
  * @param {CanvasRenderingContext2D} ctx
  * @param {object} tank
  * @param {{ hull: string, hullDark: string, track: string, turret: string }} palette
- * @param {number} timeSec
+ * @param {number} animPhase 用于履带滚动（可用 bgScroll）
  * @param {boolean} blink
  */
-export function drawDetailedTank(ctx, tank, palette, timeSec, blink = false) {
+export function drawDetailedTank(ctx, tank, palette, animPhase, blink = false) {
   if (blink && Math.floor(performance.now() / 120) % 2 === 0) return;
 
   const angle = DIR[tank.dir].angle;
   const moving = !!tank.moving;
-  const phase = moving ? (timeSec * 14) % 1 : 0;
+  const phase = moving ? (animPhase * 0.35) % 1 : 0;
   const s = tank.size;
 
   ctx.save();
@@ -88,7 +89,7 @@ function drawTurret(ctx, s, color) {
 }
 
 function drawBarrel(ctx, s) {
-  const len = s * 0.55;
+  const len = s * BARREL_LENGTH_RATIO;
   const bw = s * 0.12;
   ctx.fillStyle = '#37474F';
   ctx.beginPath();

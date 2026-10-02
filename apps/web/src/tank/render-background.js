@@ -11,9 +11,9 @@ function drawCloud(ctx, x, y, r) {
   ctx.fill();
 }
 
-/** 整幅画布的天空 + 远景（在对战网格之下） */
-export function drawParallaxBackground(ctx, width, height, timeSec) {
-  const t = timeSec || 0;
+/** 整幅画布的天空 + 远景（scroll 由「前进」键累积） */
+export function drawParallaxBackground(ctx, width, height, scroll) {
+  const t = scroll || 0;
   const sky = ctx.createLinearGradient(0, 0, 0, height);
   sky.addColorStop(0, '#B3E5FC');
   sky.addColorStop(0.45, '#DCEDC8');
@@ -63,9 +63,9 @@ export function drawParallaxBackground(ctx, width, height, timeSec) {
   ctx.restore();
 }
 
-/** 空地格子上的草皮 + 轻微滚动纹理 */
-export function drawGrassTile(ctx, px, py, ts, worldX, worldY, timeSec) {
-  const t = timeSec || 0;
+/** 空地格子上的草皮 + 轻微滚动纹理（随背景 scroll） */
+export function drawGrassTile(ctx, px, py, ts, worldX, worldY, scroll) {
+  const t = scroll || 0;
   const even = (worldX + worldY) % 2 === 0;
   ctx.fillStyle = even ? '#AED581' : '#9CCC65';
   ctx.fillRect(px, py, ts, ts);
