@@ -101,9 +101,14 @@ function resizeStage() {
   canvas.style.height = `${height}px`;
   const stage = canvas.closest('.canvas-stage');
   if (stage) {
-    const dpadSize = Math.min(44, Math.max(38, Math.round(width * 0.11)));
+    const narrow = window.innerWidth < 520;
+    const dpadSize = narrow
+      ? Math.min(36, Math.max(32, Math.round(width * 0.1)))
+      : Math.min(44, Math.max(38, Math.round(width * 0.11)));
     stage.style.setProperty('--dpad-size', `${dpadSize}px`);
-    const fireSize = Math.min(52, Math.max(44, Math.round(width * 0.13)));
+    const fireSize = narrow
+      ? Math.min(44, Math.max(40, Math.round(width * 0.12)))
+      : Math.min(52, Math.max(44, Math.round(width * 0.13)));
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
   }
 }

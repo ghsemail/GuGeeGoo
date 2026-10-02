@@ -47,6 +47,17 @@ async function runViewport(browser, width, height, isMobile) {
         dpadBox.bottom < fireBox.top ||
         dpadBox.top > fireBox.bottom
       );
+    const controlsClearOfCanvas =
+      canvasBox &&
+      fireBox &&
+      dpadBox &&
+      fireBox.top >= canvasBox.bottom - 4 &&
+      dpadBox.top >= canvasBox.bottom - 4;
+    const controlsOnCanvas =
+      canvasBox &&
+      fireBox &&
+      fireBox.bottom <= canvasBox.bottom + 4 &&
+      fireBox.top < canvasBox.bottom;
     return {
       canvas: canvas
         ? {
@@ -63,6 +74,9 @@ async function runViewport(browser, width, height, isMobile) {
       dpadVisible: !!(dpadBox && dpadBox.width > 20),
       fireVisible: !!(fireBox && fireBox.width > 20),
       dpadFireOverlap: overlap,
+      controlsClearOfCanvas,
+      controlsOnCanvas,
+      narrow: window.innerWidth < 520,
     };
   });
 
@@ -79,13 +93,14 @@ async function runViewport(browser, width, height, isMobile) {
     data.canvas.attrW > 0 &&
     data.canvas.attrH > 0;
 
-  const pass =
-    navTank &&
-    okCanvas &&
+  const okControls =
     data.dpadVisible &&
     data.fireVisible &&
     !data.dpadFireOverlap &&
-    errors.length === 0;
+    (data.narrow ? data.controlsClearOfCanvas : true);
+
+  const pass =
+    navTank && okCanvas && okControls && errors.length === 0;
 
   return { ...data, okCanvas, pass };
 }

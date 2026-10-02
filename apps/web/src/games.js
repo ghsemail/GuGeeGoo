@@ -11,7 +11,8 @@ export const GAMES = [
     title: '贪吃蛇',
     emoji: '🐍',
     href: '/snake/',
-    description: '吃掉苹果、躲开障碍，一共 9 关，看看能不能全部通关！',
+    description:
+      '15 关自由选关，积分换道具和武器，圆头蛇闯关——键盘、滑动或十字键都行！',
     statKeys: {
       best: 'gugeegoo_snake_best_score',
       level: 'gugeegoo_snake_max_level',

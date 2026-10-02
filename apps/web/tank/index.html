@@ -67,14 +67,16 @@
       <div class="canvas-wrap">
         <div class="canvas-stage">
           <canvas id="game-canvas" aria-label="坦克大战"></canvas>
-          <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
-            🔫 发射
-          </button>
-          <div class="dpad-overlay" aria-label="方向控制">
-            <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>
-            <button type="button" class="dpad-btn dpad-left" data-dir="left">◀</button>
-            <button type="button" class="dpad-btn dpad-right" data-dir="right">▶</button>
-            <button type="button" class="dpad-btn dpad-down" data-dir="down">▼</button>
+          <div class="touch-bar" aria-label="触屏操作">
+            <button type="button" id="btn-fire" class="fire-btn" aria-label="发射">
+              <span class="fire-label">🔫 发射</span>
+            </button>
+            <div class="dpad-overlay" aria-label="方向控制">
+              <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>
+              <button type="button" class="dpad-btn dpad-left" data-dir="left">◀</button>
+              <button type="button" class="dpad-btn dpad-right" data-dir="right">▶</button>
+              <button type="button" class="dpad-btn dpad-down" data-dir="down">▼</button>
+            </div>
           </div>
         </div>
       </div>
