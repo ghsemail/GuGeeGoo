@@ -24,7 +24,8 @@ export const GAMES = [
     title: '坦克大战',
     emoji: '🛡️',
     href: '/tank/',
-    description: '驾驶坦克保护基地、击毁敌人！框架已可玩，关卡和道具会陆续加入。',
+    description:
+      '4 关大地图击毁敌人！道具商店 7 种道具：导弹、地雷、护盾……平板触屏和键盘都能玩。',
     statKeys: {
       best: 'gugeegoo_tank_best_score',
       lifetime: 'gugeegoo_tank_lifetime_earned',
