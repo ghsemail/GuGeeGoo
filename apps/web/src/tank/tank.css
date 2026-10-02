@@ -377,7 +377,6 @@
 
 .fire-btn {
   position: relative;
-  --fire-btn-size: 44px;
   width: var(--fire-btn-size);
   height: var(--fire-btn-size);
   min-width: var(--fire-btn-size);
@@ -517,6 +516,13 @@
     --fire-btn-size: 64px;
   }
 
+  .fire-btn {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+  }
+
   .touch-left-col,
   .touch-fire-group {
     gap: 12px;
@@ -527,6 +533,16 @@
     min-height: 64px;
     font-size: 15px;
   }
+}
+
+.no-touch-controls .touch-rail {
+  display: none !important;
+}
+
+.no-touch-controls .canvas-stage {
+  grid-template-columns: 1fr;
+  grid-template-areas: 'board';
+  justify-items: center;
 }
 
 @media (pointer: fine) {

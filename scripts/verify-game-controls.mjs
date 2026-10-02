@@ -44,7 +44,11 @@ async function auditControls(page) {
         if (screen) return;
         const style = window.getComputedStyle(el);
         if (style.display === 'none' || style.visibility === 'hidden') return;
-        if (el.closest('.touch-rail')?.getBoundingClientRect().width === 0) return;
+        if (document.documentElement.classList.contains('no-touch-controls')) {
+          if (el.closest('.touch-rail')) return;
+        }
+        const rail = el.closest('.touch-rail');
+        if (rail && window.getComputedStyle(rail).display === 'none') return;
         const r = el.getBoundingClientRect();
         if (r.width < 2 || r.height < 2) return;
         const id = el.id || `${sel.replace(/[^\w#.-]/g, '')}:${idx}`;
@@ -211,6 +215,10 @@ async function runCase(browser, game, vp) {
 
   if (game === 'snake') await startSnakeGame(page);
   else await startTankGame(page);
+
+  await page.evaluate(() => {
+    if (typeof window.__syncTouchControls === 'function') window.__syncTouchControls();
+  });
 
   const audit = await auditControls(page);
   await page.close();

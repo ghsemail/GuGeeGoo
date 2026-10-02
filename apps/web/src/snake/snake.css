@@ -190,7 +190,6 @@
 
 .fire-btn {
   position: relative;
-  --fire-btn-size: 48px;
   min-width: var(--fire-btn-size);
   min-height: var(--fire-btn-size);
   height: var(--fire-btn-size);
@@ -696,6 +695,11 @@
     --fire-btn-size: 64px;
   }
 
+  .fire-btn {
+    min-height: 64px;
+    height: 64px;
+  }
+
   .touch-rail-left,
   .touch-rail-right,
   .touch-fire-group {
@@ -707,6 +711,16 @@
   .snake-page:has(#screen-game:not([hidden])) .side-panel {
     display: none;
   }
+}
+
+.no-touch-controls .touch-rail {
+  display: none !important;
+}
+
+.no-touch-controls .canvas-stage {
+  grid-template-columns: 1fr;
+  grid-template-areas: 'board';
+  justify-items: center;
 }
 
 @media (pointer: fine) {

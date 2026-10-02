@@ -205,10 +205,19 @@ function refreshStats() {
 }
 
 function isTouchUi() {
+  if (window.matchMedia('(pointer: fine)').matches) return false;
   return (
     window.matchMedia('(pointer: coarse)').matches ||
     window.matchMedia('(hover: none)').matches
   );
+}
+
+function syncTouchControlsVisibility() {
+  document.documentElement.classList.toggle('no-touch-controls', !isTouchUi());
+}
+
+if (typeof window !== 'undefined') {
+  window.__syncTouchControls = syncTouchControlsVisibility;
 }
 
 function playfieldLayout() {
@@ -733,7 +742,9 @@ async function init() {
   await renderLeaderboard();
 
   bindControls();
+  syncTouchControlsVisibility();
   window.addEventListener('resize', () => {
+    syncTouchControlsVisibility();
     if (currentScreen === 'game') resizeCanvas();
   });
 
