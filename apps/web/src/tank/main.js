@@ -193,23 +193,30 @@ function touchControlMetrics(displayWidth) {
   return { dpadSize, fireSize, tablet, dpadGap: tablet ? '12px' : '3px' };
 }
 
+function isTouchTablet() {
+  return isTouchUi() && layoutViewport().clientWidth >= 481;
+}
+
 function gameChromeHeight() {
+  const tablet = isTouchTablet();
   let h = 0;
-  for (const sel of [
-    '.tank-header',
-    '.screen-game .hud-bar',
-    '.hud-armory',
-    '.screen-game .hint',
-  ]) {
-    const node = document.querySelector(sel);
-    if (!node || node.closest('[hidden]')) continue;
-    const r = node.getBoundingClientRect();
+  if (!tablet) {
+    for (const sel of ['.tank-header', '.hud-armory', '.screen-game .hint']) {
+      const node = document.querySelector(sel);
+      if (!node || node.closest('[hidden]')) continue;
+      const r = node.getBoundingClientRect();
+      if (r.height > 0) h += r.height;
+    }
+  }
+  const hud = document.querySelector('.screen-game .hud-bar');
+  if (hud && !hud.closest('[hidden]')) {
+    const r = hud.getBoundingClientRect();
     if (r.height > 0) h += r.height;
   }
   const toolbar = document.querySelector('.screen-game .toolbar');
   if (toolbar && !toolbar.closest('[hidden]')) {
     const tr = toolbar.getBoundingClientRect();
-    if (tr.height > 0) h += tr.height + 8;
+    if (tr.height > 0) h += tr.height + (tablet ? 4 : 8);
   }
   const page = document.querySelector('.tank-page');
   if (page) {
@@ -217,7 +224,7 @@ function gameChromeHeight() {
     h +=
       (parseFloat(ps.paddingTop) || 0) + (parseFloat(ps.paddingBottom) || 0);
   }
-  return h + 8;
+  return h + (tablet ? 4 : 8);
 }
 
 function isLandscapeTouchTablet() {
@@ -249,9 +256,9 @@ function measureStageSideWidths(stage) {
 }
 
 function shouldAllowCanvasUpscale() {
+  if (isTouchTablet()) return true;
   if (!isTouchUi()) return false;
-  const { clientWidth } = layoutViewport();
-  return clientWidth >= 520;
+  return layoutViewport().clientWidth >= 520;
 }
 
 function applyCanvasDisplaySize(
@@ -260,13 +267,15 @@ function applyCanvasDisplaySize(
   intrinsicH,
   maxW,
   maxH,
-  { minDisplayH = 0, allowUpscale = false } = {}
+  { minDisplayH = 0, minDisplaySide = 0, allowUpscale = false } = {}
 ) {
   let scale = Math.min(maxW / intrinsicW, maxH / intrinsicH);
   if (!allowUpscale) scale = Math.min(1, scale);
-  if (minDisplayH > 0 && allowUpscale) {
-    const need = minDisplayH / intrinsicH;
-    scale = Math.min(maxH / intrinsicH, Math.max(scale, need));
+  const minSide = Math.max(minDisplayH, minDisplaySide);
+  if (minSide > 0 && allowUpscale) {
+    const need = minSide / intrinsicH;
+    scale = Math.max(scale, need);
+    scale = Math.min(scale, maxW / intrinsicW, maxH / intrinsicH);
   }
   const dw = Math.max(1, Math.round(intrinsicW * scale));
   const dh = Math.max(1, Math.round(intrinsicH * scale));
@@ -290,11 +299,15 @@ function applyCanvasBackingStore(logicalW, logicalH, displayScale) {
   game.renderDpr = renderDpr;
 }
 
-function fitSquareCanvasDisplay(logicalW, logicalH, sized) {
-  const boardWrap = canvas.closest('.canvas-board-wrap');
+function fitSquareCanvasDisplay(logicalW, logicalH, sized, capSide = 0) {
   void canvas.offsetWidth;
-  const capW = boardWrap?.clientWidth ?? sized.dw;
-  let side = Math.min(sized.dw, sized.dh, capW > 0 ? capW : sized.dw);
+  let side = Math.min(sized.dw, sized.dh);
+  if (capSide > 0) side = Math.min(side, capSide);
+  if (!isLandscapeTouchTablet() || !isTouchTablet()) {
+    const boardWrap = canvas.closest('.canvas-board-wrap');
+    const capW = boardWrap?.clientWidth ?? sized.dw;
+    if (capW > 0) side = Math.min(side, capW);
+  }
   side = Math.max(1, Math.round(side));
   if (side === sized.dw && side === sized.dh) return sized;
   canvas.style.width = `${side}px`;
@@ -308,9 +321,11 @@ function resizeStage() {
   const { width, height } = computeCanvasSize(game.map);
   const stage = canvas.closest('.canvas-stage');
   const landscapeSide = isLandscapeTouchTablet();
-  const pagePad = 16;
+  const tablet = isTouchTablet();
+  const pagePad = tablet ? 8 : 16;
   const vp = layoutViewport();
   const allowUpscale = shouldAllowCanvasUpscale();
+  let minDisplaySide = 0;
 
   if (stage) {
     const { dpadSize, fireSize, dpadGap } = touchControlMetrics(width);
@@ -319,18 +334,44 @@ function resizeStage() {
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
   }
 
-  let maxW = vp.clientWidth - pagePad;
+  let maxW = vp.clientWidth - pagePad * 2;
   let maxH = vp.clientHeight - gameChromeHeight();
 
   if (isTouchUi() && stage) {
+    refreshWeaponBar(el.weaponBarHost);
     canvas.style.width = '1px';
     canvas.style.height = '1px';
     void stage.offsetWidth;
-    if (landscapeSide) {
+    if (landscapeSide && tablet) {
       const { leftW, rightW } = measureStageSideWidths(stage);
-      const gap = 28;
-      maxW = vp.clientWidth - leftW - rightW - gap - pagePad;
+      maxW = Math.max(
+        64,
+        vp.clientWidth - leftW - rightW - pagePad * 2 - 24
+      );
       maxH = vp.clientHeight - gameChromeHeight();
+      minDisplaySide = Math.floor(
+        Math.min(maxW, maxH, vp.clientHeight * 0.76)
+      );
+    } else if (landscapeSide) {
+      const { leftW, rightW } = measureStageSideWidths(stage);
+      maxW = vp.clientWidth - leftW - rightW - 28 - pagePad * 2;
+      maxH = vp.clientHeight - gameChromeHeight();
+    } else if (tablet) {
+      const weapons = stage.querySelector('.weapon-bar-host');
+      const leftCol = stage.querySelector('.touch-left-col');
+      const rightRail = stage.querySelector('.touch-rail-right');
+      const reserve =
+        (weapons?.getBoundingClientRect().height ?? 0) +
+        Math.max(
+          leftCol?.getBoundingClientRect().height ?? 0,
+          rightRail?.getBoundingClientRect().height ?? 0
+        ) +
+        12;
+      maxH = Math.max(120, vp.clientHeight - gameChromeHeight() - reserve);
+      maxW = vp.clientWidth - pagePad * 2;
+      minDisplaySide = Math.floor(
+        Math.min(maxW, maxH, vp.clientWidth * 0.9)
+      );
     } else {
       const weapons = stage.querySelector('.weapon-bar-host');
       const leftCol = stage.querySelector('.touch-left-col');
@@ -343,7 +384,7 @@ function resizeStage() {
         ) +
         20;
       maxH = Math.max(120, vp.clientHeight - gameChromeHeight() - reserve);
-      maxW = vp.clientWidth - pagePad;
+      maxW = vp.clientWidth - pagePad * 2;
     }
   }
 
@@ -351,32 +392,16 @@ function resizeStage() {
   let budgetH = Math.max(64, maxH);
   let sized = applyCanvasDisplaySize(canvas, width, height, budgetW, budgetH, {
     allowUpscale,
+    minDisplaySide,
     minDisplayH: 0,
   });
 
-  for (let pass = 0; pass < 6; pass++) {
-    sized = fitSquareCanvasDisplay(width, height, sized);
+  for (let pass = 0; pass < 8; pass++) {
+    sized = fitSquareCanvasDisplay(width, height, sized, budgetW);
     applyCanvasBackingStore(width, height, sized.scale);
     canvas.dataset.displayW = String(sized.dw);
     canvas.dataset.displayH = String(sized.dh);
     void canvas.offsetHeight;
-
-    if (landscapeSide && stage) {
-      const boardWrap = canvas.closest('.canvas-board-wrap');
-      const capW = boardWrap?.clientWidth ?? sized.dw;
-      if (capW > 0 && capW < sized.dw - 1) {
-        budgetW = Math.min(budgetW, capW);
-        sized = applyCanvasDisplaySize(
-          canvas,
-          width,
-          height,
-          budgetW,
-          budgetH,
-          { allowUpscale, minDisplayH: 0 }
-        );
-        continue;
-      }
-    }
 
     const wrap = document.querySelector('.screen-game .canvas-wrap');
     const toolbar = document.querySelector('.screen-game .toolbar');
@@ -391,11 +416,12 @@ function resizeStage() {
     budgetH = Math.max(64, budgetH - overflowY);
     sized = applyCanvasDisplaySize(canvas, width, height, budgetW, budgetH, {
       allowUpscale,
+      minDisplaySide: 0,
       minDisplayH: 0,
     });
   }
 
-  sized = fitSquareCanvasDisplay(width, height, sized);
+  sized = fitSquareCanvasDisplay(width, height, sized, budgetW);
   applyCanvasBackingStore(width, height, sized.scale);
   canvas.dataset.displayW = String(sized.dw);
   canvas.dataset.displayH = String(sized.dh);

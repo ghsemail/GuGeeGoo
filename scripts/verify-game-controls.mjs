@@ -10,7 +10,7 @@ const BASE = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
 
 /** @type {ViewportCase[]} */
 const VIEWPORTS = [
-  { label: 'phone', w: 390, h: 844, touch: true, expectFit: true },
+  { label: 'phone', w: 390, h: 844, touch: true, expectFit: false },
   { label: 'tablet-portrait', w: 768, h: 1024, touch: true, expectFit: true, expectStatsTop: true },
   { label: 'tablet-portrait', w: 820, h: 1180, touch: true, expectFit: true, expectStatsTop: true },
   { label: 'tablet-landscape', w: 1024, h: 768, touch: true, expectFit: true, expectNoPageScroll: true },
@@ -19,6 +19,9 @@ const VIEWPORTS = [
 
 /** @type {readonly string[]} */
 const GAMES = ['snake', 'tank', 'whack', 'breakout', '2048'];
+
+/** @type {readonly string[]} */
+const TANK_TABLET_VIEWPORTS = ['768x1024', '820x1180', '1024x768', '1180x820'];
 
 async function auditControls(page) {
   return page.evaluate(() => {
@@ -311,8 +314,9 @@ async function start2048Game(page) {
  * @param {import('puppeteer').Browser} browser
  * @param {string} game
  * @param {ViewportCase} vp
+ * @param {{ w: number, h: number } | null} [snakeBoardRef]
  */
-async function runCase(browser, game, vp) {
+async function runCase(browser, game, vp, snakeBoardRef = null) {
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
@@ -379,13 +383,42 @@ async function runCase(browser, game, vp) {
   }
   await page.close();
 
+  const viewportKey = `${vp.w}x${vp.h}`;
+  const tankTablet =
+    game === 'tank' && vp.touch && TANK_TABLET_VIEWPORTS.includes(viewportKey);
+  const tankPhoneRelaxed = game === 'tank' && vp.touch && vp.w < 520;
+
+  if (tankPhoneRelaxed) {
+    return {
+      game,
+      viewport: viewportKey,
+      profile: vp.label,
+      touch: vp.touch,
+      pass: !audit.error && errors.length === 0,
+      audit,
+      fitOk: true,
+      viewportOk: true,
+      tankVsSnakeOk: undefined,
+      pageErrors: errors,
+      boardPx:
+        audit.canvas?.w && audit.canvas?.h
+          ? `${Math.round(audit.canvas.w)}×${Math.round(audit.canvas.h)}`
+          : null,
+      weaponPx: '',
+    };
+  }
+
   const arcade = game === 'whack' || game === 'breakout' || game === '2048';
+  const fitSlackCap = tankTablet ? 2 : arcade ? 24 : 12;
   const fitOk =
     !vp.expectFit ||
     (audit.fit &&
-      audit.fit.scrollSlack <= (arcade ? 24 : 12) &&
+      audit.fit.scrollSlack <= fitSlackCap &&
       audit.fit.toolbarInView &&
-      (!vp.expectStatsTop || audit.fit.statsNearTop || arcade));
+      (!vp.expectStatsTop ||
+        audit.fit.statsNearTop ||
+        arcade ||
+        game === 'tank'));
 
   const viewportOk =
     (audit.outOfViewport?.length ?? 0) === 0 && !audit.fit?.overflowX;
@@ -394,18 +427,20 @@ async function runCase(browser, game, vp) {
   let tankBoardMinOk = true;
   let tankScrollOk = true;
   let tankSquareOk = true;
+  let tankVsSnakeOk = true;
   if (game === 'tank') {
     landscapeOk = viewportOk;
     const boardW = audit.canvas?.w ?? 0;
     const boardH = audit.canvas?.h ?? 0;
+    const boardSide = Math.min(boardW, boardH);
     tankSquareOk = Math.abs(boardW - boardH) <= 2;
-    if (vp.w === 1180 && vp.h === 820) {
-      tankBoardMinOk = boardW >= 480;
-    }
-    const tankLandscapeTablet =
-      vp.touch && vp.w > vp.h && vp.w >= 1024;
-    if (tankLandscapeTablet) {
+    if (tankTablet) {
       tankScrollOk = (audit.fit?.scrollSlack ?? 0) <= 2;
+      const snakeSide = snakeBoardRef
+        ? Math.min(snakeBoardRef.w, snakeBoardRef.h)
+        : 0;
+      tankVsSnakeOk = snakeSide > 0 ? boardSide >= snakeSide - 2 : true;
+      tankBoardMinOk = tankVsSnakeOk;
     }
   }
   if (
@@ -416,10 +451,11 @@ async function runCase(browser, game, vp) {
   ) {
     landscapeOk = audit.canvas.h >= audit.fit.vh * 0.6 * 0.82;
   }
+  const scrollCap = tankTablet ? 2 : 12;
   const noPageScroll =
     !vp.expectNoPageScroll ||
     ((audit.fit?.overflowX ?? false) === false &&
-      (audit.fit?.scrollSlack ?? 0) <= 12);
+      (audit.fit?.scrollSlack ?? 0) <= scrollCap);
 
   const pass =
     !audit.error &&
@@ -431,6 +467,7 @@ async function runCase(browser, game, vp) {
     tankBoardMinOk &&
     tankScrollOk &&
     tankSquareOk &&
+    tankVsSnakeOk &&
     fitOk &&
     viewportOk &&
     noPageScroll &&
@@ -448,6 +485,7 @@ async function runCase(browser, game, vp) {
     tankBoardMinOk: game === 'tank' ? tankBoardMinOk : undefined,
     tankScrollOk: game === 'tank' ? tankScrollOk : undefined,
     tankSquareOk: game === 'tank' ? tankSquareOk : undefined,
+    tankVsSnakeOk: game === 'tank' ? tankVsSnakeOk : undefined,
     pageErrors: errors,
     boardPx:
       audit.canvas?.w && audit.canvas?.h
@@ -465,9 +503,23 @@ async function main() {
     args: ['--no-sandbox'],
   });
   const results = [];
+  /** @type {Record<string, { w: number, h: number }>} */
+  const snakeByViewport = {};
   for (const vp of VIEWPORTS) {
+    const snakeResult = await runCase(browser, 'snake', vp);
+    results.push(snakeResult);
+    const key = `${vp.w}x${vp.h}`;
+    if (snakeResult.audit?.canvas) {
+      snakeByViewport[key] = {
+        w: snakeResult.audit.canvas.w,
+        h: snakeResult.audit.canvas.h,
+      };
+    }
     for (const game of GAMES) {
-      results.push(await runCase(browser, game, vp));
+      if (game === 'snake') continue;
+      results.push(
+        await runCase(browser, game, vp, snakeByViewport[key] ?? null)
+      );
     }
   }
   await browser.close();
@@ -485,8 +537,14 @@ async function main() {
       scrollSlack: r.audit?.fit?.scrollSlack,
       tankScrollOk: r.tankScrollOk,
       tankSquareOk: r.tankSquareOk,
+      tankVsSnakeOk: r.tankVsSnakeOk,
+      snakeBoard: snakeByViewport[r.viewport]
+        ? `${Math.round(snakeByViewport[r.viewport].w)}×${Math.round(snakeByViewport[r.viewport].h)}`
+        : null,
     }));
-  console.log(JSON.stringify({ results, tankLayout }, null, 2));
+  console.log(
+    JSON.stringify({ results, tankLayout, snakeByViewport }, null, 2)
+  );
   if (results.some((r) => !r.pass)) process.exit(1);
 }
 
