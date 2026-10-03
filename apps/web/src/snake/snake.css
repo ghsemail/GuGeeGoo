@@ -626,12 +626,14 @@
 .overlay-card h2 {
   margin: 0 0 12px;
   font-size: 22px;
+  color: #fff;
 }
 
 .overlay-card p {
   margin: 0 0 20px;
   line-height: 1.5;
-  opacity: 0.9;
+  white-space: pre-line;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .overlay-actions {

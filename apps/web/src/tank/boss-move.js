@@ -9,7 +9,7 @@ import {
   DIR_NAMES,
 } from './constants.js';
 import { tileAt, damageTileAt } from './map.js';
-import { tryMoveTank, tankBodyClearAt } from './collision.js';
+import { tryMoveTank, tankBodyClearAt, tanksOverlap } from './collision.js';
 
 /** 2×2 左上角 (tx,ty) → 像素中心（格线交点，对齐碰撞体） */
 export function bossCenterFromBlock(tx, ty, tileSize) {
@@ -93,8 +93,34 @@ export function bossBlockHasMoveNeighbor(map, tx, ty) {
   return false;
 }
 
-function canPlaceFootprint(map, tx, ty) {
-  return blockFootprintCost(map, tx, ty) < Infinity;
+function otherTanksForBoss(boss, state) {
+  if (!state) return [];
+  /** @type {object[]} */
+  const list = [];
+  if (state.player) list.push(state.player);
+  for (const e of state.enemies || []) {
+    if (e && e.hp > 0) list.push(e);
+  }
+  return list;
+}
+
+function footprintOverlapsTank(map, tx, ty, tank) {
+  const c = bossCenterFromBlock(tx, ty, map.tileSize);
+  return tanksOverlap({ x: c.x, y: c.y, size: BOSS_SIZE }, tank);
+}
+
+/** 路径/下一步：地形 + 玩家与普通敌人占位 */
+export function canBossOccupyBlock(map, tx, ty, boss, state) {
+  if (blockFootprintCost(map, tx, ty) >= Infinity) return false;
+  if (!state) return true;
+  for (const t of otherTanksForBoss(boss, state)) {
+    if (footprintOverlapsTank(map, tx, ty, t)) return false;
+  }
+  return true;
+}
+
+function canPlaceFootprint(map, tx, ty, boss, state) {
+  return canBossOccupyBlock(map, tx, ty, boss, state);
 }
 
 function brickAheadOfFootprint(map, tx, ty, dir) {
@@ -162,7 +188,7 @@ function playerBlockTopLeft(player, ts) {
   return pixelToBlockTopLeft(player.x, player.y, ts);
 }
 
-function dijkstraPath(map, start, goalTx, goalTy) {
+function dijkstraPath(map, start, goalTx, goalTy, boss, state) {
   const key = (tx, ty) => `${tx},${ty}`;
   /** @type {Map<string, { tx: number, ty: number, cost: number, prev: string | null }>} */
   const dist = new Map();
@@ -195,6 +221,7 @@ function dijkstraPath(map, start, goalTx, goalTy) {
       const d = DIR[dir];
       const nx = cur.tx + d.x;
       const ny = cur.ty + d.y;
+      if (!canBossOccupyBlock(map, nx, ny, boss, state)) continue;
       const stepCost = blockFootprintCost(map, nx, ny);
       if (!Number.isFinite(stepCost)) continue;
       const nc = cur.cost + stepCost;
@@ -220,14 +247,14 @@ function dijkstraPath(map, start, goalTx, goalTy) {
   return path;
 }
 
-function pickGoalBlock(map, player, start) {
+function pickGoalBlock(map, player, start, boss, state) {
   const ts = map.tileSize;
   const pb = playerBlockTopLeft(player, ts);
   /** @type {{ tx: number, ty: number, score: number }[]} */
   const los = [];
   for (let ty = 1; ty < map.rows - 2; ty++) {
     for (let tx = 1; tx < map.cols - 2; tx++) {
-      if (!canPlaceFootprint(map, tx, ty)) continue;
+      if (!canPlaceFootprint(map, tx, ty, boss, state)) continue;
       if (hasLineOfFireFromBlock(map, tx, ty, player)) {
         const d = Math.abs(tx - start.tx) + Math.abs(ty - start.ty);
         los.push({ tx, ty, score: -d });
@@ -241,33 +268,35 @@ function pickGoalBlock(map, player, start) {
   return { tx: pb.tx, ty: pb.ty };
 }
 
-function randomNeighborBlock(map, start, avoidDir) {
+function randomNeighborBlock(map, start, avoidDir, boss, state) {
   const dirs = DIR_NAMES.slice().sort(() => Math.random() - 0.5);
   for (const dir of dirs) {
     if (avoidDir && dir === OPP[avoidDir]) continue;
     const d = DIR[dir];
     const nx = start.tx + d.x;
     const ny = start.ty + d.y;
-    if (canPlaceFootprint(map, nx, ny)) return { tx: nx, ty: ny, dir };
+    if (canPlaceFootprint(map, nx, ny, boss, state)) {
+      return { tx: nx, ty: ny, dir };
+    }
   }
   return null;
 }
 
-function replanBossPath(boss, map, player) {
+function replanBossPath(boss, map, player, state) {
   const start = { tx: boss.gridTx, ty: boss.gridTy };
   if (boss.forceDetour) {
     boss.forceDetour = false;
-    const roam = randomNeighborBlock(map, start, boss.moveCommitDir);
+    const roam = randomNeighborBlock(map, start, boss.moveCommitDir, boss, state);
     if (roam) {
       boss.plannedBlock = { tx: roam.tx, ty: roam.ty };
       boss.plannedDir = roam.dir;
       return;
     }
   }
-  const goal = pickGoalBlock(map, player, start);
-  const path = dijkstraPath(map, start, goal.tx, goal.ty);
+  const goal = pickGoalBlock(map, player, start, boss, state);
+  const path = dijkstraPath(map, start, goal.tx, goal.ty, boss, state);
   if (!path || path.length < 2) {
-    const roam = randomNeighborBlock(map, start, boss.moveCommitDir);
+    const roam = randomNeighborBlock(map, start, boss.moveCommitDir, boss, state);
     if (roam) {
       boss.plannedBlock = { tx: roam.tx, ty: roam.ty };
       boss.plannedDir = roam.dir;
@@ -323,7 +352,7 @@ export function updateBossMovement(boss, dt, state, hooks = {}) {
   boss.moving = false;
 
   if (!boss.atCellCenter) {
-    moveAlongCommittedCell(boss, map, dt, player);
+    moveAlongCommittedCell(boss, map, dt, state);
     return;
   }
 
@@ -332,10 +361,24 @@ export function updateBossMovement(boss, dt, state, hooks = {}) {
   boss.y = c.y;
 
   if (!boss.plannedBlock || boss.plannedDir == null) {
-    replanBossPath(boss, map, player);
+    replanBossPath(boss, map, player, state);
   }
 
   if (!boss.plannedBlock || !boss.plannedDir) return;
+
+  if (
+    !canBossOccupyBlock(
+      map,
+      boss.plannedBlock.tx,
+      boss.plannedBlock.ty,
+      boss,
+      state
+    )
+  ) {
+    boss.plannedBlock = null;
+    boss.plannedDir = null;
+    return;
+  }
 
   const brick = brickAheadOfFootprint(
     map,
@@ -347,7 +390,7 @@ export function updateBossMovement(boss, dt, state, hooks = {}) {
     damageTileAt(map, brick.tx, brick.ty);
     boss.breakBrickCd = 0.28;
     if (hooks.onShootBrick) hooks.onShootBrick();
-    replanBossPath(boss, map, player);
+    replanBossPath(boss, map, player, state);
     return;
   }
 
@@ -355,7 +398,7 @@ export function updateBossMovement(boss, dt, state, hooks = {}) {
     boss.plannedBlock.tx === boss.gridTx &&
     boss.plannedBlock.ty === boss.gridTy
   ) {
-    replanBossPath(boss, map, player);
+    replanBossPath(boss, map, player, state);
     return;
   }
 
@@ -370,10 +413,10 @@ export function updateBossMovement(boss, dt, state, hooks = {}) {
   );
   boss.plannedBlock = null;
   boss.plannedDir = null;
-  moveAlongCommittedCell(boss, map, dt, player);
+  moveAlongCommittedCell(boss, map, dt, state);
 }
 
-function moveAlongCommittedCell(boss, map, dt, player) {
+function moveAlongCommittedCell(boss, map, dt, state) {
   const ts = map.tileSize;
   const d = DIR[boss.moveCommitDir];
   if (!d || !boss.cellTarget) {
@@ -389,6 +432,16 @@ function moveAlongCommittedCell(boss, map, dt, player) {
   if (d.x < 0) nx = Math.max(nx, target.x);
   if (d.y > 0) ny = Math.min(ny, target.y);
   if (d.y < 0) ny = Math.max(ny, target.y);
+
+  const commitTx = boss.commitBlockTx;
+  const commitTy = boss.commitBlockTy;
+  if (
+    commitTx != null &&
+    commitTy != null &&
+    !canBossOccupyBlock(map, commitTx, commitTy, boss, state)
+  ) {
+    return;
+  }
 
   if (tryMoveTank(boss, nx, ny, map)) {
     boss.moving = true;
@@ -422,6 +475,6 @@ function moveAlongCommittedCell(boss, map, dt, player) {
     boss.moveCommitDir = null;
     boss.cellTarget = null;
     boss.moving = false;
-    replanBossPath(boss, map, player);
+    replanBossPath(boss, map, state.player, state);
   }
 }
