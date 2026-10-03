@@ -156,7 +156,9 @@ async function auditControls(page) {
         min: minTapFor(it.id),
       }));
 
-    const vh = window.innerHeight;
+    const vwLayout = document.documentElement.clientWidth;
+    const vhLayout = document.documentElement.clientHeight;
+    const vh = vhLayout;
     const docH = document.documentElement.scrollHeight;
     const scrollSlack = docH - vh;
     const toolbar = document.querySelector(
@@ -206,9 +208,9 @@ async function auditControls(page) {
     const landscapeBoardOk =
       !landscapeTablet || playR.height >= minBoardH * 0.85;
 
-    const vw = window.innerWidth;
+    const vw = vwLayout;
     const scrollWidth = document.documentElement.scrollWidth;
-    const overflowX = scrollWidth > vw + 1;
+    const overflowX = scrollWidth > vwLayout + 1;
     /** @type {{ id: string, left: number, top: number, right: number, bottom: number }[]} */
     const outOfViewport = [];
     const checkInViewport = (id, r) => {
@@ -256,7 +258,9 @@ async function auditControls(page) {
         minBoardH,
         overflowX,
         scrollWidth,
-        innerWidth: vw,
+        clientWidth: vwLayout,
+        clientHeight: vhLayout,
+        innerWidth: window.innerWidth,
       },
       outOfViewport,
       weaponSamples,
@@ -387,8 +391,13 @@ async function runCase(browser, game, vp) {
     (audit.outOfViewport?.length ?? 0) === 0 && !audit.fit?.overflowX;
 
   let landscapeOk = audit.landscapeBoardOk !== false;
+  let tankBoardMinOk = true;
   if (game === 'tank') {
     landscapeOk = viewportOk;
+    if (vp.w === 1180 && vp.h === 820) {
+      const boardW = audit.canvas?.w ?? 0;
+      tankBoardMinOk = boardW >= 480;
+    }
   }
   if (
     (game === 'breakout' || game === 'whack') &&
@@ -410,6 +419,7 @@ async function runCase(browser, game, vp) {
     audit.smallTargets.length === 0 &&
     audit.aspectOk !== false &&
     landscapeOk &&
+    tankBoardMinOk &&
     fitOk &&
     viewportOk &&
     noPageScroll &&
@@ -424,6 +434,7 @@ async function runCase(browser, game, vp) {
     audit,
     fitOk,
     viewportOk,
+    tankBoardMinOk: game === 'tank' ? tankBoardMinOk : undefined,
     pageErrors: errors,
     boardPx:
       audit.canvas?.w && audit.canvas?.h
@@ -455,7 +466,9 @@ async function main() {
       board: r.boardPx,
       weapons: r.weaponPx,
       overflowX: r.audit?.fit?.overflowX,
+      clientWidth: r.audit?.fit?.clientWidth,
       outOfViewport: r.audit?.outOfViewport?.length ?? 0,
+      tankBoardMinOk: r.tankBoardMinOk,
     }));
   console.log(JSON.stringify({ results, tankLayout }, null, 2));
   if (results.some((r) => !r.pass)) process.exit(1);

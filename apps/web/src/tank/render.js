@@ -60,8 +60,14 @@ function drawSteelTile(ctx, px, py, ts) {
 export function drawFrame(ctx, state) {
   const { map, player, enemies, bullets } = state;
   const ts = map.tileSize;
-  const w = ctx.canvas.width;
-  const h = ctx.canvas.height;
+  const logicalW = map.cols * ts;
+  const logicalH = map.rows * ts;
+  const displayScale = state.displayScale ?? 1;
+  const renderDpr = state.renderDpr ?? 1;
+  const paintScale = displayScale * renderDpr;
+  ctx.setTransform(paintScale, 0, 0, paintScale, 0, 0);
+  const w = logicalW;
+  const h = logicalH;
   const scroll = state.bgScroll || 0;
 
   drawParallaxBackground(ctx, w, h, scroll);

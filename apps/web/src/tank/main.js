@@ -155,10 +155,27 @@ if (typeof window !== 'undefined') {
   };
 }
 
+function layoutViewport() {
+  const root = document.documentElement;
+  const vv = window.visualViewport;
+  const clientW = root.clientWidth || window.innerWidth;
+  const clientH = root.clientHeight || window.innerHeight;
+  if (!vv) {
+    return { width: clientW, height: clientH, clientWidth: clientW, clientHeight: clientH };
+  }
+  return {
+    width: Math.min(clientW, Math.round(vv.width)),
+    height: Math.min(clientH, Math.round(vv.height)),
+    clientWidth: clientW,
+    clientHeight: clientH,
+  };
+}
+
 function touchControlMetrics(displayWidth) {
   const coarse = isTouchUi();
-  const narrow = window.innerWidth < 520;
-  const tablet = coarse && window.innerWidth >= 481;
+  const vpW = layoutViewport().clientWidth;
+  const narrow = vpW < 520;
+  const tablet = coarse && vpW >= 481;
   let dpadSize = narrow
     ? Math.min(44, Math.max(38, Math.round(displayWidth * 0.1)))
     : Math.min(44, Math.max(38, Math.round(displayWidth * 0.11)));
@@ -183,12 +200,16 @@ function gameChromeHeight() {
     '.screen-game .hud-bar',
     '.hud-armory',
     '.screen-game .hint',
-    '.screen-game .toolbar',
   ]) {
     const node = document.querySelector(sel);
     if (!node || node.closest('[hidden]')) continue;
     const r = node.getBoundingClientRect();
     if (r.height > 0) h += r.height;
+  }
+  const toolbar = document.querySelector('.screen-game .toolbar');
+  if (toolbar && !toolbar.closest('[hidden]')) {
+    const tr = toolbar.getBoundingClientRect();
+    if (tr.height > 0) h += tr.height + 12;
   }
   return h + 16;
 }
@@ -202,7 +223,7 @@ function isLandscapeTouchTablet() {
 
 function measureStageSideWidths(stage) {
   if (!stage) return { leftW: 0, rightW: 0 };
-  const left = stage.querySelector('.touch-rail-left');
+  const left = stage.querySelector('.touch-side-left, .touch-rail-left');
   const right = stage.querySelector('.touch-rail-right');
   const leftStyle = left ? getComputedStyle(left) : null;
   if (leftStyle?.display === 'none' || leftStyle?.display === 'contents') {
@@ -219,6 +240,12 @@ function measureStageSideWidths(stage) {
     leftW: left?.getBoundingClientRect().width ?? 0,
     rightW: right?.getBoundingClientRect().width ?? 0,
   };
+}
+
+function shouldAllowCanvasUpscale() {
+  if (!isTouchUi()) return false;
+  const { clientWidth } = layoutViewport();
+  return clientWidth >= 520;
 }
 
 function applyCanvasDisplaySize(
@@ -245,11 +272,11 @@ function applyCanvasDisplaySize(
 function resizeStage() {
   if (!game) return;
   const { width, height } = computeCanvasSize(game.map);
-  canvas.width = width;
-  canvas.height = height;
   const stage = canvas.closest('.canvas-stage');
   const landscapeSide = isLandscapeTouchTablet();
   const pagePad = 16;
+  const vp = layoutViewport();
+  const allowUpscale = shouldAllowCanvasUpscale();
 
   if (stage) {
     const { dpadSize, fireSize, dpadGap } = touchControlMetrics(width);
@@ -258,8 +285,8 @@ function resizeStage() {
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
   }
 
-  let maxW = window.innerWidth - pagePad;
-  let maxH = window.innerHeight - gameChromeHeight();
+  let maxW = vp.clientWidth - pagePad;
+  let maxH = vp.clientHeight - gameChromeHeight();
 
   if (isTouchUi() && stage) {
     canvas.style.width = '1px';
@@ -268,8 +295,8 @@ function resizeStage() {
     if (landscapeSide) {
       const { leftW, rightW } = measureStageSideWidths(stage);
       const gap = 28;
-      maxW = window.innerWidth - leftW - rightW - gap - pagePad;
-      maxH = window.innerHeight - gameChromeHeight();
+      maxW = vp.clientWidth - leftW - rightW - gap - pagePad;
+      maxH = vp.clientHeight - gameChromeHeight();
     } else {
       const weapons = stage.querySelector('.weapon-bar-host');
       const leftCol = stage.querySelector('.touch-left-col');
@@ -281,21 +308,45 @@ function resizeStage() {
           rightRail?.getBoundingClientRect().height ?? 0
         ) +
         20;
-      maxH = Math.max(120, window.innerHeight - gameChromeHeight() - reserve);
-      maxW = window.innerWidth - pagePad;
+      maxH = Math.max(120, vp.clientHeight - gameChromeHeight() - reserve);
+      maxW = vp.clientWidth - pagePad;
     }
   }
 
-  const sized = applyCanvasDisplaySize(
-    canvas,
-    width,
-    height,
-    Math.max(64, maxW),
-    Math.max(64, maxH),
-    { allowUpscale: false, minDisplayH: 0 }
-  );
-  canvas.dataset.displayW = String(sized.dw);
-  canvas.dataset.displayH = String(sized.dh);
+  let budgetW = Math.max(64, maxW);
+  let budgetH = Math.max(64, maxH);
+  let sized = applyCanvasDisplaySize(canvas, width, height, budgetW, budgetH, {
+    allowUpscale,
+    minDisplayH: 0,
+  });
+
+  for (let pass = 0; pass < 4; pass++) {
+    const renderDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const backingScale = sized.scale * renderDpr;
+    canvas.width = Math.max(1, Math.round(width * backingScale));
+    canvas.height = Math.max(1, Math.round(height * backingScale));
+    game.displayScale = sized.scale;
+    game.renderDpr = renderDpr;
+    canvas.dataset.displayW = String(sized.dw);
+    canvas.dataset.displayH = String(sized.dh);
+    void canvas.offsetHeight;
+
+    const wrap = document.querySelector('.screen-game .canvas-wrap');
+    const toolbar = document.querySelector('.screen-game .toolbar');
+    let bottom = wrap?.getBoundingClientRect().bottom ?? 0;
+    if (toolbar) {
+      bottom = Math.max(bottom, toolbar.getBoundingClientRect().bottom);
+    }
+    const scrollSlack =
+      document.documentElement.scrollHeight - vp.clientHeight;
+    const overflowY = Math.max(bottom - vp.clientHeight + 2, scrollSlack - 8);
+    if (overflowY <= 0) break;
+    budgetH = Math.max(64, budgetH - overflowY);
+    sized = applyCanvasDisplaySize(canvas, width, height, budgetW, budgetH, {
+      allowUpscale,
+      minDisplayH: 0,
+    });
+  }
 }
 
 function startLevel(levelIndex) {
@@ -462,6 +513,9 @@ function bindUi() {
   );
 
   window.addEventListener('resize', () => {
+    if (game) resizeStage();
+  });
+  window.visualViewport?.addEventListener('resize', () => {
     if (game) resizeStage();
   });
 }
