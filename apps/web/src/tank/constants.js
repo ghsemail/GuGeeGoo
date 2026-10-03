@@ -23,6 +23,17 @@ export const SCORE_MISSILE_KILL_BONUS = 50;
 /** 过关奖励（类似贪吃蛇过关 +50） */
 export const SCORE_LEVEL_CLEAR = 50;
 
+/** BOSS */
+/** 约 2×2 格，略缩小以便在宽地图出生 */
+export const BOSS_SIZE = TILE_SIZE * 2 - 4;
+export const BOSS_SPEED = 55;
+export const BOSS_HP_BY_LEVEL = [20, 28, 36, 45];
+export const BOSS_REWARD_PER_LEVEL = 300;
+export const BOSS_FREEZE_FACTOR = 0.5;
+export const BOSS_MISSILE_DAMAGE = 10;
+export const BOSS_MINE_DAMAGE = 6;
+export const PLAYER_FREEZE_SEC = 1.5;
+
 /** 导弹飞行与冷却 */
 export const MISSILE_SPEED = 320;
 export const MISSILE_COOLDOWN_SEC = 2;

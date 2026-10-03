@@ -12,6 +12,7 @@ import {
   PLAYER_SPEED,
   TANK_SIZE,
   TILE_SIZE,
+  BOSS_SIZE,
 } from './constants.js';
 import { getBarrelMuzzle } from './tank-geometry.js';
 
@@ -75,17 +76,43 @@ export function createMissile(tank) {
 
 export function createBullet(owner, tank, opts = {}) {
   const m = getBarrelMuzzle(tank);
+  const mul = opts.speedMul ?? 1;
   return {
     id: nextId++,
     ownerKind: owner,
     ownerId: tank.id,
     x: m.x,
     y: m.y,
-    vx: m.dx * BULLET_SPEED,
-    vy: m.dy * BULLET_SPEED,
-    radius: BULLET_RADIUS,
+    vx: m.dx * BULLET_SPEED * mul,
+    vy: m.dy * BULLET_SPEED * mul,
+    radius: opts.radius ?? BULLET_RADIUS,
     pierceSteel: !!opts.pierceSteel,
+    effect: opts.effect || null,
+    damage: opts.damage ?? 1,
     alive: true,
+  };
+}
+
+/** BOSS 导弹（略追踪玩家） */
+export function createBossMissile(boss, player) {
+  const m = getBarrelMuzzle(boss);
+  let dx = player.x - boss.x;
+  let dy = player.y - boss.y;
+  const len = Math.hypot(dx, dy) || 1;
+  dx /= len;
+  dy /= len;
+  return {
+    id: nextId++,
+    ownerKind: 'boss',
+    ownerId: boss.id,
+    kind: 'missile',
+    x: m.x,
+    y: m.y,
+    vx: dx * MISSILE_SPEED * 0.85,
+    vy: dy * MISSILE_SPEED * 0.85,
+    radius: BULLET_RADIUS + 3,
+    alive: true,
+    homing: true,
   };
 }
 

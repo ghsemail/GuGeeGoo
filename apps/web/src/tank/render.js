@@ -7,6 +7,7 @@ import {
   drawDetailedTank,
   PLAYER_PALETTE,
   ENEMY_PALETTE,
+  BOSS_PALETTE,
 } from './render-tanks.js';
 import { isEnemyFrozen, isPlayerShielded } from './consumables.js';
 
@@ -96,7 +97,26 @@ export function drawFrame(ctx, state) {
     drawDetailedTank(ctx, e, ENEMY_PALETTE, scroll, frozen);
     if (frozen) ctx.globalAlpha = 1;
   }
+
+  const boss = state.boss;
+  if (boss && boss.hp > 0) {
+    const frozen = isEnemyFrozen(boss, state.time);
+    if (boss.chargeTtl > 0 && Math.floor(state.time * 8) % 2 === 0) {
+      ctx.globalAlpha = 0.75;
+      ctx.fillStyle = 'rgba(255, 87, 34, 0.35)';
+      ctx.beginPath();
+      ctx.arc(boss.x, boss.y, boss.size * 0.75, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    if (frozen) ctx.globalAlpha = 0.55;
+    drawDetailedTank(ctx, boss, BOSS_PALETTE, scroll, boss.hitFlashTtl > 0);
+    if (frozen) ctx.globalAlpha = 1;
+    drawMiniBossBar(ctx, boss, ts);
+  }
+
   const shielded = isPlayerShielded(player, state.time);
+  const playerFrozen = player.frozenUntil && state.time < player.frozenUntil;
   drawDetailedTank(
     ctx,
     player,
@@ -104,6 +124,15 @@ export function drawFrame(ctx, state) {
     scroll,
     player.invuln > 0 || shielded
   );
+  if (playerFrozen) {
+    ctx.strokeStyle = 'rgba(129, 212, 250, 0.9)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.size * 0.75, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = '16px sans-serif';
+    ctx.fillText('❄️', player.x - 8, player.y - player.size * 0.5);
+  }
   if (shielded) {
     ctx.strokeStyle = 'rgba(79, 195, 247, 0.85)';
     ctx.lineWidth = 3;
@@ -114,12 +143,21 @@ export function drawFrame(ctx, state) {
 
   for (const b of bullets) {
     if (b.kind === 'missile') {
-      ctx.fillStyle = '#ff7675';
+      ctx.fillStyle = b.ownerKind === 'boss' ? '#FF5722' : '#ff7675';
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.radius + 1, 0, Math.PI * 2);
       ctx.fill();
       ctx.font = '14px sans-serif';
       ctx.fillText('🚀', b.x - 7, b.y + 5);
+      continue;
+    }
+    if (b.effect === 'freeze') {
+      ctx.fillStyle = '#81D4FA';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.radius + 1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = '12px sans-serif';
+      ctx.fillText('❄️', b.x - 6, b.y + 4);
       continue;
     }
     ctx.fillStyle = b.ownerKind === 'player' ? '#FFF59D' : '#FFAB91';
@@ -135,6 +173,28 @@ export function drawFrame(ctx, state) {
     ctx.fill();
   }
 
+  if (state.boss && state.boss.hp > 0) {
+    drawTopBossBar(ctx, state, w);
+  }
+
+  if (state.bossWarningTtl > 0 && !state.boss) {
+    ctx.fillStyle = 'rgba(211, 47, 47, 0.82)';
+    ctx.fillRect(w * 0.08, h * 0.38, w * 0.84, h * 0.12);
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.max(18, w * 0.045)}px PingFang SC, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('⚠️ BOSS 来了！', w / 2, h * 0.45);
+  }
+
+  if (state.bossRewardFlash > 0 && state.bossRewardText) {
+    ctx.fillStyle = 'rgba(255, 193, 7, 0.85)';
+    ctx.fillRect(w * 0.1, h * 0.12, w * 0.8, h * 0.1);
+    ctx.fillStyle = '#4E342E';
+    ctx.font = `bold ${Math.max(16, w * 0.04)}px PingFang SC, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`🎉 ${state.bossRewardText}`, w / 2, h * 0.18);
+  }
+
   if (state.paused && state.phase === 'playing') {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fillRect(0, 0, w, h);
@@ -143,4 +203,38 @@ export function drawFrame(ctx, state) {
     ctx.textAlign = 'center';
     ctx.fillText('暂停', w / 2, h / 2);
   }
+}
+
+function drawTopBossBar(ctx, state, w) {
+  const boss = state.boss;
+  if (!boss) return;
+  const pad = 8;
+  const barW = w - pad * 2;
+  const barH = 14;
+  const y = 6;
+  const ratio = boss.hp / boss.maxHp;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(pad, y, barW, barH + 18);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 12px PingFang SC, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`BOSS 第${state.levelDef.id}关`, pad + 4, y + 12);
+  ctx.textAlign = 'right';
+  ctx.fillText(`${boss.hp} / ${boss.maxHp}`, pad + barW - 4, y + 12);
+  ctx.fillStyle = '#424242';
+  ctx.fillRect(pad + 4, y + 16, barW - 8, barH);
+  ctx.fillStyle = boss.hitFlashTtl > 0 ? '#FFEB3B' : '#F44336';
+  ctx.fillRect(pad + 4, y + 16, (barW - 8) * ratio, barH);
+}
+
+function drawMiniBossBar(ctx, boss, ts) {
+  const w = boss.size * 1.1;
+  const h = 5;
+  const x = boss.x - w / 2;
+  const y = boss.y - boss.size / 2 - 10;
+  const ratio = boss.hp / boss.maxHp;
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = '#FF7043';
+  ctx.fillRect(x, y, w * ratio, h);
 }

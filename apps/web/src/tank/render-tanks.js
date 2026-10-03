@@ -18,6 +18,7 @@ export function drawDetailedTank(ctx, tank, palette, animPhase, blink = false) {
   const moving = !!tank.moving;
   const phase = moving ? (animPhase * 0.35) % 1 : 0;
   const s = tank.size;
+  const isBoss = tank.kind === 'boss';
 
   ctx.save();
   ctx.translate(tank.x, tank.y);
@@ -25,8 +26,15 @@ export function drawDetailedTank(ctx, tank, palette, animPhase, blink = false) {
 
   drawTracks(ctx, s, palette.track, phase, moving);
   drawHull(ctx, s, palette);
-  drawTurret(ctx, s, palette.turret);
-  drawBarrel(ctx, s);
+  drawTurret(ctx, s, palette.turret, isBoss ? 1.35 : 1);
+  drawBarrel(ctx, s, isBoss ? 1.25 : 1);
+
+  if (isBoss) {
+    ctx.rotate(-angle);
+    ctx.font = `${Math.max(14, s * 0.28)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('👑', 0, -s * 0.08);
+  }
 
   ctx.restore();
 }
@@ -77,8 +85,8 @@ function drawHull(ctx, s, palette) {
   ctx.stroke();
 }
 
-function drawTurret(ctx, s, color) {
-  const r = s * 0.22;
+function drawTurret(ctx, s, color, scale = 1) {
+  const r = s * 0.22 * scale;
   const g = ctx.createRadialGradient(-r * 0.2, -r * 0.2, r * 0.2, 0, 0, r);
   g.addColorStop(0, color);
   g.addColorStop(1, 'rgba(0,0,0,0.35)');
@@ -88,9 +96,9 @@ function drawTurret(ctx, s, color) {
   ctx.fill();
 }
 
-function drawBarrel(ctx, s) {
-  const len = s * BARREL_LENGTH_RATIO;
-  const bw = s * 0.12;
+function drawBarrel(ctx, s, scale = 1) {
+  const len = s * BARREL_LENGTH_RATIO * scale;
+  const bw = s * 0.12 * scale;
   ctx.fillStyle = '#37474F';
   ctx.beginPath();
   ctx.roundRect(0, -bw / 2, len, bw, 2);
@@ -111,4 +119,11 @@ export const ENEMY_PALETTE = {
   hullDark: '#B71C1C',
   track: '#4A148C',
   turret: '#FF8A80',
+};
+
+export const BOSS_PALETTE = {
+  hull: '#FFB300',
+  hullDark: '#5D4037',
+  track: '#3E2723',
+  turret: '#FF6F00',
 };

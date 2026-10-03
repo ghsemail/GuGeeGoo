@@ -25,7 +25,7 @@ export const GAMES = [
     emoji: '🛡️',
     href: '/tank/',
     description:
-      '4 关大地图击毁敌人！道具商店 7 种道具：导弹、地雷、护盾……平板触屏和键盘都能玩。',
+      '4 关大地图清掉小兵后 BOSS 登场！道具商店 7 种道具，击败 BOSS 有大奖——平板触屏和键盘都能玩。',
     statKeys: {
       best: 'gugeegoo_tank_best_score',
       lifetime: 'gugeegoo_tank_lifetime_earned',

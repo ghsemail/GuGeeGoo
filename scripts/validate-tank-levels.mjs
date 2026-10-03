@@ -4,6 +4,7 @@
  */
 import { LEVELS } from '../apps/web/src/tank/levels.js';
 import { createMapFromLevel } from '../apps/web/src/tank/map.js';
+import { findBossSpawn } from '../apps/web/src/tank/boss.js';
 import { TILE } from '../apps/web/src/tank/constants.js';
 
 const PASSABLE = new Set([TILE.EMPTY, TILE.BRICK, TILE.BASE]);
@@ -110,6 +111,15 @@ function validateLevel(level) {
   } catch (e) {
     issues.push(`createMapFromLevel: ${e.message}`);
     mapOk = false;
+  }
+
+  try {
+    const map = createMapFromLevel(level);
+    if (!findBossSpawn(map)) {
+      issues.push('找不到 BOSS 2×2 出生点');
+    }
+  } catch (e) {
+    issues.push(`BOSS 出生点: ${e.message}`);
   }
 
   return {

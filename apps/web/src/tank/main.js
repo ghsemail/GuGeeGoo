@@ -110,7 +110,13 @@ function refreshHud() {
   el.hudLevel.textContent = `第 ${game.levelDef.id} 关`;
   el.hudScore.textContent = String(game.score);
   el.hudLives.textContent = livesText(game.lives);
-  el.hudEnemies.textContent = String(game.enemies.length);
+  if (game.boss && game.boss.hp > 0) {
+    el.hudEnemies.textContent = `BOSS ${game.boss.hp}/${game.boss.maxHp}`;
+  } else if (game.bossWarningStarted && game.bossWarningTtl > 0) {
+    el.hudEnemies.textContent = '⚠️ BOSS';
+  } else {
+    el.hudEnemies.textContent = String(game.enemies.length);
+  }
   el.hint.textContent = game.levelDef.hint;
   refreshItemHud();
 }
@@ -261,9 +267,12 @@ function exitToMenu() {
 function onWin() {
   bankSessionScore();
   saveBestScore(game.score);
+  const bossLine = game.lastBossBonus
+    ? `\n击败 BOSS 奖励 +${game.lastBossBonus}！`
+    : '';
   showOverlay(
     '🎉 关卡完成！',
-    `得分 ${game.score} 已计入累计积分，可用积分能去商店买导弹哦！`,
+    `得分 ${game.score} 已计入累计积分。${bossLine}\n可用积分能去商店买道具哦！`,
     [
       {
         label: '再玩本关',

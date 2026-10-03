@@ -6,7 +6,9 @@ import {
   MAX_LIVES,
   SCORE_ENEMY_NORMAL,
   SCORE_MISSILE_KILL_BONUS,
+  BOSS_MINE_DAMAGE,
 } from './constants.js';
+import { damageBoss, applyFreezeToBoss } from './boss.js';
 import { DIR } from './constants.js';
 import { createMissile } from './entities.js';
 import { explodeArea } from './map.js';
@@ -31,6 +33,13 @@ function detonateAt(state, cx, cy, radius = 1) {
     if (Math.abs(etx - tx) <= radius && Math.abs(ety - ty) <= radius) {
       e.hp = 0;
       state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
+    }
+  }
+  if (state.boss) {
+    const bx = Math.floor(state.boss.x / ts);
+    const by = Math.floor(state.boss.y / ts);
+    if (Math.abs(bx - tx) <= radius + 1 && Math.abs(by - ty) <= radius + 1) {
+      damageBoss(state.boss, BOSS_MINE_DAMAGE, state);
     }
   }
   state.explosions.push({ x: cx, y: cy, ttl: 0.35 });
@@ -80,6 +89,9 @@ function useFreeze(state) {
   for (const e of state.enemies) {
     e.frozenUntil = until;
   }
+  if (state.boss) {
+    applyFreezeToBoss(state.boss, until, state.time);
+  }
   return true;
 }
 
@@ -125,6 +137,10 @@ export function updateMines(state) {
         detonateAt(state, m.x, m.y, 1);
         break;
       }
+    }
+    if (m.alive && state.boss && tanksOverlap({ x: m.x, y: m.y, size: ts * 0.35 }, state.boss)) {
+      m.alive = false;
+      detonateAt(state, m.x, m.y, 1);
     }
   }
   state.mines = state.mines.filter((m) => m.alive);
