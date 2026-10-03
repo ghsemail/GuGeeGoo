@@ -9,26 +9,13 @@
     <header class="plant-header">
       <a class="back-link" href="/">← 回导航页</a>
       <h1>🌱 养电子植物</h1>
-      <p class="tagline">顾景源 · 慢慢照顾小植物</p>
+      <p class="tagline">顾景源 · 慢慢照顾小苔藓</p>
     </header>
 
     <main class="plant-main">
-      <section class="plant-section plant-section-seeds" aria-labelledby="seeds-heading">
-        <h2 id="seeds-heading" class="section-title">挑种子</h2>
-        <div class="seed-row" role="list">
-          <button type="button" class="seed-card" role="listitem" data-seed="sunflower">
-            <span class="seed-emoji" aria-hidden="true">🌻</span>
-            <span class="seed-name">向日葵</span>
-          </button>
-          <button type="button" class="seed-card" role="listitem" data-seed="cactus">
-            <span class="seed-emoji" aria-hidden="true">🌵</span>
-            <span class="seed-name">仙人掌</span>
-          </button>
-          <button type="button" class="seed-card" role="listitem" data-seed="tomato">
-            <span class="seed-emoji" aria-hidden="true">🍅</span>
-            <span class="seed-name">番茄</span>
-          </button>
-        </div>
+      <section class="plant-section plant-section-pick" aria-labelledby="pick-heading">
+        <h2 id="pick-heading" class="section-title">挑苔藓</h2>
+        <div id="bryophyte-picker" class="bryophyte-picker"></div>
       </section>
 
       <section class="plant-section plant-section-display" aria-labelledby="display-heading">
@@ -38,7 +25,10 @@
             <div class="pot-rim"></div>
             <div class="pot-body">
               <div class="soil-spot">
-                <p class="soil-placeholder">植物会在这里长大</p>
+                <p id="pot-species-name" class="pot-species-name" hidden></p>
+                <p id="pot-species-habit" class="pot-species-habit">
+                  先挑一种苔藓，看看它喜欢什么样的环境
+                </p>
               </div>
             </div>
           </div>

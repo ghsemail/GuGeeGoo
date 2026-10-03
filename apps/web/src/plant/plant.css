@@ -88,21 +88,46 @@
   border: 0;
 }
 
-/* 种子卡片 */
-.seed-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.seed-card {
+/* 挑苔藓 */
+.bryophyte-picker {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   gap: 4px;
-  min-height: 72px;
-  padding: 8px 6px;
+  min-width: 0;
+}
+
+.bryo-group-title {
+  margin: 4px 0 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.bryo-group-title:first-child {
+  margin-top: 0;
+}
+
+.bryo-card-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.bryo-card {
+  flex: 0 0 min(210px, 78vw);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 88px;
+  padding: 8px 10px;
   border: 2px solid transparent;
   border-radius: 14px;
   background: var(--card-bg);
@@ -112,22 +137,31 @@
   -webkit-tap-highlight-color: transparent;
   font: inherit;
   color: inherit;
+  text-align: left;
 }
 
-.seed-card.is-selected {
+.bryo-card.is-selected {
   border-color: var(--accent);
   background: #f1f8e9;
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
-.seed-emoji {
-  font-size: clamp(1.75rem, 5vw, 2.25rem);
+.bryo-card-icon {
+  font-size: 1.5rem;
   line-height: 1;
 }
 
-.seed-name {
+.bryo-card-name {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.bryo-card-habit {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--muted);
 }
 
 /* 花盆展示 */
@@ -177,13 +211,22 @@
   padding: 8px;
 }
 
-.soil-placeholder {
+.pot-species-name {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: clamp(12px, 2.6vw, 14px);
+  font-weight: 800;
+  color: #fff9c4;
+  line-height: 1.3;
+}
+
+.pot-species-habit {
   margin: 0;
   text-align: center;
-  font-size: clamp(12px, 2.8vw, 14px);
+  font-size: clamp(11px, 2.5vw, 13px);
   font-weight: 600;
   color: #efebe9;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 /* 状态条 */
@@ -313,7 +356,7 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
     grid-template-rows: auto 1fr auto auto;
     grid-template-areas:
-      'seeds seeds'
+      'pick pick'
       'display status'
       'display care'
       'save save';
@@ -321,8 +364,18 @@
     align-content: stretch;
   }
 
-  .plant-section-seeds {
-    grid-area: seeds;
+  .plant-section-pick {
+    grid-area: pick;
+    min-width: 0;
+  }
+
+  .bryo-card {
+    flex: 0 0 min(180px, 28vw);
+    min-height: 76px;
+  }
+
+  .bryo-card-habit {
+    font-size: 10px;
   }
 
   .plant-section-display {
@@ -353,10 +406,6 @@
 
   .pot {
     max-height: min(100%, 220px);
-  }
-
-  .seed-card {
-    min-height: 64px;
   }
 
   .care-btn {
