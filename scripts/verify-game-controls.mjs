@@ -23,6 +23,14 @@ const GAMES = ['snake', 'tank', 'whack', 'breakout', '2048'];
 /** @type {readonly string[]} */
 const TANK_TABLET_VIEWPORTS = ['768x1024', '820x1180', '1024x768', '1180x820'];
 
+/** @type {ViewportCase[]} */
+const TANK_FINE_TABLET_VIEWPORTS = [
+  { label: 'tablet-fine', w: 768, h: 1024, touch: false },
+  { label: 'tablet-fine', w: 820, h: 1180, touch: false },
+  { label: 'tablet-fine', w: 1024, h: 768, touch: false, expectNoPageScroll: true },
+  { label: 'tablet-fine', w: 1180, h: 820, touch: false, expectNoPageScroll: true },
+];
+
 async function auditControls(page) {
   return page.evaluate(() => {
     const canvas = document.getElementById('game-canvas');
@@ -366,15 +374,18 @@ async function runCase(browser, game, vp, snakeBoardRef = null) {
       throw new Error(`unknown game ${game}`);
   }
 
-  await page.evaluate(() => {
+  await page.evaluate((gameName) => {
     if (typeof window.__syncTouchControls === 'function') window.__syncTouchControls();
-    if (window.matchMedia('(pointer: fine)').matches) {
+    if (
+      gameName !== 'tank' &&
+      window.matchMedia('(pointer: fine)').matches
+    ) {
       document.documentElement.classList.add('no-touch-controls');
     }
     if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
     window.dispatchEvent(new Event('resize'));
     if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
-  });
+  }, game);
   await new Promise((r) => setTimeout(r, 400));
 
   let audit = await auditControls(page);
@@ -497,6 +508,83 @@ async function runCase(browser, game, vp, snakeBoardRef = null) {
   };
 }
 
+/**
+ * @param {import('puppeteer').Browser} browser
+ * @param {ViewportCase} vp
+ * @param {number} coarseBoardSide
+ */
+async function runTankFineTabletCase(browser, vp, coarseBoardSide) {
+  const page = await browser.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      get: () => 10,
+      configurable: true,
+    });
+  });
+  const cdp = await page.createCDPSession();
+  await cdp.send('Emulation.setEmulatedMedia', {
+    features: [
+      { name: 'pointer', value: 'fine' },
+      { name: 'hover', value: 'hover' },
+    ],
+  });
+  await page.setViewport({
+    width: vp.w,
+    height: vp.h,
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 2,
+  });
+  await startTankGame(page);
+  await page.evaluate(() => {
+    if (typeof window.__syncTouchControls === 'function') window.__syncTouchControls();
+    if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
+    window.dispatchEvent(new Event('resize'));
+    if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
+  });
+  await new Promise((r) => setTimeout(r, 400));
+  const audit = await auditControls(page);
+  await page.close();
+
+  const viewportKey = `${vp.w}x${vp.h}`;
+  const boardW = audit.canvas?.w ?? 0;
+  const boardH = audit.canvas?.h ?? 0;
+  const boardSide = Math.min(boardW, boardH);
+  const vh = audit.fit?.clientHeight ?? vp.h;
+  const vsCoarse =
+    coarseBoardSide > 0 ? boardSide >= coarseBoardSide * 0.95 - 2 : true;
+  const vsHeight =
+    vp.w > vp.h ? boardSide >= vh * 0.85 - 2 : true;
+  const tankFineOk = vsCoarse || vsHeight;
+  const pass =
+    !audit.error &&
+    audit.overlaps.length === 0 &&
+    (audit.outOfViewport?.length ?? 0) === 0 &&
+    !audit.fit?.overflowX &&
+    (audit.fit?.scrollSlack ?? 0) <= 2 &&
+    Math.abs(boardW - boardH) <= 2 &&
+    tankFineOk &&
+    errors.length === 0;
+
+  return {
+    game: 'tank',
+    viewport: viewportKey,
+    profile: 'tablet-fine-pointer',
+    touch: false,
+    pass,
+    audit,
+    tankFineOk,
+    coarseBoardSide,
+    boardPx:
+      boardW && boardH
+        ? `${Math.round(boardW)}×${Math.round(boardH)}`
+        : null,
+    pageErrors: errors,
+  };
+}
+
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
@@ -522,11 +610,32 @@ async function main() {
       );
     }
   }
+
+  /** @type {Record<string, number>} */
+  const coarseTankSideByViewport = {};
+  for (const r of results) {
+    if (r.game !== 'tank' || !r.touch) continue;
+    if (!TANK_TABLET_VIEWPORTS.includes(r.viewport)) continue;
+    const m = r.boardPx?.match(/^(\d+)/);
+    if (m) coarseTankSideByViewport[r.viewport] = Number(m[1]);
+  }
+  for (const vp of TANK_FINE_TABLET_VIEWPORTS) {
+    const key = `${vp.w}x${vp.h}`;
+    results.push(
+      await runTankFineTabletCase(
+        browser,
+        vp,
+        coarseTankSideByViewport[key] ?? 0
+      )
+    );
+  }
+
   await browser.close();
   const tankLayout = results
     .filter((r) => r.game === 'tank')
     .map((r) => ({
       viewport: r.viewport,
+      profile: r.profile,
       pass: r.pass,
       board: r.boardPx,
       weapons: r.weaponPx,
@@ -541,9 +650,15 @@ async function main() {
       snakeBoard: snakeByViewport[r.viewport]
         ? `${Math.round(snakeByViewport[r.viewport].w)}×${Math.round(snakeByViewport[r.viewport].h)}`
         : null,
+      coarseRefSide: r.coarseBoardSide,
+      tankFineOk: r.tankFineOk,
     }));
   console.log(
-    JSON.stringify({ results, tankLayout, snakeByViewport }, null, 2)
+    JSON.stringify(
+      { results, tankLayout, snakeByViewport, coarseTankSideByViewport },
+      null,
+      2
+    )
   );
   if (results.some((r) => !r.pass)) process.exit(1);
 }

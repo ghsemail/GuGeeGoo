@@ -806,6 +806,74 @@
   }
 }
 
+@media (orientation: landscape) and (min-width: 700px) {
+  html.tank-show-touch-controls .tank-page:has(#screen-game:not([hidden])) {
+    padding: 6px 8px 0;
+  }
+
+  html.tank-show-touch-controls .canvas-stage {
+    grid-template-columns: auto auto auto;
+    grid-template-rows: auto;
+    grid-template-areas: 'left board right';
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  html.tank-show-touch-controls .touch-side-left {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    grid-area: left;
+    width: max-content;
+    max-width: 140px;
+    flex-shrink: 0;
+  }
+
+  html.tank-show-touch-controls .weapon-bar-host {
+    grid-area: unset;
+    width: 100%;
+  }
+
+  html.tank-show-touch-controls .touch-left-col {
+    grid-area: unset;
+  }
+
+  html.tank-show-touch-controls .canvas-board-wrap {
+    min-width: 0;
+    max-width: none;
+  }
+
+  html.tank-show-touch-controls .touch-side-left,
+  html.tank-show-touch-controls .touch-rail-right {
+    align-self: center;
+    align-items: center;
+  }
+
+  html.tank-show-touch-controls .weapon-row-primary {
+    grid-template-columns: repeat(2, 64px);
+  }
+
+  html.tank-show-touch-controls .weapon-row-mini {
+    grid-template-columns: repeat(2, 56px);
+  }
+
+  html.tank-show-touch-controls .weapon-btn-primary {
+    min-width: 64px;
+    width: 64px;
+    max-width: 64px;
+    min-height: 64px;
+  }
+
+  html.tank-show-touch-controls .weapon-btn-mini {
+    min-width: 56px;
+    width: 56px;
+    max-width: 56px;
+    min-height: 56px;
+  }
+}
+
 @media (pointer: coarse) and (min-width: 481px) {
   .canvas-stage {
     --dpad-size: 68px;
@@ -891,6 +959,17 @@
   .touch-rail {
     display: none !important;
   }
+
+  html.tank-show-touch-controls .touch-rail,
+  html.tank-show-touch-controls .touch-side-left {
+    display: flex !important;
+  }
+
+  html.tank-show-touch-controls .canvas-stage {
+    --dpad-size: 68px;
+    --dpad-gap: 12px;
+    --fire-btn-size: 64px;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -898,10 +977,21 @@
     display: none !important;
   }
 
+  html.tank-show-touch-controls .touch-rail,
+  html.tank-show-touch-controls .touch-side-left {
+    display: flex !important;
+  }
+
   .canvas-stage {
     grid-template-columns: 1fr;
     grid-template-areas: 'board';
     justify-items: center;
+  }
+
+  html.tank-show-touch-controls .canvas-stage {
+    grid-template-columns: unset;
+    grid-template-areas: unset;
+    justify-items: unset;
   }
 }
 

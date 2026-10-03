@@ -136,16 +136,25 @@ function bankSessionScore() {
   return getWalletSnapshot();
 }
 
+function isTabletViewport() {
+  const vp = layoutViewport();
+  return Math.min(vp.clientWidth, vp.clientHeight) >= 600;
+}
+
 function isTouchUi() {
-  if (window.matchMedia('(pointer: fine)').matches) return false;
-  return (
-    window.matchMedia('(pointer: coarse)').matches ||
-    window.matchMedia('(hover: none)').matches
-  );
+  if (!window.matchMedia('(pointer: fine)').matches) {
+    return (
+      window.matchMedia('(pointer: coarse)').matches ||
+      window.matchMedia('(hover: none)').matches
+    );
+  }
+  return navigator.maxTouchPoints > 0 && isTabletViewport();
 }
 
 function syncTouchControlsVisibility() {
-  document.documentElement.classList.toggle('no-touch-controls', !isTouchUi());
+  const show = isTouchUi();
+  document.documentElement.classList.toggle('no-touch-controls', !show);
+  document.documentElement.classList.toggle('tank-show-touch-controls', show);
 }
 
 if (typeof window !== 'undefined') {
@@ -256,6 +265,7 @@ function measureStageSideWidths(stage) {
 }
 
 function shouldAllowCanvasUpscale() {
+  if (isTabletViewport()) return true;
   if (isTouchTablet()) return true;
   if (!isTouchUi()) return false;
   return layoutViewport().clientWidth >= 520;
@@ -322,6 +332,7 @@ function resizeStage() {
   const stage = canvas.closest('.canvas-stage');
   const landscapeSide = isLandscapeTouchTablet();
   const tablet = isTouchTablet();
+  const boardTablet = isTabletViewport();
   const pagePad = tablet ? 8 : 16;
   const vp = layoutViewport();
   const allowUpscale = shouldAllowCanvasUpscale();
@@ -337,8 +348,8 @@ function resizeStage() {
   let maxW = vp.clientWidth - pagePad * 2;
   let maxH = vp.clientHeight - gameChromeHeight();
 
-  if (isTouchUi() && stage) {
-    refreshWeaponBar(el.weaponBarHost);
+  if ((isTouchUi() || boardTablet) && stage) {
+    if (isTouchUi()) refreshWeaponBar(el.weaponBarHost);
     canvas.style.width = '1px';
     canvas.style.height = '1px';
     void stage.offsetWidth;
@@ -372,6 +383,18 @@ function resizeStage() {
       minDisplaySide = Math.floor(
         Math.min(maxW, maxH, vp.clientWidth * 0.9)
       );
+    } else if (boardTablet && !isTouchUi()) {
+      maxW = vp.clientWidth - pagePad * 2;
+      maxH = vp.clientHeight - gameChromeHeight();
+      if (landscapeSide) {
+        minDisplaySide = Math.floor(
+          Math.min(maxW, maxH, vp.clientHeight * 0.85)
+        );
+      } else {
+        minDisplaySide = Math.floor(
+          Math.min(maxW, maxH, vp.clientWidth * 0.9)
+        );
+      }
     } else {
       const weapons = stage.querySelector('.weapon-bar-host');
       const leftCol = stage.querySelector('.touch-left-col');
