@@ -18,6 +18,7 @@ export default defineConfig({
         whack: path.resolve(__dirname, 'whack/index.html'),
         breakout: path.resolve(__dirname, 'breakout/index.html'),
         game2048: path.resolve(__dirname, '2048/index.html'),
+        plant: path.resolve(__dirname, 'plant/index.html'),
       },
     },
   },

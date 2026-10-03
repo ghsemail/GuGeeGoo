@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>养电子植物 · GuGeeGoo</title>
+  </head>
+  <body class="plant-page">
+    <header class="plant-header">
+      <a class="back-link" href="/">← 回导航页</a>
+      <h1>🌱 养电子植物</h1>
+      <p class="tagline">顾景源 · 慢慢照顾小植物</p>
+    </header>
+
+    <main class="plant-main">
+      <section class="plant-section plant-section-seeds" aria-labelledby="seeds-heading">
+        <h2 id="seeds-heading" class="section-title">挑种子</h2>
+        <div class="seed-row" role="list">
+          <button type="button" class="seed-card" role="listitem" data-seed="sunflower">
+            <span class="seed-emoji" aria-hidden="true">🌻</span>
+            <span class="seed-name">向日葵</span>
+          </button>
+          <button type="button" class="seed-card" role="listitem" data-seed="cactus">
+            <span class="seed-emoji" aria-hidden="true">🌵</span>
+            <span class="seed-name">仙人掌</span>
+          </button>
+          <button type="button" class="seed-card" role="listitem" data-seed="tomato">
+            <span class="seed-emoji" aria-hidden="true">🍅</span>
+            <span class="seed-name">番茄</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="plant-section plant-section-display" aria-labelledby="display-heading">
+        <h2 id="display-heading" class="section-title visually-hidden">植物展示</h2>
+        <div class="pot-scene">
+          <div class="pot" aria-hidden="true">
+            <div class="pot-rim"></div>
+            <div class="pot-body">
+              <div class="soil-spot">
+                <p class="soil-placeholder">植物会在这里长大</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="plant-section plant-section-status" aria-labelledby="status-heading">
+        <h2 id="status-heading" class="section-title">状态</h2>
+        <div class="stat-bars">
+          <label class="stat-row">
+            <span class="stat-label">💧 水分</span>
+            <span class="stat-track" aria-hidden="true"><span class="stat-fill" style="width: 40%"></span></span>
+            <span class="stat-value">40</span>
+          </label>
+          <label class="stat-row">
+            <span class="stat-label">☀️ 阳光</span>
+            <span class="stat-track" aria-hidden="true"><span class="stat-fill stat-fill-sun" style="width: 55%"></span></span>
+            <span class="stat-value">55</span>
+          </label>
+          <label class="stat-row">
+            <span class="stat-label">🧪 养分</span>
+            <span class="stat-track" aria-hidden="true"><span class="stat-fill stat-fill-nutrient" style="width: 35%"></span></span>
+            <span class="stat-value">35</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="plant-section plant-section-care" aria-labelledby="care-heading">
+        <h2 id="care-heading" class="section-title">照顾</h2>
+        <div class="care-row">
+          <button type="button" class="care-btn" data-stub-care>💧 浇水</button>
+          <button type="button" class="care-btn" data-stub-care>☀️ 晒太阳</button>
+          <button type="button" class="care-btn" data-stub-care>🧪 施肥</button>
+        </div>
+      </section>
+
+      <section class="plant-section plant-section-save" aria-labelledby="save-heading">
+        <h2 id="save-heading" class="section-title visually-hidden">存档</h2>
+        <div class="save-row">
+          <button type="button" class="save-btn" data-stub-save>💾 保存</button>
+          <button type="button" class="save-btn" data-stub-save>📂 读取</button>
+        </div>
+      </section>
+    </main>
+
+    <p id="plant-hint" class="plant-hint" hidden role="status">这个功能还在做～</p>
+
+    <script type="module" src="/src/plant/main.js"></script>
+  </body>
+</html>

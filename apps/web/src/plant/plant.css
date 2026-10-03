@@ -1,0 +1,380 @@
+/* 养电子植物 — 框架样式（平板优先，一屏展示） */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.plant-page {
+  --plant-bg: linear-gradient(165deg, #e8f5e9 0%, #fffde7 45%, #ffe0b2 100%);
+  --text: #2e4a3f;
+  --muted: #5d7268;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --accent: #43a047;
+  --accent-soft: #a5d6a7;
+  --pot: #8d6e63;
+  --soil: #5d4037;
+  margin: 0;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  font-family: system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--plant-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px 10px;
+}
+
+.plant-header {
+  flex-shrink: 0;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.back-link {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: 2px;
+}
+
+.back-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.plant-header h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+  line-height: 1.2;
+}
+
+.tagline {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.plant-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  overflow: hidden;
+}
+
+.section-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 种子卡片 */
+.seed-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.seed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 8px 6px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--card-bg);
+  box-shadow: 0 2px 8px rgba(46, 74, 63, 0.12);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.seed-card.is-selected {
+  border-color: var(--accent);
+  background: #f1f8e9;
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.seed-emoji {
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  line-height: 1;
+}
+
+.seed-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* 花盆展示 */
+.pot-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.pot {
+  width: min(100%, 280px);
+  max-height: min(42vh, 240px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pot-rim {
+  width: 72%;
+  height: 10px;
+  border-radius: 6px 6px 2px 2px;
+  background: #a1887f;
+}
+
+.pot-body {
+  width: 100%;
+  flex: 1;
+  min-height: 120px;
+  border-radius: 8px 8px 20px 20px;
+  background: linear-gradient(180deg, #a1887f 0%, var(--pot) 40%, #6d4c41 100%);
+  padding: 12px 14px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.soil-spot {
+  width: 78%;
+  aspect-ratio: 1.15;
+  max-height: 100%;
+  border-radius: 50% 50% 45% 45%;
+  background: radial-gradient(circle at 30% 25%, #6d4c41, var(--soil));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.soil-placeholder {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(12px, 2.8vw, 14px);
+  font-weight: 600;
+  color: #efebe9;
+  line-height: 1.35;
+}
+
+/* 状态条 */
+.stat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 4.5em 1fr 2em;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.stat-label {
+  font-weight: 700;
+}
+
+.stat-track {
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.stat-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #64b5f6, #42a5f5);
+}
+
+.stat-fill-sun {
+  background: linear-gradient(90deg, #ffca28, #ffb300);
+}
+
+.stat-fill-nutrient {
+  background: linear-gradient(90deg, #aed581, #7cb342);
+}
+
+.stat-value {
+  text-align: right;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* 照顾按钮 */
+.care-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.care-btn {
+  min-height: 52px;
+  padding: 10px 6px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: clamp(14px, 2.5vw, 16px);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 3px 0 #2e7d32;
+}
+
+.care-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #2e7d32;
+}
+
+.save-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.save-btn {
+  min-height: 44px;
+  border: 2px dashed rgba(46, 74, 63, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.plant-hint {
+  flex-shrink: 0;
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e65100;
+  background: rgba(255, 243, 224, 0.95);
+  border-radius: 10px;
+}
+
+/* 平板横屏：两列，避免纵向滚动 */
+@media (orientation: landscape) and (min-width: 700px) {
+  .plant-page {
+    padding: 6px 14px 8px;
+  }
+
+  .plant-header {
+    margin-bottom: 4px;
+  }
+
+  .plant-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  .plant-main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-rows: auto 1fr auto auto;
+    grid-template-areas:
+      'seeds seeds'
+      'display status'
+      'display care'
+      'save save';
+    gap: 6px 12px;
+    align-content: stretch;
+  }
+
+  .plant-section-seeds {
+    grid-area: seeds;
+  }
+
+  .plant-section-display {
+    grid-area: display;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .plant-section-status {
+    grid-area: status;
+    align-self: start;
+  }
+
+  .plant-section-care {
+    grid-area: care;
+    align-self: end;
+  }
+
+  .plant-section-save {
+    grid-area: save;
+  }
+
+  .pot-scene {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .pot {
+    max-height: min(100%, 220px);
+  }
+
+  .seed-card {
+    min-height: 64px;
+  }
+
+  .care-btn {
+    min-height: 48px;
+  }
+}
+
+/* 平板竖屏：紧凑单列 */
+@media (orientation: portrait) and (min-width: 600px) {
+  .plant-main {
+    gap: 10px;
+  }
+
+  .pot {
+    max-height: min(28vh, 200px);
+  }
+
+  .pot-body {
+    min-height: 100px;
+  }
+}
