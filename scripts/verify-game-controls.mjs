@@ -363,7 +363,9 @@ async function runCase(browser, game, vp) {
     if (window.matchMedia('(pointer: fine)').matches) {
       document.documentElement.classList.add('no-touch-controls');
     }
+    if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
     window.dispatchEvent(new Event('resize'));
+    if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
   });
   await new Promise((r) => setTimeout(r, 400));
 

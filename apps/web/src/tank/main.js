@@ -150,6 +150,9 @@ function syncTouchControlsVisibility() {
 
 if (typeof window !== 'undefined') {
   window.__syncTouchControls = syncTouchControlsVisibility;
+  window.__tankResizeStage = () => {
+    if (game) resizeStage();
+  };
 }
 
 function touchControlMetrics(displayWidth) {
@@ -304,6 +307,7 @@ function startLevel(levelIndex) {
   showScreen('game');
   refreshHud();
   resizeStage();
+  requestAnimationFrame(() => resizeStage());
   el.btnPause.textContent = '暂停';
   lastFrameTime = performance.now();
   if (!animId) animId = requestAnimationFrame(loop);
