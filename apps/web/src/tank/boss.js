@@ -8,6 +8,7 @@ import {
   BOSS_REWARD_PER_LEVEL,
   BOSS_FREEZE_FACTOR,
   BULLET_SPEED,
+  TILE,
   DIR,
   DIR_NAMES,
 } from './constants.js';
@@ -131,6 +132,11 @@ export function createBossEntity(spawn, levelId) {
     aimDir: 'down',
     roamDir: 'down',
     stuckTimer: 0,
+    progressStuck: 0,
+    lastX: spawn.x,
+    lastY: spawn.y,
+    breakBrickCd: 0,
+    pathDir: null,
   };
 }
 
@@ -179,11 +185,75 @@ function moveBossBody(boss, map, dirName, dist) {
   return tryMoveTank(boss, boss.x + d.x * dist, boss.y + d.y * dist, map);
 }
 
+function bossBlockTopLeft(boss, ts) {
+  return {
+    tx: Math.round(boss.x / ts) - 1,
+    ty: Math.round(boss.y / ts) - 1,
+  };
+}
+
+function tileInFront(boss, map, dirName) {
+  const ts = map.tileSize;
+  const d = DIR[dirName];
+  const reach = boss.size * 0.45 + ts * 0.55;
+  const cx = boss.x + d.x * reach;
+  const cy = boss.y + d.y * reach;
+  return tileAt(map, Math.floor(cx / ts), Math.floor(cy / ts));
+}
+
+function bfsFirstStep(map, boss, player) {
+  const ts = map.tileSize;
+  const start = bossBlockTopLeft(boss, ts);
+  const goal = bossBlockTopLeft(
+    { x: player.x, y: player.y, size: BOSS_SIZE },
+    ts
+  );
+  const key = (tx, ty) => `${tx},${ty}`;
+  const seen = new Set([key(start.tx, start.ty)]);
+  /** @type {{ tx: number, ty: number, first: string | null }[]} */
+  const q = [{ tx: start.tx, ty: start.ty, first: null }];
+  let steps = 0;
+  while (q.length && steps < 400) {
+    steps += 1;
+    const cur = q.shift();
+    const dist =
+      Math.abs(cur.tx - goal.tx) + Math.abs(cur.ty - goal.ty);
+    if (dist <= 1 && cur.first) return cur.first;
+    for (const dir of DIR_NAMES) {
+      const d = DIR[dir];
+      const nx = cur.tx + d.x;
+      const ny = cur.ty + d.y;
+      if (!canPlaceBossAt(map, nx, ny)) continue;
+      const k = key(nx, ny);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      q.push({
+        tx: nx,
+        ty: ny,
+        first: cur.first || dir,
+      });
+    }
+  }
+  return null;
+}
+
+function trackBossProgress(boss, dt) {
+  const moved = Math.hypot(boss.x - boss.lastX, boss.y - boss.lastY);
+  if (moved < 1.5) {
+    boss.progressStuck = (boss.progressStuck || 0) + dt;
+  } else {
+    boss.progressStuck = 0;
+    boss.lastX = boss.x;
+    boss.lastY = boss.y;
+  }
+}
+
 export function updateBossAI(boss, dt, state) {
   const { map, player, bullets, time } = state;
   if (isEnemyFrozen(boss, time)) return;
 
   boss.hitFlashTtl = Math.max(0, (boss.hitFlashTtl || 0) - dt);
+  boss.breakBrickCd = Math.max(0, (boss.breakBrickCd || 0) - dt);
   if (boss.chargeTtl > 0) {
     boss.chargeTtl -= dt;
     if (boss._pendingMissile && boss.chargeTtl <= 0) {
@@ -199,31 +269,50 @@ export function updateBossAI(boss, dt, state) {
   else boss.aimDir = dy > 0 ? 'down' : 'up';
 
   const speed = boss.speed * dt;
-  const tryOrder = dirsTowardPlayer(boss, player);
-  if (boss.stuckTimer > 0.4) {
-    boss.roamDir = tryOrder[(boss.weaponIndex + 1) % 4];
-    boss.stuckTimer = 0;
+  trackBossProgress(boss, dt);
+  boss.moving = false;
+
+  let tryOrder = dirsTowardPlayer(boss, player);
+  if (boss.progressStuck >= 0.6) {
+    const step = bfsFirstStep(map, boss, player);
+    if (step) {
+      boss.pathDir = step;
+      tryOrder = [step, ...tryOrder.filter((d) => d !== step)];
+    } else {
+      tryOrder = DIR_NAMES.slice().sort(() => Math.random() - 0.5);
+    }
   }
 
-  boss.moving = false;
   for (const dir of tryOrder) {
     if (moveBossBody(boss, map, dir, speed)) {
       boss.moving = true;
       boss.dir = dir;
       boss.roamDir = dir;
-      boss.stuckTimer = 0;
+      boss.lastX = boss.x;
+      boss.lastY = boss.y;
+      boss.progressStuck = 0;
       break;
     }
   }
-  if (!boss.moving) {
-    boss.stuckTimer = (boss.stuckTimer || 0) + dt;
+  if (!boss.moving && boss.roamDir) {
     if (moveBossBody(boss, map, boss.roamDir, speed * 0.85)) {
       boss.moving = true;
       boss.dir = boss.roamDir;
+      boss.lastX = boss.x;
+      boss.lastY = boss.y;
+      boss.progressStuck = 0;
     }
   }
 
-  boss.dir = boss.aimDir;
+  const front = tileInFront(boss, map, boss.aimDir);
+  if (
+    front === TILE.BRICK &&
+    boss.breakBrickCd <= 0 &&
+    (boss.progressStuck >= 0.25 || !boss.moving)
+  ) {
+    fireBossNormal(boss, bullets, 1.05);
+    boss.breakBrickCd = 0.32;
+  }
 
   boss.fireCooldown -= dt;
   if (boss.fireCooldown > 0) return;

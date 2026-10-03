@@ -92,27 +92,28 @@ function detonateMissile(state, b, isPlayerMissile) {
   const tx = Math.floor(b.x / ts);
   const ty = Math.floor(b.y / ts);
   explodeArea(state.map, tx, ty, MISSILE_EXPLOSION_RADIUS);
-  for (const e of state.enemies) {
-    if (e.hp <= 0) continue;
-    const etx = Math.floor(e.x / ts);
-    const ety = Math.floor(e.y / ts);
-    if (
-      Math.abs(etx - tx) <= MISSILE_EXPLOSION_RADIUS &&
-      Math.abs(ety - ty) <= MISSILE_EXPLOSION_RADIUS
-    ) {
-      e.hp = 0;
-      state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
+  if (isPlayerMissile) {
+    for (const e of state.enemies) {
+      if (e.hp <= 0) continue;
+      const etx = Math.floor(e.x / ts);
+      const ety = Math.floor(e.y / ts);
+      if (
+        Math.abs(etx - tx) <= MISSILE_EXPLOSION_RADIUS &&
+        Math.abs(ety - ty) <= MISSILE_EXPLOSION_RADIUS
+      ) {
+        e.hp = 0;
+        state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
+      }
     }
-  }
-  if (state.boss) {
-    const bx = Math.floor(state.boss.x / ts);
-    const by = Math.floor(state.boss.y / ts);
-    if (
-      Math.abs(bx - tx) <= MISSILE_EXPLOSION_RADIUS + 1 &&
-      Math.abs(by - ty) <= MISSILE_EXPLOSION_RADIUS + 1
-    ) {
-      const dmg = isPlayerMissile ? BOSS_MISSILE_DAMAGE : 4;
-      damageBoss(state.boss, dmg, state);
+    if (state.boss) {
+      const bx = Math.floor(state.boss.x / ts);
+      const by = Math.floor(state.boss.y / ts);
+      if (
+        Math.abs(bx - tx) <= MISSILE_EXPLOSION_RADIUS + 1 &&
+        Math.abs(by - ty) <= MISSILE_EXPLOSION_RADIUS + 1
+      ) {
+        damageBoss(state.boss, BOSS_MISSILE_DAMAGE, state);
+      }
     }
   }
   state.explosions.push({
