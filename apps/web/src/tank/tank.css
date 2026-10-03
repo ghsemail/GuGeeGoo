@@ -372,8 +372,7 @@
 }
 
 .tank-page:has(#screen-game:not([hidden])) {
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 8px 8px 0;
 }
 
 .tank-page:has(#screen-game:not([hidden])) .screen-game {
@@ -541,10 +540,12 @@
   line-height: 0;
   min-width: 0;
   max-width: 100%;
+  width: max-content;
+  flex-shrink: 0;
 }
 
 .canvas-board-wrap canvas {
-  max-width: 100%;
+  display: block;
 }
 
 .touch-side-left {
@@ -689,7 +690,7 @@
 
 @media (orientation: landscape) and (min-width: 700px) and (pointer: coarse) {
   .tank-page:has(#screen-game:not([hidden])) {
-    padding: 8px 12px 10px;
+    padding: 8px 12px 0;
   }
 
   .tank-page:has(#screen-game:not([hidden])) .tank-header {

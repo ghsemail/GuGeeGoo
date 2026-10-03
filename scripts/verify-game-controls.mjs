@@ -392,11 +392,20 @@ async function runCase(browser, game, vp) {
 
   let landscapeOk = audit.landscapeBoardOk !== false;
   let tankBoardMinOk = true;
+  let tankScrollOk = true;
+  let tankSquareOk = true;
   if (game === 'tank') {
     landscapeOk = viewportOk;
+    const boardW = audit.canvas?.w ?? 0;
+    const boardH = audit.canvas?.h ?? 0;
+    tankSquareOk = Math.abs(boardW - boardH) <= 2;
     if (vp.w === 1180 && vp.h === 820) {
-      const boardW = audit.canvas?.w ?? 0;
       tankBoardMinOk = boardW >= 480;
+    }
+    const tankLandscapeTablet =
+      vp.touch && vp.w > vp.h && vp.w >= 1024;
+    if (tankLandscapeTablet) {
+      tankScrollOk = (audit.fit?.scrollSlack ?? 0) <= 2;
     }
   }
   if (
@@ -420,6 +429,8 @@ async function runCase(browser, game, vp) {
     audit.aspectOk !== false &&
     landscapeOk &&
     tankBoardMinOk &&
+    tankScrollOk &&
+    tankSquareOk &&
     fitOk &&
     viewportOk &&
     noPageScroll &&
@@ -435,6 +446,8 @@ async function runCase(browser, game, vp) {
     fitOk,
     viewportOk,
     tankBoardMinOk: game === 'tank' ? tankBoardMinOk : undefined,
+    tankScrollOk: game === 'tank' ? tankScrollOk : undefined,
+    tankSquareOk: game === 'tank' ? tankSquareOk : undefined,
     pageErrors: errors,
     boardPx:
       audit.canvas?.w && audit.canvas?.h
@@ -469,6 +482,9 @@ async function main() {
       clientWidth: r.audit?.fit?.clientWidth,
       outOfViewport: r.audit?.outOfViewport?.length ?? 0,
       tankBoardMinOk: r.tankBoardMinOk,
+      scrollSlack: r.audit?.fit?.scrollSlack,
+      tankScrollOk: r.tankScrollOk,
+      tankSquareOk: r.tankSquareOk,
     }));
   console.log(JSON.stringify({ results, tankLayout }, null, 2));
   if (results.some((r) => !r.pass)) process.exit(1);

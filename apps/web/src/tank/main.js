@@ -209,9 +209,15 @@ function gameChromeHeight() {
   const toolbar = document.querySelector('.screen-game .toolbar');
   if (toolbar && !toolbar.closest('[hidden]')) {
     const tr = toolbar.getBoundingClientRect();
-    if (tr.height > 0) h += tr.height + 12;
+    if (tr.height > 0) h += tr.height + 8;
   }
-  return h + 16;
+  const page = document.querySelector('.tank-page');
+  if (page) {
+    const ps = getComputedStyle(page);
+    h +=
+      (parseFloat(ps.paddingTop) || 0) + (parseFloat(ps.paddingBottom) || 0);
+  }
+  return h + 8;
 }
 
 function isLandscapeTouchTablet() {
@@ -269,6 +275,34 @@ function applyCanvasDisplaySize(
   return { dw, dh, scale };
 }
 
+function canvasRenderDpr() {
+  const dpr = window.devicePixelRatio || 1;
+  if (layoutViewport().clientWidth < 520) return Math.min(dpr, 3);
+  return Math.min(dpr, 2);
+}
+
+function applyCanvasBackingStore(logicalW, logicalH, displayScale) {
+  const renderDpr = canvasRenderDpr();
+  const backingScale = displayScale * renderDpr;
+  canvas.width = Math.max(1, Math.round(logicalW * backingScale));
+  canvas.height = Math.max(1, Math.round(logicalH * backingScale));
+  game.displayScale = displayScale;
+  game.renderDpr = renderDpr;
+}
+
+function fitSquareCanvasDisplay(logicalW, logicalH, sized) {
+  const boardWrap = canvas.closest('.canvas-board-wrap');
+  void canvas.offsetWidth;
+  const capW = boardWrap?.clientWidth ?? sized.dw;
+  let side = Math.min(sized.dw, sized.dh, capW > 0 ? capW : sized.dw);
+  side = Math.max(1, Math.round(side));
+  if (side === sized.dw && side === sized.dh) return sized;
+  canvas.style.width = `${side}px`;
+  canvas.style.height = `${side}px`;
+  const scale = side / logicalW;
+  return { dw: side, dh: side, scale };
+}
+
 function resizeStage() {
   if (!game) return;
   const { width, height } = computeCanvasSize(game.map);
@@ -320,16 +354,29 @@ function resizeStage() {
     minDisplayH: 0,
   });
 
-  for (let pass = 0; pass < 4; pass++) {
-    const renderDpr = Math.min(window.devicePixelRatio || 1, 2);
-    const backingScale = sized.scale * renderDpr;
-    canvas.width = Math.max(1, Math.round(width * backingScale));
-    canvas.height = Math.max(1, Math.round(height * backingScale));
-    game.displayScale = sized.scale;
-    game.renderDpr = renderDpr;
+  for (let pass = 0; pass < 6; pass++) {
+    sized = fitSquareCanvasDisplay(width, height, sized);
+    applyCanvasBackingStore(width, height, sized.scale);
     canvas.dataset.displayW = String(sized.dw);
     canvas.dataset.displayH = String(sized.dh);
     void canvas.offsetHeight;
+
+    if (landscapeSide && stage) {
+      const boardWrap = canvas.closest('.canvas-board-wrap');
+      const capW = boardWrap?.clientWidth ?? sized.dw;
+      if (capW > 0 && capW < sized.dw - 1) {
+        budgetW = Math.min(budgetW, capW);
+        sized = applyCanvasDisplaySize(
+          canvas,
+          width,
+          height,
+          budgetW,
+          budgetH,
+          { allowUpscale, minDisplayH: 0 }
+        );
+        continue;
+      }
+    }
 
     const wrap = document.querySelector('.screen-game .canvas-wrap');
     const toolbar = document.querySelector('.screen-game .toolbar');
@@ -339,7 +386,7 @@ function resizeStage() {
     }
     const scrollSlack =
       document.documentElement.scrollHeight - vp.clientHeight;
-    const overflowY = Math.max(bottom - vp.clientHeight + 2, scrollSlack - 8);
+    const overflowY = Math.max(bottom - vp.clientHeight + 2, scrollSlack - 2);
     if (overflowY <= 0) break;
     budgetH = Math.max(64, budgetH - overflowY);
     sized = applyCanvasDisplaySize(canvas, width, height, budgetW, budgetH, {
@@ -347,6 +394,11 @@ function resizeStage() {
       minDisplayH: 0,
     });
   }
+
+  sized = fitSquareCanvasDisplay(width, height, sized);
+  applyCanvasBackingStore(width, height, sized.scale);
+  canvas.dataset.displayW = String(sized.dw);
+  canvas.dataset.displayH = String(sized.dh);
 }
 
 function startLevel(levelIndex) {
