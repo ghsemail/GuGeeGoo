@@ -15,13 +15,18 @@
     "deploy:pages": "node scripts/deploy-pages.mjs",
     "validate:tank-levels": "node scripts/validate-tank-levels.mjs",
     "validate:tank-boss-move": "node scripts/validate-tank-boss-move.mjs",
+    "validate:tank-pickups": "node scripts/validate-tank-pickups.mjs",
+    "lint:web": "eslint apps/web/src",
     "verify:game-controls": "node scripts/verify-game-controls.mjs"
   },
   "dependencies": {
     "puppeteer": "^24.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "cos-nodejs-sdk-v5": "^2.14.6",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
     "wrangler": "^3.99.0"
   },
   "engines": {

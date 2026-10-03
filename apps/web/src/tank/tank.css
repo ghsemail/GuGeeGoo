@@ -394,21 +394,42 @@
   justify-self: stretch;
 }
 
+.weapon-bar-host-inner,
 .weapon-bar {
+  width: 100%;
+}
+
+.weapon-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weapon-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   width: 100%;
 }
 
+.weapon-row-primary {
+  grid-template-columns: repeat(3, minmax(56px, 1fr));
+}
+
+.weapon-row-mini {
+  grid-template-columns: repeat(4, minmax(56px, 1fr));
+}
+
 .weapon-btn {
   position: relative;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-height: 52px;
+  width: 100%;
+  min-width: 56px;
+  min-height: 56px;
   padding: 4px 2px;
   border: none;
   border-radius: 12px;
@@ -421,22 +442,30 @@
 }
 
 .weapon-btn-primary {
-  min-height: 58px;
+  min-width: 64px;
+  min-height: 64px;
   background: rgba(179, 229, 252, 0.95);
 }
 
 .weapon-btn-mini {
-  min-height: 46px;
-  font-size: 10px;
+  min-height: 56px;
+  min-width: 56px;
+  padding-top: 6px;
 }
 
 .weapon-btn .weapon-emoji {
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .weapon-btn-primary .weapon-emoji {
-  font-size: 22px;
+  font-size: 26px;
+}
+
+.weapon-btn-primary .weapon-label {
+  font-size: 11px;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .weapon-badge {
@@ -657,15 +686,13 @@
     align-items: stretch;
     gap: 10px;
     grid-area: left;
-    max-width: min(220px, 28vw);
+    width: min(300px, 34vw);
+    max-width: min(300px, 34vw);
+    flex-shrink: 0;
   }
 
   .weapon-bar-host {
     grid-area: unset;
-  }
-
-  .weapon-bar {
-    grid-template-columns: repeat(2, 1fr);
   }
 
   .touch-left-col {
@@ -673,7 +700,7 @@
   }
 
   .canvas-board-wrap {
-    max-width: min(100%, calc(100vw - 240px));
+    max-width: min(100%, calc(100vw - 340px));
   }
 
   .touch-rail-left,
@@ -706,11 +733,21 @@
   }
 
   .weapon-btn {
+    min-width: 56px;
     min-height: 56px;
   }
 
   .weapon-btn-primary {
-    min-height: 62px;
+    min-width: 68px;
+    min-height: 68px;
+  }
+
+  .weapon-row-primary {
+    grid-template-columns: repeat(3, minmax(68px, 1fr));
+  }
+
+  .weapon-row-mini {
+    grid-template-columns: repeat(4, minmax(56px, 1fr));
   }
 
   .forward-btn {

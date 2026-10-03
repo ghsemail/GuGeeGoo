@@ -1,8 +1,6 @@
 /**
  * 输入：键盘 + 触屏
  */
-import { DIR } from './constants.js';
-
 /** @typedef {{ up: boolean, down: boolean, left: boolean, right: boolean, fire: boolean, firePressed: boolean, useItem: boolean, useItemPressed: boolean, cycleItem: boolean, forward: boolean, forwardPressed: boolean }} InputState */
 
 export function createInputState() {
@@ -133,35 +131,6 @@ export function bindForwardButton(btn, input, enabledRef) {
   btn.addEventListener('pointerup', release);
   btn.addEventListener('pointercancel', release);
   btn.addEventListener('click', (e) => e.preventDefault());
-}
-
-export function bindUseItemButton(btn, input, enabledRef) {
-  if (!btn) return;
-  const press = (e) => {
-    e.preventDefault();
-    if (!enabledRef()) return;
-    input.useItem = true;
-    input.useItemPressed = true;
-    btn.classList.add('is-pressed');
-  };
-  const release = () => {
-    input.useItem = false;
-    btn.classList.remove('is-pressed');
-  };
-  btn.addEventListener('pointerdown', press);
-  btn.addEventListener('pointerup', release);
-  btn.addEventListener('pointercancel', release);
-  btn.addEventListener('click', (e) => e.preventDefault());
-}
-
-export function bindCycleItemButton(btn, enabledRef, onCycle) {
-  if (!btn) return;
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!enabledRef()) return;
-    cycleSelectedItem(1);
-    onCycle?.();
-  });
 }
 
 export function desiredPlayerDir(input) {

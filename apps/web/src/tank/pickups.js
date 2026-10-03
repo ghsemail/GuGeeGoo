@@ -2,7 +2,7 @@
  * 战场拾取：敌人掉落、定时刷新、收集入武器库
  */
 import { TILE } from './constants.js';
-import { tileAt } from './map.js';
+import { tileAt, isBlockingTile } from './map.js';
 import { tankBodyClearAt } from './collision.js';
 import { tanksOverlap } from './collision.js';
 import { addInventoryItem, getItemCount } from './storage.js';

@@ -14,7 +14,7 @@ import { explodeArea } from './map.js';
 import { consumeInventoryItem, getItemCount } from './storage.js';
 import { getSelectedItemId } from './inventory-select.js';
 import { getShopItem, SHOP_ITEMS } from './items.js';
-import { createPlayerMine, mineHitRadius, tankHitsMine } from './mines.js';
+import { createPlayerMine, tankHitsMine } from './mines.js';
 import { hurtPlayer } from './player-life.js';
 import { tryDropPickupFromEnemy } from './pickups.js';
 

@@ -134,7 +134,8 @@ async function auditControls(page) {
       id.includes('item') ||
       id.includes('missile') ||
       id.includes('forward') ||
-      id.includes('dpad');
+      id.includes('dpad') ||
+      id.includes('weapon-btn');
     const tabletTouch =
       window.matchMedia('(pointer: coarse) and (min-width: 481px)').matches ||
       (window.matchMedia('(hover: none)').matches && window.innerWidth >= 481);
@@ -142,16 +143,22 @@ async function auditControls(page) {
     const touchUiHidden = document.documentElement.classList.contains(
       'no-touch-controls'
     );
-    const minTap = tabletTouch ? 63 : 43;
+    const minTapFor = (id) => {
+      if (id.includes('weapon-btn')) return tabletTouch ? 52 : 43;
+      return tabletTouch ? 63 : 43;
+    };
     const smallTargets = items
-      .filter(
-        (it) =>
-          !touchUiHidden &&
-          !finePointer &&
-          isTouchControl(it.id) &&
-          (it.r.width < minTap || it.r.height < minTap)
-      )
-      .map((it) => ({ id: it.id, w: it.r.width, h: it.r.height }));
+      .filter((it) => {
+        if (touchUiHidden || finePointer || !isTouchControl(it.id)) return false;
+        const minTap = minTapFor(it.id);
+        return it.r.width < minTap || it.r.height < minTap;
+      })
+      .map((it) => ({
+        id: it.id,
+        w: it.r.width,
+        h: it.r.height,
+        min: minTapFor(it.id),
+      }));
 
     const vh = window.innerHeight;
     const docH = document.documentElement.scrollHeight;

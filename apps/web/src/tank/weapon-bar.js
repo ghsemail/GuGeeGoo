@@ -7,9 +7,38 @@ import { tryUseItemById } from './consumables.js';
 
 const PRIMARY = new Set(['item_missile', 'item_mine', 'item_freeze']);
 
-function shortLabel(name) {
-  if (name.length <= 4) return name;
-  return name.replace(/弹匣$/, '').slice(0, 4);
+const MINI_LABEL = {
+  item_rapid: '连发',
+  item_shield: '护盾',
+  item_life: '加命',
+  item_armor: '穿甲',
+};
+
+function buttonLabel(item) {
+  if (PRIMARY.has(item.id)) return item.name;
+  return MINI_LABEL[item.id] || item.name.slice(0, 2);
+}
+
+function createWeaponButton(item, getGameState, onChange) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `weapon-btn game-touch-btn${PRIMARY.has(item.id) ? ' weapon-btn-primary' : ' weapon-btn-mini'}`;
+  btn.dataset.itemId = item.id;
+  btn.setAttribute('aria-label', `${item.name}，点击使用`);
+  const showLabel = PRIMARY.has(item.id);
+  btn.innerHTML = `
+      <span class="weapon-emoji" aria-hidden="true">${item.emoji}</span>
+      ${showLabel ? `<span class="weapon-label">${buttonLabel(item)}</span>` : ''}
+      <span class="weapon-badge">0</span>`;
+  const press = (e) => {
+    e.preventDefault();
+    const game = getGameState();
+    if (!game || game.phase !== 'playing' || game.paused) return;
+    if (tryUseItemById(game, item.id)) onChange?.();
+  };
+  btn.addEventListener('pointerdown', press);
+  btn.addEventListener('click', (e) => e.preventDefault());
+  return btn;
 }
 
 /**
@@ -20,27 +49,24 @@ function shortLabel(name) {
 export function mountWeaponBar(host, getGameState, onChange) {
   if (!host) return;
   host.innerHTML = '';
-  host.classList.add('weapon-bar');
+  host.classList.add('weapon-bar-host-inner');
+  const bar = document.createElement('div');
+  bar.className = 'weapon-bar';
+
+  const rowPrimary = document.createElement('div');
+  rowPrimary.className = 'weapon-row weapon-row-primary';
+  const rowMini = document.createElement('div');
+  rowMini.className = 'weapon-row weapon-row-mini';
+
   for (const item of SHOP_ITEMS) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `weapon-btn game-touch-btn${PRIMARY.has(item.id) ? ' weapon-btn-primary' : ' weapon-btn-mini'}`;
-    btn.dataset.itemId = item.id;
-    btn.setAttribute('aria-label', `${item.name}，点击使用`);
-    btn.innerHTML = `
-      <span class="weapon-emoji" aria-hidden="true">${item.emoji}</span>
-      <span class="weapon-label">${shortLabel(item.name)}</span>
-      <span class="weapon-badge">0</span>`;
-    const press = (e) => {
-      e.preventDefault();
-      const game = getGameState();
-      if (!game || game.phase !== 'playing' || game.paused) return;
-      if (tryUseItemById(game, item.id)) onChange?.();
-    };
-    btn.addEventListener('pointerdown', press);
-    btn.addEventListener('click', (e) => e.preventDefault());
-    host.appendChild(btn);
+    const btn = createWeaponButton(item, getGameState, onChange);
+    if (PRIMARY.has(item.id)) rowPrimary.appendChild(btn);
+    else rowMini.appendChild(btn);
   }
+
+  bar.appendChild(rowPrimary);
+  bar.appendChild(rowMini);
+  host.appendChild(bar);
   refreshWeaponBar(host);
   refreshHudArmory(document.getElementById('hud-armory'));
 }
