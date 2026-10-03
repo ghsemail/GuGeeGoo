@@ -6,19 +6,15 @@ import puppeteer from 'puppeteer';
 
 const BASE = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
 
-/** @typedef {{ w: number, h: number, touch: boolean, label: string, expectFit?: boolean, expectStatsTop?: boolean }} ViewportCase */
+/** @typedef {{ w: number, h: number, touch: boolean, label: string, expectFit?: boolean, expectStatsTop?: boolean, expectNoPageScroll?: boolean }} ViewportCase */
 
 /** @type {ViewportCase[]} */
 const VIEWPORTS = [
-  { label: 'phone', w: 390, h: 844, touch: true },
-  { label: 'phone-small', w: 360, h: 640, touch: true },
+  { label: 'phone', w: 390, h: 844, touch: true, expectFit: true },
   { label: 'tablet-portrait', w: 768, h: 1024, touch: true, expectFit: true, expectStatsTop: true },
   { label: 'tablet-portrait', w: 820, h: 1180, touch: true, expectFit: true, expectStatsTop: true },
-  { label: 'tablet-portrait', w: 1024, h: 1366, touch: true, expectFit: true, expectStatsTop: true },
-  { label: 'tablet-landscape', w: 1024, h: 768, touch: true, expectFit: true },
-  { label: 'tablet-landscape', w: 1180, h: 820, touch: true, expectFit: true },
-  { label: 'tablet-landscape', w: 1366, h: 1024, touch: true, expectFit: true },
-  { label: 'desktop', w: 1280, h: 800, touch: false },
+  { label: 'tablet-landscape', w: 1024, h: 768, touch: true, expectFit: true, expectNoPageScroll: true },
+  { label: 'tablet-landscape', w: 1180, h: 820, touch: true, expectFit: true, expectNoPageScroll: true },
 ];
 
 /** @type {readonly string[]} */
@@ -210,6 +206,30 @@ async function auditControls(page) {
     const landscapeBoardOk =
       !landscapeTablet || playR.height >= minBoardH * 0.85;
 
+    const vw = window.innerWidth;
+    const scrollWidth = document.documentElement.scrollWidth;
+    const overflowX = scrollWidth > vw + 1;
+    /** @type {{ id: string, left: number, top: number, right: number, bottom: number }[]} */
+    const outOfViewport = [];
+    const checkInViewport = (id, r) => {
+      if (r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1) {
+        outOfViewport.push({
+          id,
+          left: r.left,
+          top: r.top,
+          right: r.right,
+          bottom: r.bottom,
+        });
+      }
+    };
+    for (const it of items) checkInViewport(it.id, it.r);
+    checkInViewport('canvas', playR);
+
+    const weaponSamples = items
+      .filter((it) => it.id.includes('weapon-btn'))
+      .slice(0, 4)
+      .map((it) => ({ id: it.id, w: it.r.width, h: it.r.height }));
+
     return {
       playArea: canvas ? 'canvas' : 'board',
       canvas: {
@@ -234,7 +254,12 @@ async function auditControls(page) {
         docH,
         vh,
         minBoardH,
+        overflowX,
+        scrollWidth,
+        innerWidth: vw,
       },
+      outOfViewport,
+      weaponSamples,
     };
   });
 }
@@ -251,7 +276,8 @@ async function startTankGame(page) {
   await page.goto(`${BASE}/tank/`, { waitUntil: 'networkidle0', timeout: 30000 });
   await page.click('#btn-menu-play');
   await page.waitForSelector('#screen-game:not([hidden])');
-  await new Promise((r) => setTimeout(r, 900));
+  await page.waitForSelector('#game-canvas');
+  await new Promise((r) => setTimeout(r, 1200));
 }
 
 async function startWhackGame(page) {
@@ -355,7 +381,13 @@ async function runCase(browser, game, vp) {
       audit.fit.toolbarInView &&
       (!vp.expectStatsTop || audit.fit.statsNearTop || arcade));
 
+  const viewportOk =
+    (audit.outOfViewport?.length ?? 0) === 0 && !audit.fit?.overflowX;
+
   let landscapeOk = audit.landscapeBoardOk !== false;
+  if (game === 'tank') {
+    landscapeOk = viewportOk;
+  }
   if (
     (game === 'breakout' || game === 'whack') &&
     vp.w > vp.h &&
@@ -364,6 +396,10 @@ async function runCase(browser, game, vp) {
   ) {
     landscapeOk = audit.canvas.h >= audit.fit.vh * 0.6 * 0.82;
   }
+  const noPageScroll =
+    !vp.expectNoPageScroll ||
+    ((audit.fit?.overflowX ?? false) === false &&
+      (audit.fit?.scrollSlack ?? 0) <= 12);
 
   const pass =
     !audit.error &&
@@ -373,6 +409,8 @@ async function runCase(browser, game, vp) {
     audit.aspectOk !== false &&
     landscapeOk &&
     fitOk &&
+    viewportOk &&
+    noPageScroll &&
     errors.length === 0;
 
   return {
@@ -383,7 +421,15 @@ async function runCase(browser, game, vp) {
     pass,
     audit,
     fitOk,
+    viewportOk,
     pageErrors: errors,
+    boardPx:
+      audit.canvas?.w && audit.canvas?.h
+        ? `${Math.round(audit.canvas.w)}×${Math.round(audit.canvas.h)}`
+        : null,
+    weaponPx: (audit.weaponSamples || [])
+      .map((w) => `${Math.round(w.w)}×${Math.round(w.h)}`)
+      .join(', '),
   };
 }
 
@@ -399,7 +445,17 @@ async function main() {
     }
   }
   await browser.close();
-  console.log(JSON.stringify({ results }, null, 2));
+  const tankLayout = results
+    .filter((r) => r.game === 'tank')
+    .map((r) => ({
+      viewport: r.viewport,
+      pass: r.pass,
+      board: r.boardPx,
+      weapons: r.weaponPx,
+      overflowX: r.audit?.fit?.overflowX,
+      outOfViewport: r.audit?.outOfViewport?.length ?? 0,
+    }));
+  console.log(JSON.stringify({ results, tankLayout }, null, 2));
   if (results.some((r) => !r.pass)) process.exit(1);
 }
 

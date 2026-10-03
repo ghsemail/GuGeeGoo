@@ -2,6 +2,8 @@
   min-height: 100vh;
   margin: 0;
   padding: 16px 16px 32px;
+  overflow-x: clip;
+  max-width: 100vw;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI',
     sans-serif;
   background: linear-gradient(165deg, #E1F5FE 0%, #FFF9C4 45%, #FFECB3 100%);
@@ -369,6 +371,17 @@
   overflow: hidden;
 }
 
+.tank-page:has(#screen-game:not([hidden])) {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.tank-page:has(#screen-game:not([hidden])) .screen-game {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+
 .canvas-stage {
   position: relative;
   --dpad-size: 44px;
@@ -377,6 +390,7 @@
   display: grid;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   margin: 0 auto;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
@@ -512,6 +526,12 @@
   grid-area: board;
   justify-self: center;
   line-height: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.canvas-board-wrap canvas {
+  max-width: 100%;
 }
 
 .touch-rail-left {
@@ -686,8 +706,8 @@
     align-items: stretch;
     gap: 10px;
     grid-area: left;
-    width: min(300px, 34vw);
-    max-width: min(300px, 34vw);
+    width: max-content;
+    max-width: 42vw;
     flex-shrink: 0;
   }
 
@@ -700,7 +720,8 @@
   }
 
   .canvas-board-wrap {
-    max-width: min(100%, calc(100vw - 340px));
+    min-width: 0;
+    max-width: 100%;
   }
 
   .touch-rail-left,
@@ -711,6 +732,34 @@
 
   .screen-game .toolbar {
     margin-top: 8px;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 700px) and (pointer: coarse) and (max-width: 1100px) {
+  .touch-rail-left {
+    max-width: none;
+  }
+
+  .weapon-row-primary {
+    grid-template-columns: repeat(3, 80px);
+  }
+
+  .weapon-row-mini {
+    grid-template-columns: repeat(2, 56px);
+  }
+
+  .weapon-btn-primary {
+    min-width: 80px;
+    width: 80px;
+    max-width: 80px;
+    min-height: 64px;
+  }
+
+  .weapon-btn-mini {
+    min-width: 56px;
+    width: 56px;
+    max-width: 56px;
+    min-height: 56px;
   }
 }
 
