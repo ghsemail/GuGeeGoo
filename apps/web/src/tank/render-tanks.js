@@ -1,7 +1,7 @@
 /**
  * 坦克造型：车体、履带、炮塔、炮管（顶视）
  */
-import { DIR, TANK_DRAW_SCALE } from './constants.js';
+import { DIR } from './constants.js';
 import { BARREL_LENGTH_RATIO } from './tank-geometry.js';
 
 /**
@@ -23,9 +23,6 @@ export function drawDetailedTank(ctx, tank, palette, animPhase, blink = false) {
   ctx.save();
   ctx.translate(tank.x, tank.y);
   ctx.rotate(angle);
-  if (!isBoss) {
-    ctx.scale(TANK_DRAW_SCALE, TANK_DRAW_SCALE);
-  }
 
   drawTracks(ctx, s, palette.track, phase, moving);
   drawHull(ctx, s, palette);
