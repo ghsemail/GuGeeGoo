@@ -61,6 +61,9 @@ export const ENEMY_TURN_MAX = 2.2;
 /** 坦克碰撞盒边长（像素，比一格略小一点好通过窄道） */
 export const TANK_SIZE = 22;
 
+/** 玩家/普通敌人绘制放大（仅渲染，碰撞仍为 TANK_SIZE） */
+export const TANK_DRAW_SCALE = 1.5;
+
 /** 子弹半径 */
 export const BULLET_RADIUS = 3;
 
