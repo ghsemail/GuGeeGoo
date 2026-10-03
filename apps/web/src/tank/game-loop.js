@@ -38,6 +38,7 @@ import {
   createBossEntity,
   damageBoss,
   findBossSpawn,
+  initBossGridState,
   updateBossAI,
 } from './boss.js';
 
@@ -324,6 +325,7 @@ function trySpawnBoss(state) {
     return;
   }
   state.boss = createBossEntity(spawn, state.levelDef.id);
+  initBossGridState(state.boss, state.map);
   state.bossSpawned = true;
   state.bossWarningTtl = 0;
 }
