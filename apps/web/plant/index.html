@@ -20,17 +20,22 @@
 
       <section class="plant-section plant-section-display" aria-labelledby="display-heading">
         <h2 id="display-heading" class="section-title visually-hidden">植物展示</h2>
-        <div class="pot-scene">
-          <div class="pot" aria-hidden="true">
-            <div class="pot-rim"></div>
-            <div class="pot-body">
-              <div class="soil-spot">
-                <p id="pot-species-name" class="pot-species-name" hidden></p>
-                <p id="pot-species-habit" class="pot-species-habit">
-                  先挑一种苔藓，看看它喜欢什么样的环境
-                </p>
+        <div class="display-stack">
+          <div class="pot-scene" aria-hidden="true">
+            <div class="pot">
+              <div class="pot-rim"></div>
+              <div class="pot-body">
+                <div class="soil-spot">
+                  <p class="soil-placeholder-text">苔藓会在这里长大</p>
+                </div>
               </div>
             </div>
+          </div>
+          <div class="plant-info-panel" id="plant-info-panel">
+            <p id="pot-species-name" class="pot-species-name" hidden></p>
+            <p id="pot-species-habit" class="pot-species-habit">
+              先挑一种苔藓，看看它喜欢什么样的环境
+            </p>
           </div>
         </div>
       </section>

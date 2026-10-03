@@ -13,7 +13,7 @@ import './plant.css';
  * - 金发藓：Glime《Moss Garden》；金发藓属形态描述（酸性湿润林地）
  * - 葫芦藓：中国湿地植物数据库；huajiangbk.com 葫芦藓
  *
- * @typedef {{ id: string, group: 'liverwort'|'moss', groupTitle: string, nameZh: string, latin: string, icon: string, habit: string }} BryophyteSpecies
+ * @typedef {{ id: string, group: 'liverwort'|'moss', groupTitle: string, nameZh: string, latin: string, icon: string, summary: string, habit: string }} BryophyteSpecies
  */
 
 /** @type {BryophyteSpecies[]} */
@@ -25,6 +25,7 @@ export const BRYOPHYTE_SPECIES = [
     nameZh: '地钱',
     latin: 'Marchantia polymorpha',
     icon: '🌿',
+    summary: '半阴 · 常湿 · 15～22℃',
     habit:
       '散射光、半阴就好，怕暴晒。土要常润、空气要潮，但别泡烂。15～22℃ 最舒服，别超过 28℃。几乎不用施肥。',
   },
@@ -35,6 +36,7 @@ export const BRYOPHYTE_SPECIES = [
     nameZh: '蛇苔',
     latin: 'Conocephalum conicum',
     icon: '🍀',
+    summary: '散射光 · 中湿 · 15～25℃',
     habit:
       '明亮散射光，忌暴晒。喜欢湿石头和湿土，湿度大约 50～70%。15～25℃ 左右。几乎不用施肥。',
   },
@@ -45,6 +47,7 @@ export const BRYOPHYTE_SPECIES = [
     nameZh: '叉钱苔（鹿角苔）',
     latin: 'Riccia fluitans',
     icon: '🌱',
+    summary: '中亮 · 很湿 · 18～26℃',
     habit:
       '中偏亮散射光，别长时间暴晒。喜欢很湿：可漂在水上或绑在沉木上。18～26℃ 最好。几乎不用施肥。',
   },
@@ -55,6 +58,7 @@ export const BRYOPHYTE_SPECIES = [
     nameZh: '白发藓',
     latin: 'Leucobryum',
     icon: '🌿',
+    summary: '半阴 · 高湿 · 20～25℃',
     habit:
       '半阴、散射光，别直射。空气湿 70% 上下，土微湿别积水。20～25℃ 左右，夏天别太热。弱酸土；几乎不用施肥。',
   },
@@ -65,6 +69,7 @@ export const BRYOPHYTE_SPECIES = [
     nameZh: '大灰藓',
     latin: 'Hypnum plumaeforme',
     icon: '🍀',
+    summary: '半阴 · 润土 · 18～25℃',
     habit:
       '像林下那种半阴散射光，忌烈日。湿度 60～80%，土要润。18～25℃ 较合适。几乎不用施肥。',
   },
@@ -75,6 +80,7 @@ export const BRYOPHYTE_SPECIES = [
     nameZh: '金发藓',
     latin: 'Polytrichum',
     icon: '🌱',
+    summary: '稍耐光 · 喜湿 · 15～25℃',
     habit:
       '比很多藓更能耐一点光，但仍忌夏日暴晒。喜湿酸性土，可喷雾。15～25℃ 较舒适。几乎不用施肥。',
   },
@@ -85,6 +91,7 @@ export const BRYOPHYTE_SPECIES = [
     nameZh: '葫芦藓',
     latin: 'Funaria hygrometrica',
     icon: '🌿',
+    summary: '阴湿散射 · 常微湿 · 15～25℃',
     habit:
       '阴湿、明亮散射光，不要直射。土要常微湿，空气也要潮。15～25℃，冬天别低于 5℃。几乎不用施肥。',
   },
@@ -126,7 +133,7 @@ function renderBryophytePicker() {
     btn.innerHTML = `
       <span class="bryo-card-icon" aria-hidden="true">${sp.icon}</span>
       <span class="bryo-card-name">${sp.nameZh}</span>
-      <span class="bryo-card-habit">${sp.habit}</span>
+      <span class="bryo-card-summary">${sp.summary}</span>
     `;
     row.appendChild(btn);
   }
