@@ -371,7 +371,7 @@
   overflow: hidden;
 }
 
-.tank-page:has(#screen-game:not([hidden])) {
+.tank-page.tank-in-game {
   padding: 8px 8px 0;
 }
 
@@ -380,7 +380,7 @@
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   }
 
-  .tank-page:has(#screen-game:not([hidden])) .tank-header {
+  .tank-page.tank-in-game .tank-header {
     display: none;
   }
 
@@ -421,7 +421,7 @@
   }
 }
 
-.tank-page:has(#screen-game:not([hidden])) .screen-game {
+.tank-page.tank-in-game .screen-game {
   max-width: none;
   width: 100%;
   margin: 0;
@@ -735,7 +735,7 @@
 }
 
 @media (orientation: landscape) and (min-width: 700px) and (pointer: coarse) {
-  .tank-page:has(#screen-game:not([hidden])) {
+  .tank-page.tank-in-game {
     padding: 6px 8px 0;
   }
 
@@ -921,7 +921,7 @@ html.tank-coarse-tablet-layout #game-canvas {
 }
 
 html.tank-coarse-tablet-layout
-  .tank-page:has(#screen-game:not([hidden]))
+  .tank-page.tank-in-game
   .tank-header {
   display: none;
 }
@@ -1041,7 +1041,7 @@ html.tank-coarse-tablet-layout .forward-btn {
 
 @media (orientation: landscape) and (min-width: 700px) {
   html.tank-coarse-tablet-layout
-    .tank-page:has(#screen-game:not([hidden])) {
+    .tank-page.tank-in-game {
     padding: 6px 8px 0;
   }
 

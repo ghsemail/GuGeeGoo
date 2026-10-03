@@ -76,6 +76,7 @@ function showScreen(name) {
   for (const [key, node] of Object.entries(screens)) {
     if (node) node.hidden = key !== name;
   }
+  document.body.classList.toggle('tank-in-game', name === 'game');
 }
 
 function gameInputEnabled() {
