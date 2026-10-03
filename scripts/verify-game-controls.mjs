@@ -6,6 +6,63 @@ import puppeteer from 'puppeteer';
 
 const BASE = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
 
+/** Real Chrome fine pointer (CDP Emulation.setEmulatedMedia does not affect matchMedia). */
+const FINE_POINTER_BLINK_ARG =
+  '--blink-settings=primaryPointerType=4,availablePointerTypes=4,primaryHoverType=2,availableHoverTypes=2';
+
+/**
+ * @param {{ finePointer?: boolean }} [opts]
+ */
+async function launchBrowser(opts = {}) {
+  const args = ['--no-sandbox'];
+  if (opts.finePointer) args.push(FINE_POINTER_BLINK_ARG);
+  return puppeteer.launch({ headless: true, args });
+}
+
+/** Runs before navigation; pairs with FINE_POINTER_BLINK_ARG (needed when Blink flags are ignored, e.g. Linux headless). */
+async function installFinePointerMatchMediaShim(page) {
+  await page.evaluateOnNewDocument(() => {
+    const orig = window.matchMedia.bind(window);
+    const mql = (query, matches) => ({
+      media: query,
+      matches,
+      onchange: null,
+      addListener() {},
+      removeListener() {},
+      addEventListener() {},
+      removeEventListener() {},
+      dispatchEvent() {
+        return false;
+      },
+    });
+    window.matchMedia = (query) => {
+      const q = String(query).replace(/\s+/g, ' ').trim();
+      if (/^\(pointer: fine\)$/i.test(q)) return mql(query, true);
+      if (/^\(pointer: coarse\)$/i.test(q)) return mql(query, false);
+      if (/^\(hover: hover\)$/i.test(q)) return mql(query, true);
+      if (/^\(hover: none\)$/i.test(q)) return mql(query, false);
+      if (/^\(any-pointer: fine\)$/i.test(q)) return mql(query, true);
+      if (/^\(any-pointer: coarse\)$/i.test(q)) return mql(query, false);
+      if (/^\(any-hover: hover\)$/i.test(q)) return mql(query, true);
+      if (/^\(any-hover: none\)$/i.test(q)) return mql(query, false);
+      return orig(query);
+    };
+  });
+}
+
+async function assertPageFinePointer(page) {
+  const media = await page.evaluate(() => ({
+    fine: window.matchMedia('(pointer: fine)').matches,
+    coarse: window.matchMedia('(pointer: coarse)').matches,
+    hover: window.matchMedia('(hover: hover)').matches,
+  }));
+  if (!media.fine || media.coarse || !media.hover) {
+    throw new Error(
+      `expected matchMedia (pointer: fine) + (hover: hover); got ${JSON.stringify(media)}`
+    );
+  }
+}
+
 /** @typedef {{ w: number, h: number, touch: boolean, label: string, expectFit?: boolean, expectStatsTop?: boolean, expectNoPageScroll?: boolean }} ViewportCase */
 
 /** @type {ViewportCase[]} */
@@ -143,9 +200,13 @@ async function auditControls(page) {
       id.includes('forward') ||
       id.includes('dpad') ||
       id.includes('weapon-btn');
+    const coarseTabletLayout = document.documentElement.classList.contains(
+      'tank-coarse-tablet-layout'
+    );
     const tabletTouch =
       window.matchMedia('(pointer: coarse) and (min-width: 481px)').matches ||
-      (window.matchMedia('(hover: none)').matches && window.innerWidth >= 481);
+      (window.matchMedia('(hover: none)').matches && window.innerWidth >= 481) ||
+      coarseTabletLayout;
     const finePointer = window.matchMedia('(pointer: fine)').matches;
     const touchUiHidden = document.documentElement.classList.contains(
       'no-touch-controls'
@@ -243,6 +304,10 @@ async function auditControls(page) {
       .slice(0, 4)
       .map((it) => ({ id: it.id, w: it.r.width, h: it.r.height }));
 
+    const canvasOverlaps = overlaps.filter((pair) =>
+      pair.includes('canvas')
+    ).length;
+
     return {
       playArea: canvas ? 'canvas' : 'board',
       canvas: {
@@ -258,6 +323,7 @@ async function auditControls(page) {
       landscapeBoardOk,
       controlCount: items.length,
       overlaps,
+      canvasOverlaps,
       toolbarHits,
       smallTargets,
       fit: {
@@ -513,31 +579,39 @@ async function runCase(browser, game, vp, snakeBoardRef = null) {
  * @param {ViewportCase} vp
  * @param {number} coarseBoardSide
  */
-async function runTankFineTabletCase(browser, vp, coarseBoardSide) {
+/**
+ * @param {import('puppeteer').Browser} browser — must be launched with FINE_POINTER_BLINK_ARG
+ * @param {ViewportCase} vp
+ * @param {number} coarseBoardSide
+ * @param {number} maxTouchPoints
+ * @param {string} profile
+ */
+async function runTankFinePointerCase(
+  browser,
+  vp,
+  coarseBoardSide,
+  maxTouchPoints,
+  profile
+) {
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
-  await page.evaluateOnNewDocument(() => {
+  await installFinePointerMatchMediaShim(page);
+  await page.evaluateOnNewDocument((mtp) => {
     Object.defineProperty(navigator, 'maxTouchPoints', {
-      get: () => 10,
+      get: () => mtp,
       configurable: true,
     });
-  });
-  const cdp = await page.createCDPSession();
-  await cdp.send('Emulation.setEmulatedMedia', {
-    features: [
-      { name: 'pointer', value: 'fine' },
-      { name: 'hover', value: 'hover' },
-    ],
-  });
+  }, maxTouchPoints);
   await page.setViewport({
     width: vp.w,
     height: vp.h,
-    isMobile: true,
-    hasTouch: true,
-    deviceScaleFactor: 2,
+    isMobile: maxTouchPoints > 0,
+    hasTouch: maxTouchPoints > 0,
+    deviceScaleFactor: maxTouchPoints > 0 ? 2 : 1,
   });
   await startTankGame(page);
+  await assertPageFinePointer(page);
   await page.evaluate(() => {
     if (typeof window.__syncTouchControls === 'function') window.__syncTouchControls();
     if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
@@ -545,6 +619,13 @@ async function runTankFineTabletCase(browser, vp, coarseBoardSide) {
     if (typeof window.__tankResizeStage === 'function') window.__tankResizeStage();
   });
   await new Promise((r) => setTimeout(r, 400));
+  const layoutFlags = await page.evaluate(() => ({
+    coarseClass: document.documentElement.classList.contains(
+      'tank-coarse-tablet-layout'
+    ),
+    noTouch: document.documentElement.classList.contains('no-touch-controls'),
+    maxTouchPoints: navigator.maxTouchPoints,
+  }));
   const audit = await auditControls(page);
   await page.close();
 
@@ -552,31 +633,43 @@ async function runTankFineTabletCase(browser, vp, coarseBoardSide) {
   const boardW = audit.canvas?.w ?? 0;
   const boardH = audit.canvas?.h ?? 0;
   const boardSide = Math.min(boardW, boardH);
-  const vh = audit.fit?.clientHeight ?? vp.h;
-  const vsCoarse =
-    coarseBoardSide > 0 ? boardSide >= coarseBoardSide * 0.95 - 2 : true;
-  const vsHeight =
-    vp.w > vp.h ? boardSide >= vh * 0.85 - 2 : true;
-  const tankFineOk = vsCoarse || vsHeight;
+  const overflow =
+    !!audit.fit?.overflowX || (audit.fit?.scrollSlack ?? 0) > 2;
+  const touchTablet = maxTouchPoints > 0;
+  const boardMatchesCoarse =
+    !touchTablet ||
+    (coarseBoardSide > 0 && Math.abs(boardSide - coarseBoardSide) <= 3);
+  const classOk = !touchTablet || layoutFlags.coarseClass;
+  const touchUiOk = touchTablet
+    ? !layoutFlags.noTouch
+    : layoutFlags.noTouch;
   const pass =
     !audit.error &&
     audit.overlaps.length === 0 &&
+    (audit.canvasOverlaps ?? 0) === 0 &&
     (audit.outOfViewport?.length ?? 0) === 0 &&
     !audit.fit?.overflowX &&
     (audit.fit?.scrollSlack ?? 0) <= 2 &&
     Math.abs(boardW - boardH) <= 2 &&
-    tankFineOk &&
+    boardMatchesCoarse &&
+    classOk &&
+    touchUiOk &&
     errors.length === 0;
 
   return {
     game: 'tank',
     viewport: viewportKey,
-    profile: 'tablet-fine-pointer',
-    touch: false,
+    profile,
+    touch: touchTablet,
+    maxTouchPoints,
     pass,
     audit,
-    tankFineOk,
+    boardMatchesCoarse,
     coarseBoardSide,
+    boardSide: boardSide ? Math.round(boardSide) : null,
+    overflow,
+    canvasOverlaps: audit.canvasOverlaps ?? 0,
+    layoutFlags,
     boardPx:
       boardW && boardH
         ? `${Math.round(boardW)}×${Math.round(boardH)}`
@@ -586,10 +679,7 @@ async function runTankFineTabletCase(browser, vp, coarseBoardSide) {
 }
 
 async function main() {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox'],
-  });
+  const browser = await launchBrowser();
   const results = [];
   /** @type {Record<string, { w: number, h: number }>} */
   const snakeByViewport = {};
@@ -619,18 +709,70 @@ async function main() {
     const m = r.boardPx?.match(/^(\d+)/);
     if (m) coarseTankSideByViewport[r.viewport] = Number(m[1]);
   }
+  await browser.close();
+
+  const fineBrowser = await launchBrowser({ finePointer: true });
   for (const vp of TANK_FINE_TABLET_VIEWPORTS) {
     const key = `${vp.w}x${vp.h}`;
     results.push(
-      await runTankFineTabletCase(
-        browser,
+      await runTankFinePointerCase(
+        fineBrowser,
         vp,
-        coarseTankSideByViewport[key] ?? 0
+        coarseTankSideByViewport[key] ?? 0,
+        5,
+        'tablet-fine-touch'
+      )
+    );
+    results.push(
+      await runTankFinePointerCase(
+        fineBrowser,
+        vp,
+        coarseTankSideByViewport[key] ?? 0,
+        0,
+        'tablet-fine-no-touch'
       )
     );
   }
+  await fineBrowser.close();
 
-  await browser.close();
+  const measureRows = [];
+  for (const vpKey of TANK_TABLET_VIEWPORTS) {
+    for (const profile of [
+      'coarse',
+      'tablet-fine-touch',
+      'tablet-fine-no-touch',
+    ]) {
+      const r = results.find((x) => {
+        if (x.game !== 'tank' || x.viewport !== vpKey) return false;
+        if (profile === 'coarse') {
+          return (
+            x.touch === true &&
+            x.profile !== 'tablet-fine-touch' &&
+            x.profile !== 'tablet-fine-no-touch'
+          );
+        }
+        return x.profile === profile;
+      });
+      if (!r) continue;
+      measureRows.push({
+        viewport: vpKey,
+        profile,
+        boardSide: r.boardSide ?? (r.boardPx ? Number(r.boardPx.split('×')[0]) : null),
+        overflow: r.overflow ?? (!!(r.audit?.fit?.overflowX) || (r.audit?.fit?.scrollSlack ?? 0) > 2),
+        canvasOverlaps: r.canvasOverlaps ?? r.audit?.canvasOverlaps ?? 0,
+      });
+    }
+  }
+  console.error(
+    '\nTank tablet layout measurements:\n' +
+      '| viewport | profile | board (min px) | overflow | canvas overlaps |\n' +
+      measureRows
+        .map(
+          (row) =>
+            `| ${row.viewport} | ${row.profile} | ${row.boardSide ?? '—'} | ${row.overflow ? 'yes' : 'no'} | ${row.canvasOverlaps} |`
+        )
+        .join('\n')
+  );
   const tankLayout = results
     .filter((r) => r.game === 'tank')
     .map((r) => ({

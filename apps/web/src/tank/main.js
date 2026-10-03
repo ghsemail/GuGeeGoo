@@ -141,20 +141,43 @@ function isTabletViewport() {
   return Math.min(vp.clientWidth, vp.clientHeight) >= 600;
 }
 
+function isCoarsePointerMedia() {
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(hover: none)').matches
+  );
+}
+
 function isTouchUi() {
-  if (!window.matchMedia('(pointer: fine)').matches) {
-    return (
-      window.matchMedia('(pointer: coarse)').matches ||
-      window.matchMedia('(hover: none)').matches
-    );
+  if (isCoarsePointerMedia()) {
+    return true;
   }
   return navigator.maxTouchPoints > 0 && isTabletViewport();
+}
+
+/** Same tablet layout + sizing as coarse pointer (incl. fine + touch). */
+function isLayoutTablet() {
+  if (isCoarsePointerMedia()) {
+    return isTouchUi() && layoutViewport().clientWidth >= 481;
+  }
+  return isTabletViewport() && navigator.maxTouchPoints > 0;
+}
+
+function usesCoarseTabletLayoutClass() {
+  return (
+    isTabletViewport() &&
+    navigator.maxTouchPoints > 0 &&
+    window.matchMedia('(pointer: fine)').matches
+  );
 }
 
 function syncTouchControlsVisibility() {
   const show = isTouchUi();
   document.documentElement.classList.toggle('no-touch-controls', !show);
-  document.documentElement.classList.toggle('tank-show-touch-controls', show);
+  document.documentElement.classList.toggle(
+    'tank-coarse-tablet-layout',
+    usesCoarseTabletLayoutClass()
+  );
 }
 
 if (typeof window !== 'undefined') {
@@ -184,7 +207,7 @@ function touchControlMetrics(displayWidth) {
   const coarse = isTouchUi();
   const vpW = layoutViewport().clientWidth;
   const narrow = vpW < 520;
-  const tablet = coarse && vpW >= 481;
+  const tablet = isLayoutTablet();
   let dpadSize = narrow
     ? Math.min(44, Math.max(38, Math.round(displayWidth * 0.1)))
     : Math.min(44, Math.max(38, Math.round(displayWidth * 0.11)));
@@ -203,11 +226,11 @@ function touchControlMetrics(displayWidth) {
 }
 
 function isTouchTablet() {
-  return isTouchUi() && layoutViewport().clientWidth >= 481;
+  return isLayoutTablet();
 }
 
 function gameChromeHeight() {
-  const tablet = isTouchTablet();
+  const tablet = isLayoutTablet();
   let h = 0;
   if (!tablet) {
     for (const sel of ['.tank-header', '.hud-armory', '.screen-game .hint']) {
@@ -265,7 +288,6 @@ function measureStageSideWidths(stage) {
 }
 
 function shouldAllowCanvasUpscale() {
-  if (isTabletViewport()) return true;
   if (isTouchTablet()) return true;
   if (!isTouchUi()) return false;
   return layoutViewport().clientWidth >= 520;
@@ -332,7 +354,6 @@ function resizeStage() {
   const stage = canvas.closest('.canvas-stage');
   const landscapeSide = isLandscapeTouchTablet();
   const tablet = isTouchTablet();
-  const boardTablet = isTabletViewport();
   const pagePad = tablet ? 8 : 16;
   const vp = layoutViewport();
   const allowUpscale = shouldAllowCanvasUpscale();
@@ -348,8 +369,8 @@ function resizeStage() {
   let maxW = vp.clientWidth - pagePad * 2;
   let maxH = vp.clientHeight - gameChromeHeight();
 
-  if ((isTouchUi() || boardTablet) && stage) {
-    if (isTouchUi()) refreshWeaponBar(el.weaponBarHost);
+  if (isTouchUi() && stage) {
+    refreshWeaponBar(el.weaponBarHost);
     canvas.style.width = '1px';
     canvas.style.height = '1px';
     void stage.offsetWidth;
@@ -383,18 +404,6 @@ function resizeStage() {
       minDisplaySide = Math.floor(
         Math.min(maxW, maxH, vp.clientWidth * 0.9)
       );
-    } else if (boardTablet && !isTouchUi()) {
-      maxW = vp.clientWidth - pagePad * 2;
-      maxH = vp.clientHeight - gameChromeHeight();
-      if (landscapeSide) {
-        minDisplaySide = Math.floor(
-          Math.min(maxW, maxH, vp.clientHeight * 0.85)
-        );
-      } else {
-        minDisplaySide = Math.floor(
-          Math.min(maxW, maxH, vp.clientWidth * 0.9)
-        );
-      }
     } else {
       const weapons = stage.querySelector('.weapon-bar-host');
       const leftCol = stage.querySelector('.touch-left-col');
