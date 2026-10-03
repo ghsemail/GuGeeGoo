@@ -8,12 +8,11 @@ import {
   BOSS_REWARD_PER_LEVEL,
   BOSS_FREEZE_FACTOR,
   BULLET_SPEED,
-  MISSILE_SPEED,
   DIR,
   DIR_NAMES,
 } from './constants.js';
 import { isBlockingTile, tileAt } from './map.js';
-import { tryMoveTank, tanksOverlap } from './collision.js';
+import { tryMoveTank, tankBodyClearAt } from './collision.js';
 import { createBullet, createBossMissile } from './entities.js';
 import { isEnemyFrozen } from './consumables.js';
 
@@ -22,32 +21,81 @@ export function bossMaxHp(levelId) {
   return BOSS_HP_BY_LEVEL[levelId - 1] ?? BOSS_HP_BY_LEVEL[0];
 }
 
+/** 2×2 左上角 (tx,ty) → 像素中心（格线交点，对齐碰撞体） */
+export function bossCenterFromBlock(tx, ty, tileSize) {
+  return {
+    x: (tx + 1) * tileSize,
+    y: (ty + 1) * tileSize,
+    cellX: tx + 1,
+    cellY: ty + 1,
+  };
+}
+
+/**
+ * @param {import('./map.js').createMapFromLevel extends (...args: any) => infer R ? R : never} map
+ * @param {number} [size]
+ */
+export function bossFitsAt(map, x, y, size = BOSS_SIZE) {
+  return tankBodyClearAt(map, x, y, size);
+}
+
+function countOpenAround(map, tx, ty, radius = 2) {
+  let n = 0;
+  for (let dy = -radius; dy <= radius + 1; dy++) {
+    for (let dx = -radius; dx <= radius + 1; dx++) {
+      const x = tx + dx;
+      const y = ty + dy;
+      if (x < 0 || y < 0 || x >= map.cols || y >= map.rows) continue;
+      if (!isBlockingTile(tileAt(map, x, y))) n += 1;
+    }
+  }
+  return n;
+}
+
+function scoreBossSpawn(map, tx, ty) {
+  const ts = map.tileSize;
+  const center = bossCenterFromBlock(tx, ty, ts);
+  const py = Math.floor(map.playerSpawn.y);
+  const px = Math.floor(map.playerSpawn.x);
+
+  let avgEy = 0;
+  if (map.enemySpawns?.length) {
+    avgEy =
+      map.enemySpawns.reduce((s, e) => s + Math.floor(e.y), 0) /
+      map.enemySpawns.length;
+  } else {
+    avgEy = map.rows * 0.25;
+  }
+
+  const openness = countOpenAround(map, tx, ty, 2);
+  const topBias = (map.rows - center.cellY) * 4;
+  const enemySideBias = Math.max(0, avgEy - center.cellY) * 2;
+  const distPlayer = Math.abs(center.cellX - px) + Math.abs(center.cellY - py);
+  const centerBias = -Math.abs(center.cellX - map.cols / 2) * 0.5;
+
+  return (
+    topBias + enemySideBias + openness * 3 + centerBias - distPlayer * 0.15
+  );
+}
+
 /**
  * @param {import('./map.js').createMapFromLevel extends (...args: any) => infer R ? R : never} map
  */
 export function findBossSpawn(map) {
   const ts = map.tileSize;
-  const px = Math.floor(map.playerSpawn.x);
-  const py = Math.floor(map.playerSpawn.y);
   /** @type {{ tx: number, ty: number, score: number }[]} */
   const candidates = [];
 
   for (let ty = 1; ty < map.rows - 2; ty++) {
     for (let tx = 1; tx < map.cols - 2; tx++) {
       if (!canPlaceBossAt(map, tx, ty)) continue;
-      const dist = Math.abs(tx + 1 - px) + Math.abs(ty + 1 - py);
-      candidates.push({ tx, ty, score: dist });
+      candidates.push({ tx, ty, score: scoreBossSpawn(map, tx, ty) });
     }
   }
   if (!candidates.length) return null;
   candidates.sort((a, b) => b.score - a.score);
   const pick = candidates[0];
-  return {
-    x: (pick.tx + 1.5) * ts,
-    y: (pick.ty + 1.5) * ts,
-    cellX: pick.tx + 1.5,
-    cellY: pick.ty + 1.5,
-  };
+  return bossCenterFromBlock(pick.tx, pick.ty, ts);
 }
 
 function canPlaceBossAt(map, tx, ty) {
@@ -57,13 +105,10 @@ function canPlaceBossAt(map, tx, ty) {
       if (isBlockingTile(t)) return false;
     }
   }
-  return true;
+  const c = bossCenterFromBlock(tx, ty, map.tileSize);
+  return bossFitsAt(map, c.x, c.y, BOSS_SIZE);
 }
 
-/**
- * @param {import('./entities.js').createBoss extends (...args: any) => infer B ? B : never} boss
- * @param {number} levelId
- */
 export function createBossEntity(spawn, levelId) {
   const maxHp = bossMaxHp(levelId);
   return {
@@ -84,14 +129,11 @@ export function createBossEntity(spawn, levelId) {
     chargeTtl: 0,
     hitFlashTtl: 0,
     aimDir: 'down',
+    roamDir: 'down',
+    stuckTimer: 0,
   };
 }
 
-/**
- * @param {ReturnType<createBossEntity>} boss
- * @param {number} amount
- * @param {object} state
- */
 export function damageBoss(boss, amount, state) {
   if (!boss || boss.hp <= 0) return;
   boss.hp = Math.max(0, boss.hp - amount);
@@ -120,11 +162,23 @@ export function onBossDefeated(state) {
   state.phase = 'win';
 }
 
-/**
- * @param {ReturnType<createBossEntity>} boss
- * @param {number} dt
- * @param {object} state
- */
+function dirsTowardPlayer(boss, player) {
+  const dx = player.x - boss.x;
+  const dy = player.y - boss.y;
+  return DIR_NAMES.slice().sort((a, b) => {
+    const da = DIR[a];
+    const db = DIR[b];
+    const dotA = da.x * dx + da.y * dy;
+    const dotB = db.x * dx + db.y * dy;
+    return dotB - dotA;
+  });
+}
+
+function moveBossBody(boss, map, dirName, dist) {
+  const d = DIR[dirName];
+  return tryMoveTank(boss, boss.x + d.x * dist, boss.y + d.y * dist, map);
+}
+
 export function updateBossAI(boss, dt, state) {
   const { map, player, bullets, time } = state;
   if (isEnemyFrozen(boss, time)) return;
@@ -143,18 +197,33 @@ export function updateBossAI(boss, dt, state) {
   const dy = player.y - boss.y;
   if (Math.abs(dx) > Math.abs(dy)) boss.aimDir = dx > 0 ? 'right' : 'left';
   else boss.aimDir = dy > 0 ? 'down' : 'up';
-  boss.dir = boss.aimDir;
 
-  const d = DIR[boss.aimDir];
   const speed = boss.speed * dt;
-  boss.moving = tryMoveTank(boss, boss.x + d.x * speed * 0.35, boss.y + d.y * speed * 0.35, map);
-  if (!boss.moving) {
-    const alt = DIR_NAMES.filter((n) => n !== boss.aimDir);
-    const pick = alt[Math.floor(Math.random() * alt.length)];
-    const d2 = DIR[pick];
-    boss.moving = tryMoveTank(boss, boss.x + d2.x * speed, boss.y + d2.y * speed, map);
-    if (boss.moving) boss.dir = pick;
+  const tryOrder = dirsTowardPlayer(boss, player);
+  if (boss.stuckTimer > 0.4) {
+    boss.roamDir = tryOrder[(boss.weaponIndex + 1) % 4];
+    boss.stuckTimer = 0;
   }
+
+  boss.moving = false;
+  for (const dir of tryOrder) {
+    if (moveBossBody(boss, map, dir, speed)) {
+      boss.moving = true;
+      boss.dir = dir;
+      boss.roamDir = dir;
+      boss.stuckTimer = 0;
+      break;
+    }
+  }
+  if (!boss.moving) {
+    boss.stuckTimer = (boss.stuckTimer || 0) + dt;
+    if (moveBossBody(boss, map, boss.roamDir, speed * 0.85)) {
+      boss.moving = true;
+      boss.dir = boss.roamDir;
+    }
+  }
+
+  boss.dir = boss.aimDir;
 
   boss.fireCooldown -= dt;
   if (boss.fireCooldown > 0) return;
@@ -174,7 +243,6 @@ export function updateBossAI(boss, dt, state) {
   } else {
     fireBossSpread(boss, bullets);
   }
-
 }
 
 function fireBossNormal(boss, bullets, speedMul = 1) {
@@ -215,7 +283,6 @@ function fireBossSpread(boss, bullets) {
   boss.dir = saved;
 }
 
-/** @param {ReturnType<createBossEntity>} boss @param {number} until */
 export function applyFreezeToBoss(boss, until, now) {
   const dur = until - now;
   boss.frozenUntil = now + dur * BOSS_FREEZE_FACTOR;

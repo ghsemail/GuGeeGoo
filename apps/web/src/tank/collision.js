@@ -27,6 +27,11 @@ export function tankHitsWall(tank, map) {
   return false;
 }
 
+/** BOSS 在 (x,y) 用真实 size 是否不与墙重叠 */
+export function tankBodyClearAt(map, x, y, size) {
+  return !tankHitsWall({ x, y, size }, map);
+}
+
 /** 移动前先试探：如果新位置撞墙就返回 false */
 export function tryMoveTank(tank, nx, ny, map) {
   const oldX = tank.x;
