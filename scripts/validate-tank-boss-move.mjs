@@ -52,6 +52,9 @@ function simulateLevel(levelDef) {
     score: 0,
     explosions: [],
     enemies: [],
+    mines: [],
+    pickups: [],
+    floatTexts: [],
     phase: 'playing',
   };
 

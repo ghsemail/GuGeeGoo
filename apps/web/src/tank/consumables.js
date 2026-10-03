@@ -9,17 +9,14 @@ import {
   BOSS_MINE_DAMAGE,
 } from './constants.js';
 import { damageBoss, applyFreezeToBoss } from './boss.js';
-import { DIR } from './constants.js';
 import { createMissile } from './entities.js';
 import { explodeArea } from './map.js';
-import { tanksOverlap } from './collision.js';
 import { consumeInventoryItem, getItemCount } from './storage.js';
 import { getSelectedItemId } from './inventory-select.js';
-import { getShopItem } from './items.js';
-
-function oppositeDir(d) {
-  return { up: 'down', down: 'up', left: 'right', right: 'left' }[d] || 'down';
-}
+import { getShopItem, SHOP_ITEMS } from './items.js';
+import { createPlayerMine, mineHitRadius, tankHitsMine } from './mines.js';
+import { hurtPlayer } from './player-life.js';
+import { tryDropPickupFromEnemy } from './pickups.js';
 
 function detonateAt(state, cx, cy, radius = 1) {
   const ts = state.map.tileSize;
@@ -31,6 +28,7 @@ function detonateAt(state, cx, cy, radius = 1) {
     const etx = Math.floor(e.x / ts);
     const ety = Math.floor(e.y / ts);
     if (Math.abs(etx - tx) <= radius && Math.abs(ety - ty) <= radius) {
+      if (e.hp > 0) tryDropPickupFromEnemy(state, e);
       e.hp = 0;
       state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
     }
@@ -56,18 +54,7 @@ function useMissile(state) {
 
 function useMine(state) {
   if (!consumeInventoryItem('item_mine')) return false;
-  const p = state.player;
-  const ts = state.map.tileSize;
-  const back = DIR[oppositeDir(p.dir)];
-  const tx = Math.floor((p.x - back.x * ts * 0.55) / ts);
-  const ty = Math.floor((p.y - back.y * ts * 0.55) / ts);
-  state.mines.push({
-    tx,
-    ty,
-    x: (tx + 0.5) * ts,
-    y: (ty + 0.5) * ts,
-    alive: true,
-  });
+  createPlayerMine(state, state.player);
   return true;
 }
 
@@ -118,29 +105,50 @@ const HANDLERS = {
   armor: useArmor,
 };
 
-export function tryUseSelectedItem(state) {
-  const id = getSelectedItemId();
-  const item = getShopItem(id);
-  if (!item || getItemCount(id) <= 0) return false;
+export function tryUseItemById(state, itemId) {
+  const item = getShopItem(itemId);
+  if (!item || getItemCount(itemId) <= 0) return false;
   const fn = HANDLERS[item.useKind];
   return fn ? fn(state) : false;
 }
 
+export function tryUseItemByIndex(state, oneBased) {
+  const item = SHOP_ITEMS?.[oneBased - 1];
+  if (!item) return false;
+  return tryUseItemById(state, item.id);
+}
+
+export function tryUseSelectedItem(state) {
+  return tryUseItemById(state, getSelectedItemId());
+}
+
 export function updateMines(state) {
   const ts = state.map.tileSize;
+  const player = state.player;
   for (const m of state.mines) {
     if (!m.alive) continue;
-    for (const e of state.enemies) {
-      if (e.hp <= 0) continue;
-      if (tanksOverlap({ x: m.x, y: m.y, size: ts * 0.35 }, e)) {
+    const faction = m.faction === 'enemy' ? 'enemy' : 'player';
+    if (faction === 'player') {
+      for (const e of state.enemies) {
+        if (e.hp <= 0) continue;
+        if (tankHitsMine(e, m, ts)) {
+          m.alive = false;
+          detonateAt(state, m.x, m.y, 1);
+          break;
+        }
+      }
+      if (m.alive && state.boss && tankHitsMine(state.boss, m, ts)) {
         m.alive = false;
         detonateAt(state, m.x, m.y, 1);
-        break;
       }
-    }
-    if (m.alive && state.boss && tanksOverlap({ x: m.x, y: m.y, size: ts * 0.35 }, state.boss)) {
+    } else if (
+      tankHitsMine(player, m, ts) &&
+      player.invuln <= 0 &&
+      !isPlayerShielded(player, state.time)
+    ) {
       m.alive = false;
-      detonateAt(state, m.x, m.y, 1);
+      state.explosions.push({ x: m.x, y: m.y, ttl: 0.4 });
+      hurtPlayer(state);
     }
   }
   state.mines = state.mines.filter((m) => m.alive);

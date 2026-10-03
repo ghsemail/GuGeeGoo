@@ -23,6 +23,7 @@ import {
   blockFootprintCost,
   bossBlockHasMoveNeighbor,
 } from './boss-move.js';
+import { BOSS_MINE_LAY_CHANCE, tryLayEnemyMine } from './mines.js';
 
 export { bossCenterFromBlock, initBossGridState };
 
@@ -180,6 +181,12 @@ export function updateBossAI(boss, dt, state) {
   updateBossMovement(boss, dt, state, {
     onShootBrick: () => fireBossNormal(boss, bullets, 1.05),
   });
+
+  boss.mineLayCd = (boss.mineLayCd ?? 4) - dt;
+  if (boss.mineLayCd <= 0 && Math.random() < BOSS_MINE_LAY_CHANCE) {
+    if (tryLayEnemyMine(state, boss)) boss.mineLayCd = 6;
+    else boss.mineLayCd = 2.5;
+  }
 
   boss.fireCooldown -= dt;
   if (boss.fireCooldown <= 0) {

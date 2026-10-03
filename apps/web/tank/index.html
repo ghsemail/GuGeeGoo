@@ -26,13 +26,16 @@
         <button type="button" id="btn-menu-items" class="btn btn-lg btn-shop">
           道具商店
         </button>
+        <button type="button" id="btn-menu-armory" class="btn btn-lg">
+          🗄️ 武器库
+        </button>
         <button type="button" id="btn-menu-settings" class="btn btn-lg" disabled>
           设置 · 敬请期待
         </button>
         <a class="btn btn-lg btn-ghost menu-nav-link" href="/">返回导航页</a>
       </div>
       <p class="menu-hint">
-        移动：方向键 / WASD；<strong>空格/J</strong> 普通炮；<strong>Q</strong> 切换道具、<strong>L/K</strong> 使用；<strong>1–7</strong> 直接选道具；<strong>E</strong> 背景前进。
+        移动：方向键 / WASD；<strong>空格/J</strong> 开火；<strong>1–7</strong> 直接用武器库道具；<strong>K</strong> 导弹；<strong>E</strong> 背景前进。积分买的和地图上拾的都进武器库。
       </p>
     </section>
 
@@ -49,6 +52,17 @@
       </p>
       <ul id="shop-list" class="shop-list"></ul>
       <p id="shop-msg" class="shop-msg" role="status"></p>
+    </section>
+
+    <section id="screen-armory" class="screen screen-armory" hidden>
+      <div class="screen-topbar">
+        <button type="button" id="btn-armory-back" class="btn btn-ghost btn-sm">
+          ← 主菜单
+        </button>
+        <h2 class="screen-title">🗄️ 武器库</h2>
+      </div>
+      <p class="armory-intro">存在这里的道具会一直留着，进关卡就能用；用完会扣数量。</p>
+      <ul id="armory-list" class="armory-list"></ul>
     </section>
 
     <section id="screen-levels" class="screen screen-levels" hidden>
@@ -79,31 +93,21 @@
           <span class="hud-label">敌人</span>
           <span id="hud-enemies" class="hud-value">0</span>
         </div>
-        <div class="hud-item hud-item-wide">
-          <span class="hud-label">道具</span>
-          <span id="hud-item" class="hud-value">🎒×0</span>
-        </div>
       </div>
+      <div id="hud-armory" class="hud-armory" aria-label="武器库数量"></div>
       <p id="level-hint" class="hint"></p>
 
       <div class="canvas-wrap game-controls-block">
         <div class="canvas-stage" aria-label="棋盘与触屏操作">
-          <div class="touch-rail touch-rail-left" aria-label="前进与开火">
+          <div class="touch-rail touch-rail-left" aria-label="武器、前进与开火">
+            <div id="weapon-bar-host" class="weapon-bar-host"></div>
             <div class="touch-left-col">
               <button type="button" id="btn-forward" class="forward-btn game-touch-btn" aria-label="背景前进">
                 前进 ▶
               </button>
-              <div class="touch-fire-group">
-                <button type="button" id="btn-fire" class="fire-btn game-touch-btn" aria-label="发射">
-                  🔫
-                </button>
-                <button type="button" id="btn-item-cycle" class="fire-btn item-cycle-btn game-touch-btn" aria-label="切换道具">
-                  🎒
-                </button>
-                <button type="button" id="btn-item-use" class="fire-btn item-use-btn game-touch-btn" aria-label="使用道具">
-                  ✅
-                </button>
-              </div>
+              <button type="button" id="btn-fire" class="fire-btn game-touch-btn" aria-label="发射">
+                🔫
+              </button>
             </div>
           </div>
           <div class="canvas-board-wrap">

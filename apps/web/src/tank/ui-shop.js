@@ -38,7 +38,7 @@ export function renderTankShop({ shopList, shopMsg, onRefresh }) {
       if (!r.ok) {
         const msg = {
           insufficient: '积分不够，多玩几局再来～',
-          full: '背包已满，先用完再买。',
+          full: '武器库已满（每种最多 99），先用一些再买。',
         };
         shopMsg.textContent = msg[r.reason] || '暂时买不了';
         return;

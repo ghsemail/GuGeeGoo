@@ -28,12 +28,15 @@ import { getItemCount } from './storage.js';
 import { getSelectedItemId } from './inventory-select.js';
 import {
   tryUseSelectedItem,
+  tryUseItemByIndex,
   updateMines,
   syncPlayerBuffs,
   isEnemyFrozen,
   playerFireCooldownMax,
   isPlayerShielded,
 } from './consumables.js';
+import { updatePickups, tryDropPickupFromEnemy } from './pickups.js';
+import { hurtPlayer } from './player-life.js';
 import {
   createBossEntity,
   damageBoss,
@@ -85,6 +88,9 @@ export function createGameState(levelIndex) {
     time: 0,
     bossRewardFlash: 0,
     bossRewardText: '',
+    pickups: [],
+    floatTexts: [],
+    pickupSpawnTimer: 0,
   };
 }
 
@@ -102,6 +108,7 @@ function detonateMissile(state, b, isPlayerMissile) {
         Math.abs(etx - tx) <= MISSILE_EXPLOSION_RADIUS &&
         Math.abs(ety - ty) <= MISSILE_EXPLOSION_RADIUS
       ) {
+        if (e.hp > 0) tryDropPickupFromEnemy(state, e);
         e.hp = 0;
         state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
       }
@@ -126,6 +133,12 @@ function detonateMissile(state, b, isPlayerMissile) {
 }
 
 function tryUseItemInput(state, input) {
+  if (input.useItemKeyIndex > 0) {
+    const idx = input.useItemKeyIndex;
+    input.useItemKeyIndex = 0;
+    tryUseItemByIndex(state, idx);
+    return;
+  }
   const want = input.useItem || input.useItemPressed;
   if (!want) return;
   input.useItemPressed = false;
@@ -254,6 +267,7 @@ function updateBullets(state, dt) {
       for (const e of enemies) {
         if (e.hp <= 0) continue;
         if (bulletHitsTank(b, e)) {
+          if (e.hp > 0) tryDropPickupFromEnemy(state, e);
           e.hp = 0;
           b.alive = false;
           state.score += SCORE_ENEMY_NORMAL;
@@ -290,15 +304,7 @@ function updateBullets(state, dt) {
 }
 
 function onPlayerHit(state) {
-  state.lives -= 1;
-  state.player.invuln = 2;
-  if (state.lives <= 0) {
-    state.phase = 'lose';
-    return;
-  }
-  const sp = state.map.playerSpawn;
-  placeTankAtCell(state.player, sp.x, sp.y, state.map.tileSize);
-  state.player.dir = 'up';
+  hurtPlayer(state);
 }
 
 function resolveTankTank(state) {
@@ -365,13 +371,14 @@ function stepGame(state, dt, input) {
   movePlayer(state, dt, input);
   for (const e of state.enemies) {
     if (!isEnemyFrozen(e, state.time)) {
-      updateEnemyAI(e, dt, state.map, state.player, state.bullets);
+      updateEnemyAI(e, dt, state);
     }
   }
   if (state.boss && state.boss.hp > 0) {
     updateBossAI(state.boss, dt, state);
   }
   resolveTankTank(state);
+  updatePickups(state, dt);
   updateMines(state);
   updateBullets(state, dt);
   updateBossPhase(state, dt);

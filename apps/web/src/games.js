@@ -25,7 +25,7 @@ export const GAMES = [
     emoji: '🛡️',
     href: '/tank/',
     description:
-      '4 关大地图清掉小兵后 BOSS 登场！道具商店 7 种道具，击败 BOSS 有大奖——平板触屏和键盘都能玩。',
+      '4 关清兵后 BOSS 登场！积分进商店、地图拾取进武器库，7 种道具各有一键按钮，击败 BOSS 有大奖——平板触屏和键盘都能玩。',
     statKeys: {
       best: 'gugeegoo_tank_best_score',
       lifetime: 'gugeegoo_tank_lifetime_earned',

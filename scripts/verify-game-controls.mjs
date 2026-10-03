@@ -34,9 +34,8 @@ async function auditControls(page) {
 
     const selectors = [
       '#btn-fire',
-      '#btn-item-use',
-      '#btn-item-cycle',
       '#btn-forward',
+      '.weapon-btn',
       '.dpad-btn',
       '#btn-pause',
       '#btn-restart',

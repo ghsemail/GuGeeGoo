@@ -2,7 +2,6 @@
  * 输入：键盘 + 触屏
  */
 import { DIR } from './constants.js';
-import { cycleSelectedItem, selectItemByIndex } from './inventory-select.js';
 
 /** @typedef {{ up: boolean, down: boolean, left: boolean, right: boolean, fire: boolean, firePressed: boolean, useItem: boolean, useItemPressed: boolean, cycleItem: boolean, forward: boolean, forwardPressed: boolean }} InputState */
 
@@ -16,7 +15,7 @@ export function createInputState() {
     firePressed: false,
     useItem: false,
     useItemPressed: false,
-    cycleItem: false,
+    useItemKeyIndex: 0,
     forward: false,
     forwardPressed: false,
   };
@@ -53,27 +52,13 @@ export function bindKeyboard(input, enabledRef) {
     if (!down && (e.key === ' ' || e.key === 'j' || e.key === 'J')) {
       input.fire = false;
     }
-    if (down && (e.key === 'k' || e.key === 'K' || e.key === 'l' || e.key === 'L')) {
+    if (down && (e.key === 'k' || e.key === 'K')) {
       e.preventDefault();
-      input.useItem = true;
-      input.useItemPressed = true;
-    }
-    if (!down && (e.key === 'k' || e.key === 'K' || e.key === 'l' || e.key === 'L')) {
-      input.useItem = false;
-    }
-    if (down && (e.key === 'q' || e.key === 'Q')) {
-      e.preventDefault();
-      if (!input.cycleItem) {
-        input.cycleItem = true;
-        cycleSelectedItem(1);
-      }
-    }
-    if (!down && (e.key === 'q' || e.key === 'Q')) {
-      input.cycleItem = false;
+      input.useItemKeyIndex = 1;
     }
     if (down && e.key >= '1' && e.key <= '7') {
       e.preventDefault();
-      selectItemByIndex(Number(e.key));
+      input.useItemKeyIndex = Number(e.key);
     }
     if (down && (e.key === 'e' || e.key === 'E' || e.key === 'Shift')) {
       e.preventDefault();

@@ -240,9 +240,87 @@
 
 .hud-bar {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
+  margin-bottom: 4px;
+}
+
+.hud-armory {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
   margin-bottom: 8px;
+}
+
+.hud-weapon-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.hud-weapon-chip b {
+  font-size: 11px;
+  min-width: 1.2em;
+  text-align: center;
+}
+
+.hud-weapon-chip.is-empty {
+  opacity: 0.45;
+}
+
+.armory-intro {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.88;
+  margin: 0 0 12px;
+}
+
+.armory-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.armory-card {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.armory-emoji {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.armory-name {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.armory-count {
+  color: #0277bd;
+  font-weight: 800;
+}
+
+.armory-desc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.88;
 }
 
 .hud-item {
@@ -304,9 +382,101 @@
   grid-template-rows: auto auto;
   grid-template-areas:
     'board board'
+    'weapons weapons'
     'left right';
   gap: 12px;
   align-items: end;
+}
+
+.weapon-bar-host {
+  grid-area: weapons;
+  width: 100%;
+  justify-self: stretch;
+}
+
+.weapon-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.weapon-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 4px 2px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(236, 239, 241, 0.95);
+  color: #263238;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.weapon-btn-primary {
+  min-height: 58px;
+  background: rgba(179, 229, 252, 0.95);
+}
+
+.weapon-btn-mini {
+  min-height: 46px;
+  font-size: 10px;
+}
+
+.weapon-btn .weapon-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.weapon-btn-primary .weapon-emoji {
+  font-size: 22px;
+}
+
+.weapon-badge {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  min-width: 18px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: #0277bd;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.weapon-btn.is-empty,
+.weapon-btn:disabled {
+  opacity: 0.42;
+  filter: grayscale(0.35);
+  cursor: not-allowed;
+}
+
+.weapon-btn.is-pressed,
+.weapon-btn:active:not(:disabled) {
+  transform: scale(0.96);
+  background: #ffd54f;
+}
+
+@media (pointer: coarse) {
+  .touch-rail-left {
+    display: contents;
+  }
+
+  .weapon-bar-host {
+    grid-area: weapons;
+  }
+
+  .touch-left-col {
+    grid-area: left;
+  }
 }
 
 .canvas-board-wrap {
@@ -355,28 +525,6 @@
   color: #263238;
 }
 
-.touch-fire-group {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.item-cycle-btn {
-  background: rgba(178, 235, 242, 0.92);
-  color: #006064;
-  font-size: 22px;
-}
-
-.item-use-btn {
-  background: rgba(129, 199, 132, 0.92);
-  color: #1b5e20;
-  font-size: 18px;
-}
-
-.hud-item-wide .hud-value {
-  font-size: 15px;
-  letter-spacing: 0.5px;
-}
 
 #game-canvas {
   display: block;
@@ -503,6 +651,27 @@
     gap: 14px;
   }
 
+  .touch-rail-left {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    grid-area: left;
+    max-width: min(220px, 28vw);
+  }
+
+  .weapon-bar-host {
+    grid-area: unset;
+  }
+
+  .weapon-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .touch-left-col {
+    grid-area: unset;
+  }
+
   .canvas-board-wrap {
     max-width: min(100%, calc(100vw - 240px));
   }
@@ -532,9 +701,16 @@
     min-height: 64px;
   }
 
-  .touch-left-col,
-  .touch-fire-group {
+  .touch-left-col {
     gap: 12px;
+  }
+
+  .weapon-btn {
+    min-height: 56px;
+  }
+
+  .weapon-btn-primary {
+    min-height: 62px;
   }
 
   .forward-btn {

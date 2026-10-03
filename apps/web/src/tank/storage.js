@@ -1,10 +1,12 @@
 /**
  * 坦克大战 · 积分与道具库存（与贪吃蛇分开的 localStorage 键）
  */
+import { getShopItem } from './items.js';
 
 const LS_LIFETIME_EARNED = 'gugeegoo_tank_lifetime_earned';
 const LS_LIFETIME_SPENT = 'gugeegoo_tank_lifetime_spent';
-const LS_INVENTORY = 'gugeegoo_tank_inventory';
+export const LS_INVENTORY = 'gugeegoo_tank_inventory';
+export const DEFAULT_INVENTORY_CAP = 99;
 const LS_BEST = 'gugeegoo_tank_best_score';
 
 const MAX_POINTS = 9_999_999;
@@ -47,6 +49,27 @@ export function spendPoints(amount) {
   return { ok: true, ...getWalletSnapshot() };
 }
 
+export function getInventoryCap(itemId) {
+  return getShopItem(itemId)?.maxStack ?? DEFAULT_INVENTORY_CAP;
+}
+
+/** 读取并规范化已有库存（保留旧存档数量，应用新上限） */
+export function migrateTankInventory() {
+  const inv = getInventoryCounts();
+  let changed = false;
+  for (const [id, n] of Object.entries(inv)) {
+    const cap = getInventoryCap(id);
+    const clamped = Math.min(Math.floor(Number(n) || 0), cap);
+    if (clamped !== n) {
+      if (clamped <= 0) delete inv[id];
+      else inv[id] = clamped;
+      changed = true;
+    }
+  }
+  if (changed) setInventoryCounts(inv);
+  return inv;
+}
+
 export function getInventoryCounts() {
   try {
     const raw = localStorage.getItem(LS_INVENTORY);
@@ -73,9 +96,12 @@ export function getItemCount(itemId) {
 
 export function addInventoryItem(itemId, amount = 1) {
   const inv = getInventoryCounts();
-  inv[itemId] = (inv[itemId] || 0) + amount;
+  const cap = getInventoryCap(itemId);
+  const next = Math.min(cap, (inv[itemId] || 0) + Math.max(0, Math.floor(amount)));
+  if (next <= 0) delete inv[itemId];
+  else inv[itemId] = next;
   setInventoryCounts(inv);
-  return inv[itemId];
+  return inv[itemId] || 0;
 }
 
 export function consumeInventoryItem(itemId) {

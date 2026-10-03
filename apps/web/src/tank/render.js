@@ -10,6 +10,13 @@ import {
   BOSS_PALETTE,
 } from './render-tanks.js';
 import { isEnemyFrozen, isPlayerShielded } from './consumables.js';
+import {
+  drawPickups,
+  drawFloatTexts,
+  drawMines,
+  drawMissile,
+  drawFreezeBullet,
+} from './render-fx.js';
 
 export function computeCanvasSize(map) {
   return {
@@ -85,11 +92,8 @@ export function drawFrame(ctx, state) {
   ctx.lineWidth = 2;
   ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
 
-  for (const m of state.mines || []) {
-    ctx.font = `${Math.max(14, map.tileSize * 0.55)}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('💣', m.x, m.y + map.tileSize * 0.15);
-  }
+  drawPickups(ctx, state, ts, state.time);
+  drawMines(ctx, state, ts, state.time);
 
   for (const e of enemies) {
     const frozen = isEnemyFrozen(e, state.time);
@@ -143,21 +147,11 @@ export function drawFrame(ctx, state) {
 
   for (const b of bullets) {
     if (b.kind === 'missile') {
-      ctx.fillStyle = b.ownerKind === 'boss' ? '#FF5722' : '#ff7675';
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.radius + 1, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.font = '14px sans-serif';
-      ctx.fillText('🚀', b.x - 7, b.y + 5);
+      drawMissile(ctx, b, state.time);
       continue;
     }
     if (b.effect === 'freeze') {
-      ctx.fillStyle = '#81D4FA';
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.radius + 1, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.font = '12px sans-serif';
-      ctx.fillText('❄️', b.x - 6, b.y + 4);
+      drawFreezeBullet(ctx, b);
       continue;
     }
     ctx.fillStyle = b.ownerKind === 'player' ? '#FFF59D' : '#FFAB91';
@@ -194,6 +188,8 @@ export function drawFrame(ctx, state) {
     ctx.textAlign = 'center';
     ctx.fillText(`🎉 ${state.bossRewardText}`, w / 2, h * 0.18);
   }
+
+  drawFloatTexts(ctx, state);
 
   if (state.paused && state.phase === 'playing') {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';

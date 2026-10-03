@@ -14,16 +14,16 @@ import {
   bindKeyboard,
   bindDpad,
   bindFireButton,
-  bindUseItemButton,
-  bindCycleItemButton,
   bindForwardButton,
 } from './input.js';
-import { getSelectedItemHud } from './inventory-select.js';
+import { mountWeaponBar, refreshWeaponBar } from './weapon-bar.js';
+import { renderTankArmory } from './ui-armory.js';
 import { updateBackgroundScroll } from './parallax-control.js';
 import {
   addLifetimePoints,
   saveBestScore,
   getWalletSnapshot,
+  migrateTankInventory,
 } from './storage.js';
 import { renderTankShop, refreshWalletDisplays } from './ui-shop.js';
 
@@ -34,6 +34,7 @@ const screens = {
   menu: document.getElementById('screen-menu'),
   levels: document.getElementById('screen-levels'),
   shop: document.getElementById('screen-shop'),
+  armory: document.getElementById('screen-armory'),
   game: document.getElementById('screen-game'),
 };
 
@@ -42,9 +43,8 @@ const el = {
   hudScore: document.getElementById('hud-score'),
   hudLives: document.getElementById('hud-lives'),
   hudEnemies: document.getElementById('hud-enemies'),
-  hudItem: document.getElementById('hud-item'),
-  btnItemCycle: document.getElementById('btn-item-cycle'),
-  btnItemUse: document.getElementById('btn-item-use'),
+  weaponBarHost: document.getElementById('weapon-bar-host'),
+  armoryList: document.getElementById('armory-list'),
   hint: document.getElementById('level-hint'),
   overlay: document.getElementById('overlay'),
   overlayTitle: document.getElementById('overlay-title'),
@@ -122,17 +122,7 @@ function refreshHud() {
 }
 
 function refreshItemHud() {
-  const { item, count } = getSelectedItemHud();
-  if (el.hudItem) {
-    el.hudItem.textContent = `${item?.emoji || '🎒'}×${count}`;
-  }
-  if (el.btnItemCycle) {
-    el.btnItemCycle.textContent = item?.emoji || '🎒';
-    el.btnItemCycle.setAttribute(
-      'aria-label',
-      `切换道具（当前 ${item?.name || '无'}）`
-    );
-  }
+  refreshWeaponBar(el.weaponBarHost);
 }
 
 function bankSessionScore() {
@@ -346,6 +336,11 @@ function renderLevelGrid() {
   });
 }
 
+function openArmory() {
+  renderTankArmory({ armoryList: el.armoryList });
+  showScreen('armory');
+}
+
 function openShop() {
   el.shopMsg.textContent = '';
   refreshWalletDisplays(el);
@@ -366,6 +361,10 @@ function bindUi() {
     showScreen('levels');
   });
   document.getElementById('btn-menu-items')?.addEventListener('click', openShop);
+  document.getElementById('btn-menu-armory')?.addEventListener('click', openArmory);
+  document.getElementById('btn-armory-back')?.addEventListener('click', () => {
+    showScreen('menu');
+  });
   document.getElementById('btn-shop-back')?.addEventListener('click', () => {
     refreshWalletDisplays(el);
     showScreen('menu');
@@ -387,8 +386,7 @@ function bindUi() {
   bindKeyboard(input, gameInputEnabled);
   bindDpad(document.querySelector('.dpad-overlay'), input, gameInputEnabled);
   bindFireButton(document.getElementById('btn-fire'), input, gameInputEnabled);
-  bindUseItemButton(el.btnItemUse, input, gameInputEnabled);
-  bindCycleItemButton(el.btnItemCycle, gameInputEnabled, refreshItemHud);
+  mountWeaponBar(el.weaponBarHost, () => game, refreshItemHud);
   bindForwardButton(
     document.getElementById('btn-forward'),
     input,
@@ -401,6 +399,7 @@ function bindUi() {
 }
 
 function init() {
+  migrateTankInventory();
   syncTouchControlsVisibility();
   refreshWalletDisplays(el);
   bindUi();
