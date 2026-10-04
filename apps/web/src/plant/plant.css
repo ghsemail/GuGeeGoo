@@ -15,10 +15,13 @@
   --accent-soft: #a5d6a7;
   --pot: #8d6e63;
   --soil: #5d4037;
+  --plant-stage-min: 240px;
+  --plant-stage-portrait: max(var(--plant-stage-min), 45dvh);
+  --plant-stage-landscape: max(var(--plant-stage-min), 60dvh);
   margin: 0;
   min-height: 100dvh;
-  max-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   font-family: system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 16px;
   color: var(--text);
@@ -69,7 +72,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   align-content: start;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .plant-section {
@@ -192,8 +195,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 0;
-  flex: 1;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: var(--plant-stage-portrait);
+  height: var(--plant-stage-portrait);
   container-type: size;
   position: relative;
 }
@@ -203,6 +208,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  min-height: var(--plant-stage-portrait);
   z-index: 2;
   touch-action: none;
 }
@@ -216,8 +222,10 @@
 
 .plant-3d-reset {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  left: 8px;
+  bottom: 8px;
+  top: auto;
+  right: auto;
   z-index: 3;
   width: 36px;
   height: 36px;
@@ -326,6 +334,10 @@
   font-weight: 600;
   color: var(--muted);
   line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
 }
 
 /* 状态条 */
@@ -467,6 +479,9 @@
   font-weight: 800;
   text-align: center;
   color: var(--text);
+  position: relative;
+  z-index: 1;
+  padding-right: 44px;
 }
 
 .growth-progress {
@@ -733,17 +748,23 @@
   }
 
   .pot-scene {
-    flex: 1;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-height: var(--plant-stage-landscape);
+    height: var(--plant-stage-landscape);
+  }
+
+  .plant-3d-mount {
+    min-height: var(--plant-stage-landscape);
   }
 
   .display-stack {
     flex: 1;
     min-height: 0;
+    justify-content: flex-start;
   }
 
   .pot {
-    width: min(100%, 220px, 72cqh);
+    width: min(100%, 280px, 90cqh);
     height: min(100%, 100%);
   }
 
@@ -772,12 +793,17 @@
   }
 
   .pot-scene {
-    flex: 1;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-height: var(--plant-stage-portrait);
+    height: var(--plant-stage-portrait);
+  }
+
+  .plant-3d-mount {
+    min-height: var(--plant-stage-portrait);
   }
 
   .pot {
-    width: min(100%, 220px, 72cqh);
+    width: min(100%, 260px, 85cqh);
     height: min(100%, 100%);
   }
 

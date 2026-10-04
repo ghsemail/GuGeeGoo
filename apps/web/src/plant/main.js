@@ -348,6 +348,8 @@ function hideOverlay() {
 }
 
 function persistSave() {
+  const now = Date.now();
+  plantState = { ...plantState, lastTickMs: now };
   writeSave(buildSavePayload(plantState, collection));
 }
 

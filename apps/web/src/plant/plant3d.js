@@ -101,7 +101,7 @@ class Plant3dView {
     this.potGroup = this.buildPot(this._potPalette);
     this.scene.add(this.potGroup);
     this.plantGroup = new THREE.Group();
-    this.plantGroup.position.y = 0.02;
+    this.plantGroup.position.y = 0.062;
     this.scene.add(this.plantGroup);
 
     this.controls = new this.OrbitControls(this.camera, this.canvas);
@@ -254,6 +254,18 @@ class Plant3dView {
     wall.position.y = -0.1;
     g.add(wall);
 
+    const bottom = new THREE.Mesh(new THREE.CircleGeometry(0.375, 28), clayMat);
+    bottom.rotation.x = -Math.PI / 2;
+    bottom.position.y = -0.26;
+    g.add(bottom);
+
+    const innerFloor = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.375, 0.375, 0.012, 28),
+      soilMat
+    );
+    innerFloor.position.y = -0.248;
+    g.add(innerFloor);
+
     const rimMat = createStylizedMaterial(THREE, pal.potRim, { roughness: 0.62, emissiveScale: 0.06 });
     const rim = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.038, 12, 32), rimMat);
     rim.rotation.x = Math.PI / 2;
@@ -290,9 +302,10 @@ function buildLiverwort(THREE, root, id, stage, t, palette) {
   const scale = (0.38 + t * 0.48) * 1.06;
 
   if (stage === 0) {
-    addLobe(THREE, root, mat, 0, 0, 0.1 * scale, 0.05 * scale);
-    addLobe(THREE, root, matAlt, 0.06, 0.01, 0.075 * scale, 0.042 * scale);
-    addLobe(THREE, root, matAlt, -0.05, -0.02, 0.065 * scale, 0.038 * scale);
+    const s0 = Math.max(0.92, scale);
+    addLobe(THREE, root, mat, 0, 0, 0.11 * s0, 0.058 * s0);
+    addLobe(THREE, root, matAlt, 0.055, 0.012, 0.082 * s0, 0.048 * s0);
+    addLobe(THREE, root, matAlt, -0.048, -0.015, 0.072 * s0, 0.042 * s0);
     return;
   }
 
@@ -303,11 +316,14 @@ function buildLiverwort(THREE, root, id, stage, t, palette) {
   }
 
   const branches = id === 'riccia' ? 4 : id === 'conocephalum' ? 3 : 2;
+  const potRadius = 0.36;
   for (let i = 0; i < branches; i++) {
     const ang = (i / branches) * Math.PI * 2 + 0.3;
-    const len = (0.32 + stage * 0.07) * scale;
-    const w = id === 'riccia' ? 0.052 : id === 'conocephalum' ? 0.125 : 0.092;
-    addRibbon(THREE, root, i % 2 ? mat : matAlt, Math.cos(ang) * 0.05, Math.sin(ang) * 0.04, len, w, ang);
+    const len = Math.min((0.28 + stage * 0.06) * scale, potRadius * 1.05);
+    const w = id === 'riccia' ? 0.048 : id === 'conocephalum' ? 0.11 : 0.082;
+    const ox = Math.cos(ang) * 0.04;
+    const oz = Math.sin(ang) * 0.032;
+    addRibbon(THREE, root, i % 2 ? mat : matAlt, ox, oz, len, w, ang);
     if (id === 'riccia' && stage >= 2) {
       addRibbon(
         THREE,
@@ -388,11 +404,12 @@ function buildLiverwort(THREE, root, id, stage, t, palette) {
  */
 function buildMossCushion(THREE, root, id, stage, t, palette) {
   const shootCount =
-    stage === 0 ? 1 : stage === 1 ? 5 : stage === 2 ? 6 : stage === 3 ? 9 : 12;
+    stage === 0 ? 6 : stage === 1 ? 6 : stage === 2 ? 6 : stage === 3 ? 9 : 12;
   const heightBase =
     id === 'polytrichum' ? 0.24 : id === 'funaria' ? 0.13 : id === 'hypnum' ? 0.11 : 0.15;
-  const h = heightBase * (0.48 + t * 0.95) * 1.05;
-  const spread = 0.13 + t * 0.24;
+  const stageScale = stage === 0 ? 0.42 : stage === 1 ? 0.55 : 0.48 + t * 0.95;
+  const h = heightBase * stageScale * 1.05;
+  const spread = stage === 0 ? 0.11 : 0.13 + t * 0.24;
 
   const mainColor = id === 'leucobryum' ? 0xdce8c8 : palette.main;
   const mat = createStylizedMaterial(THREE, mainColor, { roughness: 0.6 });
@@ -447,8 +464,8 @@ function buildMossCushion(THREE, root, id, stage, t, palette) {
  */
 function addLobe(THREE, root, mat, x, z, rx, rz) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(rx, 14, 10), mat);
-  m.scale.set(1, 0.22, rz / rx);
-  m.position.set(x, 0.024, z);
+  m.scale.set(1, 0.28, rz / rx);
+  m.position.set(x, 0.018, z);
   root.add(m);
 }
 
@@ -456,7 +473,13 @@ function addRibbon(THREE, root, mat, x, z, length, width, rotY) {
   const m = new THREE.Mesh(new THREE.CapsuleGeometry(width * 0.42, length, 6, 14), mat);
   m.rotation.y = rotY;
   m.rotation.z = Math.PI / 2;
-  m.position.set(x + Math.cos(rotY) * length * 0.45, 0.028, z + Math.sin(rotY) * length * 0.45);
+  const reach = length * 0.45;
+  const px = x + Math.cos(rotY) * reach;
+  const pz = z + Math.sin(rotY) * reach;
+  const clampR = 0.34;
+  const r = Math.hypot(px, pz);
+  const k = r > clampR ? clampR / r : 1;
+  m.position.set(px * k, 0.022, pz * k);
   root.add(m);
 }
 

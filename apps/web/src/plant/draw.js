@@ -47,8 +47,9 @@ function liverwortSvg(stage, c, id) {
   const g = `filter="url(#plant-soft-shadow)" fill="url(#plant-soft)" stroke="${c.stroke}" stroke-width="0.65" stroke-linejoin="round"`;
   let body = '';
   if (stage === 0) {
-    body = `<ellipse cx="50" cy="57" rx="7" ry="4.5" ${g} opacity="0.92"/>
-            <ellipse cx="44" cy="58" rx="4" ry="2.8" ${g} opacity="0.85"/>`;
+    body = `<ellipse cx="50" cy="52" rx="8" ry="5" ${g}/>
+            <ellipse cx="43" cy="53" rx="5" ry="3.2" ${g} opacity="0.9"/>
+            <ellipse cx="57" cy="53.5" rx="4.5" ry="3" ${g} opacity="0.85"/>`;
   } else if (stage === 1) {
     body = `<ellipse cx="50" cy="56" rx="16" ry="6.5" ${g}/>`;
   } else if (stage === 2) {
@@ -81,10 +82,10 @@ function mossSvg(stage, c, id) {
     `<line x1="${x}" y1="58" x2="${x}" y2="${y2}" stroke="url(#plant-soft)" stroke-width="${w}" stroke-linecap="round" filter="url(#plant-soft-shadow)"/>`;
 
   if (stage === 0) {
-    return `<ellipse cx="50" cy="57" rx="4" ry="3.5" fill="url(#plant-soft)" filter="url(#plant-soft-shadow)"/>`;
+    return `${stem(40, 52, 2.2)}${stem(45, 51, 2.4)}${stem(50, 50, 2.6)}${stem(55, 51, 2.4)}${stem(60, 52, 2.2)}${stem(52, 53, 2)}`;
   }
   if (stage === 1) {
-    return `${stem(45, 52, 2.8)}${stem(50, 49, 3.2)}${stem(55, 51, 2.8)}`;
+    return `${stem(42, 51, 2.6)}${stem(46, 49, 2.8)}${stem(50, 48, 3)}${stem(54, 49, 2.8)}${stem(58, 51, 2.6)}${stem(48, 52, 2.4)}`;
   }
 
   const stems =

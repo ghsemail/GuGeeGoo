@@ -4,15 +4,17 @@
  */
 import { BRYOPHYTE_SPECIES } from '../apps/web/src/plant/species.js';
 import {
+  applyOfflineDrain,
   autoIdealCare,
   autoMatureCare,
   plantSpecies,
   simulateNeglect,
   simulateSeconds,
   simulateSecondsMature,
+  tickPlant,
 } from '../apps/web/src/plant/growth.js';
 import { buildSavePayload, readSave, writeSave } from '../apps/web/src/plant/storage.js';
-import { SAVE_KEY } from '../apps/web/src/plant/constants.js';
+import { OFFLINE_DRAIN_CAP_MS, SAVE_KEY } from '../apps/web/src/plant/constants.js';
 
 /** @type {Record<string, string>} */
 const mem = {};
@@ -112,6 +114,29 @@ if (!loaded || loaded.plant.speciesId !== 'marchantia' || loaded.plant.growth !=
 if (mem[SAVE_KEY] === undefined) {
   console.error('FAIL save key missing');
   failed += 1;
+}
+
+{
+  let live = plantSpecies('marchantia');
+  for (let i = 0; i < 40; i++) live = tickPlant(live, 1);
+  const waterLive = live.water;
+  const now = Date.now();
+  const savedOk = { ...live, lastTickMs: now };
+  const reloadOk = applyOfflineDrain(savedOk, now + 500, OFFLINE_DRAIN_CAP_MS);
+  const savedStale = { ...live, lastTickMs: now - 120_000 };
+  const reloadStale = applyOfflineDrain(savedStale, now + 500, OFFLINE_DRAIN_CAP_MS);
+  if (Math.abs(reloadOk.water - waterLive) > 0.05) {
+    console.error(
+      `FAIL save timestamp: reload with fresh lastTickMs changed water (${waterLive} -> ${reloadOk.water})`
+    );
+    failed += 1;
+  } else {
+    console.log('OK save timestamp matches state on reload');
+  }
+  if (reloadStale.water >= reloadOk.water - 0.02) {
+    console.error('FAIL save timestamp: stale lastTickMs did not drain extra on reload');
+    failed += 1;
+  }
 }
 
 if (failed > 0) {
