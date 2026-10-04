@@ -27,6 +27,18 @@ export const DRAIN_PER_SEC = {
   nutrient: 0.026,
 };
 
+/** 成熟后：只扣水分和养分，节奏更慢（像「每天记得照顾」） */
+export const MATURE_DRAIN_PER_SEC = {
+  water: 0.032,
+  nutrient: 0.018,
+};
+
+/** 成熟后阳光条固定显示（不再消耗、不参与健康判定） */
+export const MATURE_LIGHT_DISPLAY = 70;
+
+/** 成熟后给玩家看的说明 */
+export const MATURE_CARE_MESSAGE = '长大啦！以后每天记得浇水、施肥就好';
+
 /** 点一次按钮加多少 */
 export const ACTION_BOOST = {
   water: 26,

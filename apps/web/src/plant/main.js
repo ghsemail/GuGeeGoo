@@ -4,6 +4,7 @@
 import './plant.css';
 import {
   AUTO_SAVE_MS,
+  MATURE_CARE_MESSAGE,
   OFFLINE_DRAIN_CAP_MS,
   TICK_INTERVAL_MS,
 } from './constants.js';
@@ -13,6 +14,7 @@ import {
   applyOfflineDrain,
   assessCare,
   createEmptyState,
+  displayGrowth,
   isVisiblyStressed,
   plantSpecies,
   stageIndexFromGrowth,
@@ -154,21 +156,27 @@ function syncUi() {
     c.classList.toggle('is-in-atlas', collection.includes(c.dataset.speciesId ?? ''));
   });
 
-  const careDisabled =
-    !plantState.planted ||
-    plantState.status === 'withered' ||
-    plantState.status === 'mature';
+  const careDisabled = !plantState.planted || plantState.status === 'withered';
   document.querySelectorAll('[data-care]').forEach((btn) => {
     btn.disabled = careDisabled;
+  });
+
+  const mature = plantState.status === 'mature';
+  document.querySelectorAll('.stat-row').forEach((row, i) => {
+    row.classList.toggle('stat-row--mature-light', mature && i === 1);
   });
 }
 
 function updateBars() {
+  const mature = plantState.status === 'mature';
   const vals = [plantState.water, plantState.light, plantState.nutrient];
   const fills = [statFills.water, statFills.light, statFills.nutrient];
   vals.forEach((v, i) => {
     if (fills[i]) fills[i].style.width = `${Math.round(v)}%`;
-    if (statValues[i]) statValues[i].textContent = String(Math.round(v));
+    if (statValues[i]) {
+      statValues[i].textContent =
+        mature && i === 1 ? '够用' : String(Math.round(v));
+    }
   });
 }
 
@@ -182,8 +190,9 @@ function updateGrowthUi(sp) {
     else drawPlant(plantSvg, null, 0, 'happy');
     return;
   }
-  const idx = stageIndexFromGrowth(plantState.growth);
-  const bar = stageProgressInBar(plantState.growth);
+  const growthShown = displayGrowth(plantState);
+  const idx = stageIndexFromGrowth(growthShown);
+  const bar = stageProgressInBar(growthShown);
   stageLabelEl.textContent =
     plantState.status === 'mature'
       ? `阶段：${STAGE_NAMES[4]} · 100%`
@@ -191,8 +200,9 @@ function updateGrowthUi(sp) {
         ? '已枯萎 — 挑别的苔藓或重新开始'
         : `阶段：${STAGE_NAMES[idx]} · 本阶段 ${bar}%`;
 
-  progressFillEl.style.width = `${plantState.growth}%`;
+  progressFillEl.style.width = `${growthShown}%`;
 
+  const mature = plantState.status === 'mature';
   const care = sp
     ? assessCare(
         {
@@ -200,16 +210,17 @@ function updateGrowthUi(sp) {
           light: plantState.light,
           nutrient: plantState.nutrient,
         },
-        sp
+        sp,
+        { mature }
       )
     : { mood: 'happy' };
   let mood = care.mood;
   if (plantState.status === 'withered') mood = 'withered';
   if (isVisiblyStressed(plantState)) mood = 'stressed';
   if (plant3dReady && plant3dView) {
-    plant3dView.update(sp, plantState.growth, mood);
+    plant3dView.update(sp, growthShown, mood);
   } else {
-    drawPlant(plantSvg, sp, plantState.growth, mood);
+    drawPlant(plantSvg, sp, growthShown, mood);
   }
 }
 
@@ -221,7 +232,18 @@ function updateMood(sp) {
     return;
   }
   if (plantState.status === 'mature') {
-    moodHintEl.textContent = '🎉 成熟啦！已收入「我的苔藓图鉴」。';
+    const care = assessCare(
+      {
+        water: plantState.water,
+        light: plantState.light,
+        nutrient: plantState.nutrient,
+      },
+      sp,
+      { mature: true }
+    );
+    moodHintEl.textContent = care.ok
+      ? `🎉 ${MATURE_CARE_MESSAGE}（已收入图鉴）`
+      : care.hint;
     return;
   }
   if (plantState.status === 'withered') {
@@ -276,6 +298,9 @@ function onCare(action) {
     return;
   }
   plantState = result.state;
+  if (result.reason === 'mature-light') {
+    showToast('它长大啦，阳光够用了，记得浇水和施肥～');
+  }
   syncUi();
   playCareFx(action);
   persistSave();
@@ -313,7 +338,7 @@ function showMatureOverlay() {
   if (!overlayEl || !plantState.speciesId) return;
   const sp = getSpeciesById(plantState.speciesId);
   overlayTitleEl.textContent = '🎉 养熟啦！';
-  overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经成熟，图鉴里解锁了！`;
+  overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经成熟，图鉴里解锁了！\n${MATURE_CARE_MESSAGE}。`;
   overlayEl.hidden = false;
 }
 

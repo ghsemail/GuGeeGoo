@@ -1,7 +1,7 @@
 /**
  * 养苔藓 — 存档（localStorage）
  */
-import { SAVE_KEY, SAVE_VERSION } from './constants.js';
+import { MATURE_LIGHT_DISPLAY, SAVE_KEY, SAVE_VERSION } from './constants.js';
 import { createEmptyState } from './growth.js';
 
 /**
@@ -55,7 +55,8 @@ export function readSave() {
 function normalizePlantState(raw) {
   const base = createEmptyState();
   const r = /** @type {Record<string, unknown>} */ (raw);
-  return {
+  /** @type {import('./growth.js').PlantState} */
+  const plant = {
     ...base,
     speciesId: typeof r.speciesId === 'string' ? r.speciesId : null,
     planted: !!r.planted,
@@ -79,6 +80,11 @@ function normalizePlantState(raw) {
       nutrient: num(/** @type {{ nutrient?: number }} */ (r.cooldowns)?.nutrient, 0),
     },
   };
+  if (plant.status === 'mature') {
+    plant.growth = 100;
+    plant.light = MATURE_LIGHT_DISPLAY;
+  }
+  return plant;
 }
 
 /** @param {unknown} v @param {number} fallback */

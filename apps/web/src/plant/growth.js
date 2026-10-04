@@ -5,6 +5,8 @@ import {
   ACTION_BOOST,
   DRAIN_PER_SEC,
   GROWTH_PER_SEC_HEALTHY,
+  MATURE_DRAIN_PER_SEC,
+  MATURE_LIGHT_DISPLAY,
   START_STATS,
   STRESS_VISIBLE_SEC,
   WITHER_AFTER_NEGLECT_SEC,
@@ -67,8 +69,10 @@ function clamp(v) {
 /**
  * @param {{ water: number, light: number, nutrient: number }} stats
  * @param {import('./species.js').BryophyteSpecies} sp
+ * @param {{ mature?: boolean }} [opts]
  */
-export function assessCare(stats, sp) {
+export function assessCare(stats, sp, opts = {}) {
+  const mature = !!opts.mature;
   /** @type {string[]} */
   const problems = [];
 
@@ -76,14 +80,18 @@ export function assessCare(stats, sp) {
     problems.push('太干了');
   } else if (stats.water < sp.ideals.water.low) {
     problems.push('有点干');
-  } else if (stats.water > sp.ideals.water.high + 8) {
+  } else if (!mature && stats.water > sp.ideals.water.high + 8) {
+    problems.push('太湿了');
+  } else if (mature && stats.water > sp.ideals.water.high + 12) {
     problems.push('太湿了');
   }
 
-  if (stats.light > sp.maxLight) {
-    problems.push('晒过头');
-  } else if (stats.light < sp.ideals.light.low - 5) {
-    problems.push('光太少');
+  if (!mature) {
+    if (stats.light > sp.maxLight) {
+      problems.push('晒过头');
+    } else if (stats.light < sp.ideals.light.low - 5) {
+      problems.push('光太少');
+    }
   }
 
   if (stats.nutrient > sp.maxNutrient) {
@@ -95,17 +103,25 @@ export function assessCare(stats, sp) {
   const ok = problems.length === 0;
   let mood = 'happy';
   if (!ok) {
-    mood = stats.water < sp.minWater || stats.light > sp.maxLight || stats.nutrient > sp.maxNutrient
-      ? 'stressed'
-      : 'uneasy';
+    mood =
+      stats.water < sp.minWater || stats.nutrient > sp.maxNutrient
+        ? 'stressed'
+        : 'uneasy';
+    if (!mature && stats.light > sp.maxLight) mood = 'stressed';
   }
 
-  const hint = ok ? '' : buildHint(sp, problems);
+  const hint = ok ? '' : buildHint(sp, problems, mature);
   return { ok, mood, hint, problems };
 }
 
-/** @param {import('./species.js').BryophyteSpecies} sp @param {string[]} problems */
-function buildHint(sp, problems) {
+/** @param {import('./species.js').BryophyteSpecies} sp @param {string[]} problems @param {boolean} mature */
+function buildHint(sp, problems, mature) {
+  if (mature && (problems.includes('太干了') || problems.includes('有点干'))) {
+    return '长大啦，记得每天浇点水～';
+  }
+  if (mature && problems.includes('养分偏低')) {
+    return '长大啦，偶尔施一点肥就够用～';
+  }
   if (problems.includes('晒过头')) {
     if (sp.id === 'marchantia') return '地钱怕暴晒，给它一点阴凉吧～';
     if (sp.id === 'polytrichum') return '金发藓虽耐光，也别烈日直晒哦。';
@@ -147,6 +163,48 @@ export function stageProgressInBar(growth) {
   return Math.round(Math.max(0, Math.min(1, t)) * 100);
 }
 
+/** 成熟后：体型不再变，只维持水分和养分 @param {PlantState} state @param {number} dtSec */
+function tickMaturePlant(state, dtSec) {
+  const sp = getSpeciesById(state.speciesId ?? '');
+  if (!sp) return decayCooldowns(state, dtSec);
+
+  let water = clamp(state.water - MATURE_DRAIN_PER_SEC.water * dtSec);
+  let nutrient = clamp(state.nutrient - MATURE_DRAIN_PER_SEC.nutrient * dtSec);
+  const light = MATURE_LIGHT_DISPLAY;
+
+  const care = assessCare({ water, light, nutrient }, sp, { mature: true });
+  let stressSec = state.stressSec;
+
+  if (care.ok) {
+    stressSec = Math.max(0, stressSec - dtSec * 0.5);
+  } else {
+    stressSec += dtSec;
+    if (stressSec >= WITHER_AFTER_NEGLECT_SEC) {
+      return {
+        ...state,
+        water,
+        light,
+        nutrient,
+        growth: 100,
+        stressSec,
+        status: 'withered',
+        cooldowns: tickCooldowns(state.cooldowns, dtSec),
+      };
+    }
+  }
+
+  return {
+    ...state,
+    water,
+    light,
+    nutrient,
+    growth: 100,
+    stressSec,
+    status: 'mature',
+    cooldowns: tickCooldowns(state.cooldowns, dtSec),
+  };
+}
+
 /**
  * @param {PlantState} state
  * @param {number} dtSec
@@ -154,8 +212,11 @@ export function stageProgressInBar(growth) {
  */
 export function tickPlant(state, dtSec) {
   if (!state.planted || !state.speciesId) return state;
-  if (state.status === 'withered' || state.status === 'mature') {
+  if (state.status === 'withered') {
     return decayCooldowns(state, dtSec);
+  }
+  if (state.status === 'mature') {
+    return tickMaturePlant(state, dtSec);
   }
 
   const sp = getSpeciesById(state.speciesId);
@@ -177,6 +238,8 @@ export function tickPlant(state, dtSec) {
     }
     if (growth >= 100) {
       status = 'mature';
+      growth = 100;
+      light = MATURE_LIGHT_DISPLAY;
     }
   } else {
     stressSec += dtSec;
@@ -218,10 +281,30 @@ function tickCooldowns(cd, dtSec) {
  * @param {number} nowMs
  */
 export function applyCareAction(state, action, nowMs) {
-  if (!state.planted || state.status === 'withered') return { state, ok: false, reason: 'withered' };
-  if (state.status === 'mature') return { state, ok: false, reason: 'mature' };
+  if (!state.planted || state.status === 'withered') {
+    return { state, ok: false, reason: 'withered' };
+  }
+
   const cdKey = action === 'light' ? 'light' : action;
-  if (state.cooldowns[cdKey] > 0) return { state, ok: false, reason: 'cooldown' };
+  if (state.cooldowns[cdKey] > 0) {
+    return { state, ok: false, reason: 'cooldown' };
+  }
+
+  if (state.status === 'mature') {
+    if (action === 'light') {
+      return {
+        state: { ...state, light: MATURE_LIGHT_DISPLAY, lastTickMs: nowMs },
+        ok: true,
+        reason: 'mature-light',
+      };
+    }
+    const boost = ACTION_BOOST[action];
+    const next = { ...state, lastTickMs: nowMs };
+    next.cooldowns = { ...state.cooldowns, [cdKey]: 2.8 };
+    if (action === 'water') next.water = clamp(state.water + boost);
+    if (action === 'nutrient') next.nutrient = clamp(state.nutrient + boost);
+    return { state: next, ok: true, reason: '' };
+  }
 
   const boost = ACTION_BOOST[action];
   const next = { ...state, lastTickMs: nowMs };
@@ -247,18 +330,30 @@ export function applyOfflineDrain(state, nowMs, capMs) {
   return s;
 }
 
-/** 给测试用：连续 tick 很多秒 @param {PlantState} state @param {number} totalSec @param {() => void} [onCare] */
+/** @param {PlantState} state @param {number} totalSec @param {(s: PlantState, t: number) => PlantState} [onCare] */
 export function simulateSeconds(state, totalSec, onCare) {
   let s = state;
   for (let t = 0; t < totalSec; t++) {
     if (onCare) s = onCare(s, t) ?? s;
     s = tickPlant(s, 1);
-    if (s.status === 'mature' || s.status === 'withered') break;
+    if (s.status === 'withered') break;
+    if (s.status === 'mature' && !onCare) break;
   }
   return s;
 }
 
-/** 理想照顾：保持条在范围内 @param {PlantState} s @param {number} t */
+/** 成熟后继续 tick（测试用） @param {PlantState} state @param {number} totalSec @param {(s: PlantState, t: number) => PlantState} [onCare] */
+export function simulateSecondsMature(state, totalSec, onCare) {
+  let s = state;
+  for (let t = 0; t < totalSec; t++) {
+    if (onCare) s = onCare(s, t) ?? s;
+    s = tickPlant(s, 1);
+    if (s.status === 'withered') break;
+  }
+  return s;
+}
+
+/** @param {PlantState} s @param {number} t */
 export function autoIdealCare(s, t) {
   if (!s.speciesId || s.status !== 'growing') return s;
   const sp = getSpeciesById(s.speciesId);
@@ -280,11 +375,38 @@ export function autoIdealCare(s, t) {
   return state;
 }
 
-/** 故意不照顾 @param {PlantState} s */
+/** 成熟后的理想照顾：只浇水和施肥 @param {PlantState} s @param {number} t */
+export function autoMatureCare(s, t) {
+  if (!s.speciesId || s.status !== 'mature') return s;
+  const sp = getSpeciesById(s.speciesId);
+  if (!sp) return s;
+  let state = s;
+  state.cooldowns = { water: 0, light: 0, nutrient: 0 };
+  if (state.water < sp.ideals.water.sweet) {
+    const r = applyCareAction(state, 'water', t * 1000);
+    if (r.ok) state = r.state;
+  }
+  if (state.nutrient < sp.ideals.nutrient.sweet && t % 50 === 0) {
+    const r = applyCareAction(state, 'nutrient', t * 1000);
+    if (r.ok) state = r.state;
+  }
+  return state;
+}
+
+/** @param {PlantState} s */
 export function simulateNeglect(s, maxSec = 600) {
   return simulateSeconds(s, maxSec);
 }
 
 export function isVisiblyStressed(state) {
-  return state.stressSec >= STRESS_VISIBLE_SEC && state.status === 'growing';
+  return (
+    state.stressSec >= STRESS_VISIBLE_SEC &&
+    (state.status === 'growing' || state.status === 'mature')
+  );
+}
+
+/** 3D / 2D 用：成熟后体型锁定在满成长 */
+export function displayGrowth(state) {
+  if (state.status === 'mature' || state.growth >= 100) return 100;
+  return state.growth;
 }

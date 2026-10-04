@@ -5,9 +5,11 @@
 import { BRYOPHYTE_SPECIES } from '../apps/web/src/plant/species.js';
 import {
   autoIdealCare,
+  autoMatureCare,
   plantSpecies,
   simulateNeglect,
   simulateSeconds,
+  simulateSecondsMature,
 } from '../apps/web/src/plant/growth.js';
 import { buildSavePayload, readSave, writeSave } from '../apps/web/src/plant/storage.js';
 import { SAVE_KEY } from '../apps/web/src/plant/constants.js';
@@ -28,6 +30,9 @@ globalThis.localStorage = {
 
 const MAX_GROW_SEC = 900;
 const NEGLECT_SEC = 500;
+/** 成熟后排水更慢，需更长时间才会因缺水/缺肥枯死 */
+const MATURE_NEGLECT_SEC = 1100;
+const MATURE_TICK_SEC = 180;
 
 let failed = 0;
 
@@ -41,6 +46,37 @@ for (const sp of BRYOPHYTE_SPECIES) {
     console.log(`OK ${sp.id}: mature in simulation`);
   }
 
+  let mature = plantSpecies(sp.id);
+  mature = simulateSeconds(mature, MAX_GROW_SEC, autoIdealCare);
+  const growth0 = mature.growth;
+  const light0 = mature.light;
+  const water0 = mature.water;
+  mature = simulateSecondsMature(mature, MATURE_TICK_SEC);
+  if (mature.growth !== growth0 || mature.growth !== 100) {
+    console.error(
+      `FAIL ${sp.id}: mature growth changed (${growth0} -> ${mature.growth})`
+    );
+    failed += 1;
+  } else if (Math.abs(mature.light - light0) > 0.01) {
+    console.error(
+      `FAIL ${sp.id}: mature light drained (${light0} -> ${mature.light})`
+    );
+    failed += 1;
+  } else if (mature.water >= water0) {
+    console.error(`FAIL ${sp.id}: mature water did not drain over ${MATURE_TICK_SEC}s`);
+    failed += 1;
+  } else {
+    console.log(`OK ${sp.id}: mature size/light locked, water drains`);
+  }
+
+  let maintained = plantSpecies(sp.id);
+  maintained = simulateSeconds(maintained, MAX_GROW_SEC, autoIdealCare);
+  maintained = simulateSecondsMature(maintained, 400, autoMatureCare);
+  if (maintained.status === 'withered') {
+    console.error(`FAIL ${sp.id}: mature with ideal water/fertilizer withered`);
+    failed += 1;
+  }
+
   let n = plantSpecies(sp.id);
   n = simulateNeglect(n, NEGLECT_SEC);
   if (n.status !== 'withered') {
@@ -48,6 +84,16 @@ for (const sp of BRYOPHYTE_SPECIES) {
     failed += 1;
   } else {
     console.log(`OK ${sp.id}: withered under neglect`);
+  }
+
+  let nm = plantSpecies(sp.id);
+  nm = simulateSeconds(nm, MAX_GROW_SEC, autoIdealCare);
+  nm = simulateSecondsMature(nm, MATURE_NEGLECT_SEC);
+  if (nm.status !== 'withered') {
+    console.error(`FAIL ${sp.id}: mature neglect did not wither (${nm.status})`);
+    failed += 1;
+  } else {
+    console.log(`OK ${sp.id}: mature withered without water/fertilizer`);
   }
 }
 

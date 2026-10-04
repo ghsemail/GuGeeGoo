@@ -355,6 +355,15 @@
   color: var(--muted);
 }
 
+.stat-row--mature-light .stat-fill-sun {
+  opacity: 0.55;
+}
+
+.stat-row--mature-light .stat-value {
+  font-size: 12px;
+  color: var(--accent);
+}
+
 /* 照顾按钮 */
 .care-row {
   display: grid;
