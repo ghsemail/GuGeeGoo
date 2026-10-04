@@ -211,6 +211,33 @@
   display: block;
   width: 100%;
   height: 100%;
+  touch-action: none;
+}
+
+.plant-3d-reset {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #1b5e20;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  touch-action: manipulation;
+}
+
+.plant-page.plant-3d-active .plant-3d-reset:not([hidden]) {
+  display: block;
+}
+
+.plant-3d-reset[hidden] {
+  display: none;
 }
 
 .plant-page.plant-3d-active .pot--fallback {

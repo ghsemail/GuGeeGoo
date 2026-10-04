@@ -11,6 +11,12 @@ import {
 
 /** @typedef {'happy'|'uneasy'|'stressed'|'withered'} PlantMood */
 
+/** 垂直视角：约 5°（俯视）～ 175°（贴地侧视）；水平不限 */
+export const PLANT3D_POLAR_MIN_DEG = 5;
+export const PLANT3D_POLAR_MAX_DEG = 175;
+
+const DEG2RAD = Math.PI / 180;
+
 /**
  * @param {HTMLElement} mount
  */
@@ -58,6 +64,13 @@ class Plant3dView {
     this._sig = '';
     /** @type {ReturnType<palette3d> | null} */
     this._potPalette = null;
+    /** @type {import('three').Vector3 | null} */
+    this._defaultCameraPos = null;
+    /** @type {import('three').Vector3 | null} */
+    this._defaultTarget = null;
+    this._lastTapMs = 0;
+    /** @type {{ x: number, y: number } | null} */
+    this._tapStart = null;
   }
 
   async init() {
@@ -65,6 +78,7 @@ class Plant3dView {
     this.canvas = document.createElement('canvas');
     this.canvas.className = 'plant-3d-canvas';
     this.canvas.setAttribute('aria-hidden', 'true');
+    this.canvas.style.touchAction = 'none';
     this.mount.appendChild(this.canvas);
 
     this.renderer = new THREE.WebGLRenderer({
@@ -92,20 +106,47 @@ class Plant3dView {
 
     this.controls = new this.OrbitControls(this.camera, this.canvas);
     this.controls.enablePan = false;
+    this.controls.enableRotate = true;
+    this.controls.enableZoom = true;
     this.controls.enableDamping = true;
-    this.controls.dampingFactor = 0.08;
-    this.controls.minDistance = 0.85;
-    this.controls.maxDistance = 2.2;
-    this.controls.maxPolarAngle = Math.PI * 0.48;
-    this.controls.minPolarAngle = Math.PI * 0.18;
+    this.controls.dampingFactor = 0.07;
+    this.controls.rotateSpeed = 0.85;
+    this.controls.zoomSpeed = 0.9;
+    this.controls.minDistance = 0.75;
+    this.controls.maxDistance = 2.35;
+    this.controls.minPolarAngle = PLANT3D_POLAR_MIN_DEG * DEG2RAD;
+    this.controls.maxPolarAngle = PLANT3D_POLAR_MAX_DEG * DEG2RAD;
+    this.controls.minAzimuthAngle = -Infinity;
+    this.controls.maxAzimuthAngle = Infinity;
     this.controls.target.set(0, 0.15, 0);
     this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.35;
 
-    this.canvas.addEventListener('pointerdown', () => {
+    this._defaultCameraPos = this.camera.position.clone();
+    this._defaultTarget = this.controls.target.clone();
+
+    this.canvas.addEventListener('pointerdown', (e) => {
       this.controls.autoRotate = false;
       this.idleSpin = 0;
+      this._tapStart = { x: e.clientX, y: e.clientY };
     });
+
+    this.canvas.addEventListener('pointerup', (e) => {
+      const start = this._tapStart;
+      this._tapStart = null;
+      if (!start) return;
+      const dist = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+      if (dist > 14) return;
+      const now = Date.now();
+      if (now - this._lastTapMs < 340) {
+        this.resetView();
+        this._lastTapMs = 0;
+      } else {
+        this._lastTapMs = now;
+      }
+    });
+
+    installPlant3dTestHook(this);
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.pause();
@@ -176,6 +217,15 @@ class Plant3dView {
       buildMossCushion(this.THREE, this.plantGroup, sp.id, stage, t, palette);
     }
     this.applyMoodTransform(mood);
+  }
+
+  resetView() {
+    if (!this.camera || !this.controls || !this._defaultCameraPos || !this._defaultTarget) return;
+    this.controls.autoRotate = false;
+    this.idleSpin = 0;
+    this.camera.position.copy(this._defaultCameraPos);
+    this.controls.target.copy(this._defaultTarget);
+    this.controls.update();
   }
 
   /** @param {PlantMood} mood */
@@ -408,4 +458,29 @@ function addRibbon(THREE, root, mat, x, z, length, width, rotY) {
   m.rotation.z = Math.PI / 2;
   m.position.set(x + Math.cos(rotY) * length * 0.45, 0.028, z + Math.sin(rotY) * length * 0.45);
   root.add(m);
+}
+
+/** @param {Plant3dView} view */
+function installPlant3dTestHook(view) {
+  if (typeof globalThis === 'undefined') return;
+  const g = globalThis;
+  g.__PLANT3D_TEST__ = {
+    getState() {
+      const c = view.controls;
+      const canvas = view.canvas;
+      const mount = view.mount;
+      if (!c || !canvas) return null;
+      const rad2deg = (r) => (r * 180) / Math.PI;
+      return {
+        polarDeg: rad2deg(c.getPolarAngle()),
+        azimuthDeg: rad2deg(c.getAzimuthalAngle()),
+        minPolarDeg: rad2deg(c.minPolarAngle),
+        maxPolarDeg: rad2deg(c.maxPolarAngle),
+        touchActionCanvas: canvas ? getComputedStyle(canvas).touchAction : '',
+        touchActionMount: mount ? getComputedStyle(mount).touchAction : '',
+        damping: c.enableDamping,
+      };
+    },
+    resetView: () => view.resetView(),
+  };
 }

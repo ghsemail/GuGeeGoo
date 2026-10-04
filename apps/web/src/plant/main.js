@@ -45,6 +45,7 @@ const overlayTitleEl = document.getElementById('overlay-title');
 const overlayMsgEl = document.getElementById('overlay-msg');
 const atlasListEl = document.getElementById('atlas-list');
 const potSceneEl = document.querySelector('.pot-scene');
+const plant3dResetBtn = document.getElementById('plant-3d-reset');
 
 const statFills = {
   water: document.querySelector('.stat-fill:not(.stat-fill-sun):not(.stat-fill-nutrient)'),
@@ -402,6 +403,11 @@ function bindUi() {
   document.getElementById('btn-load')?.addEventListener('click', onManualLoad);
   document.getElementById('btn-restart')?.addEventListener('click', restartPlant);
   document.getElementById('overlay-close')?.addEventListener('click', hideOverlay);
+  plant3dResetBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    plant3dView?.resetView?.();
+  });
 
   window.addEventListener('pagehide', persistSave);
   document.addEventListener('visibilitychange', () => {
@@ -426,6 +432,7 @@ async function initPlant3d() {
     plant3dReady = true;
     document.body.classList.add('plant-3d-active');
     if (soilPlaceholder) soilPlaceholder.hidden = true;
+    if (plant3dResetBtn) plant3dResetBtn.hidden = false;
     syncUi();
   }
 }
