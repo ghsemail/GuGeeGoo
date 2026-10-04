@@ -67,7 +67,26 @@ function buildBoardDom() {
   }
 }
 
+function fitBoardLayout() {
+  const boardEl = document.getElementById('game-board');
+  if (!boardEl || screenGame.hidden) return;
+  const hud = screenGame.querySelector('.hud-bar');
+  const toolbar = screenGame.querySelector('.game-2048-toolbar');
+  const pad = 8;
+  const screenR = screenGame.getBoundingClientRect();
+  const top = (hud?.getBoundingClientRect().bottom ?? screenR.top) + pad;
+  const bottom =
+    (toolbar?.getBoundingClientRect().top ?? screenR.bottom) - pad;
+  const availH = Math.max(1, bottom - top);
+  const availW = Math.max(1, screenR.width - pad * 2);
+  const side = Math.floor(Math.min(availW, availH));
+  if (side < 16) return;
+  boardEl.style.width = `${side}px`;
+  boardEl.style.height = `${side}px`;
+}
+
 function renderBoard(animateNew) {
+  fitBoardLayout();
   for (let y = 0; y < 4; y++) {
     for (let x = 0; x < 4; x++) {
       const idx = y * 4 + x;
@@ -79,7 +98,9 @@ function renderBoard(animateNew) {
         t.className = 'tile' + (animateNew ? ' tile-new' : '');
         t.style.background = tileColor(v);
         t.style.color = tileTextColor(v);
-        t.style.fontSize = v >= 1024 ? '22px' : v >= 128 ? '26px' : '30px';
+        const cellPx = cell.getBoundingClientRect().width;
+        const ratio = v >= 1024 ? 0.28 : v >= 128 ? 0.33 : 0.38;
+        t.style.fontSize = `${Math.max(11, Math.round(cellPx * ratio))}px`;
         t.textContent = String(v);
         cell.appendChild(t);
       }
@@ -227,6 +248,12 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     applyMove(dir);
   }
+});
+
+window.addEventListener('resize', () => {
+  if (screenGame.hidden) return;
+  fitBoardLayout();
+  renderBoard(false);
 });
 
 document.getElementById('btn-menu-play').addEventListener('click', () => {

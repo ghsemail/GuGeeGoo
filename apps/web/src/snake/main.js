@@ -220,25 +220,51 @@ if (typeof window !== 'undefined') {
   window.__syncTouchControls = syncTouchControlsVisibility;
 }
 
+/** Extra vertical reserve when tablet portrait layout overflows (cleared each resize). */
+let snakeLayoutPadExtra = 0;
+
+function measureSnakeStageBelowBoard() {
+  const stage = document.querySelector('.screen-game .canvas-stage');
+  const canvasEl = document.getElementById('game-canvas');
+  if (!stage || !canvasEl) return 0;
+  const prevW = canvasEl.style.width;
+  const prevH = canvasEl.style.height;
+  canvasEl.style.width = '1px';
+  canvasEl.style.height = '1px';
+  void stage.offsetWidth;
+  const below =
+    stage.getBoundingClientRect().height - canvasEl.getBoundingClientRect().height;
+  canvasEl.style.width = prevW;
+  canvasEl.style.height = prevH;
+  return Math.max(0, below);
+}
+
 function playfieldLayout() {
   const coarse = isTouchUi();
   const landscapeSide =
     coarse &&
     window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches;
+  const tablet = coarse && window.innerWidth >= 481;
   let padW = 32;
   let padH = 320;
   if (landscapeSide) {
     padW = 250;
     padH = 300;
-  } else if (coarse && window.innerWidth >= 481) {
-    padH = 360;
+  } else if (tablet) {
+    const screen = document.querySelector('#screen-game:not([hidden])');
+    const wrap = screen?.querySelector('.canvas-wrap');
+    const toolbar = screen?.querySelector('.toolbar-game');
+    const top = wrap?.getBoundingClientRect().top ?? 0;
+    const belowBoard = measureSnakeStageBelowBoard();
+    const toolbarH = toolbar
+      ? toolbar.getBoundingClientRect().height + 12
+      : 48;
+    padH = Math.ceil(top + belowBoard + toolbarH + 8) + snakeLayoutPadExtra;
   }
   const availW = window.innerWidth - padW;
   const availH = window.innerHeight - padH;
-  const maxW = landscapeSide ? availW : Math.min(availW, 520);
-  const maxH = landscapeSide
-    ? Math.min(availH, Math.floor(window.innerHeight * 0.62))
-    : Math.min(availH, 420);
+  const maxW = landscapeSide || tablet ? availW : Math.min(availW, 520);
+  const maxH = landscapeSide || tablet ? availH : Math.min(availH, 420);
   const minDisplayH = landscapeSide ? Math.floor(window.innerHeight * 0.6) : 0;
   return {
     maxW,
@@ -246,6 +272,7 @@ function playfieldLayout() {
     minDisplayH,
     coarse,
     landscapeSide,
+    tablet,
   };
 }
 
@@ -261,8 +288,8 @@ function applyCanvasDisplaySize(canvasEl, intrinsicW, intrinsicH, maxW, maxH) {
 
 function cellSize() {
   const lv = state.level;
-  const { maxW, maxH, minDisplayH, landscapeSide } = playfieldLayout();
-  const csCap = landscapeSide ? 42 : 28;
+  const { maxW, maxH, minDisplayH, landscapeSide, tablet } = playfieldLayout();
+  const csCap = landscapeSide ? 96 : tablet ? 96 : 28;
   let cs = Math.floor(Math.min(maxW / lv.cols, maxH / lv.rows, csCap));
   if (minDisplayH > 0) {
     const csForMin = Math.floor(minDisplayH / lv.rows);
@@ -274,20 +301,30 @@ function cellSize() {
 
 function resizeCanvas() {
   const lv = state.level;
-  const cs = cellSize();
-  const w = lv.cols * cs;
-  const h = lv.rows * cs;
-  canvas.width = w;
-  canvas.height = h;
-  const { maxW, maxH } = playfieldLayout();
-  applyCanvasDisplaySize(canvas, w, h, maxW, maxH);
+  snakeLayoutPadExtra = 0;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const cs = cellSize();
+    const w = lv.cols * cs;
+    const h = lv.rows * cs;
+    canvas.width = w;
+    canvas.height = h;
+    const { maxW, maxH } = playfieldLayout();
+    applyCanvasDisplaySize(canvas, w, h, maxW, maxH);
+    const { tablet, landscapeSide } = playfieldLayout();
+    if (!tablet || landscapeSide) break;
+    const vh = document.documentElement.clientHeight;
+    const scrollSlack = document.documentElement.scrollHeight - vh;
+    if (scrollSlack <= 2) break;
+    snakeLayoutPadExtra += Math.ceil(scrollSlack) + 4;
+  }
 
   const stage = canvas.closest('.canvas-stage');
   if (stage) {
     const { coarse, landscapeSide } = playfieldLayout();
     const tablet = coarse && window.innerWidth >= 481;
-    let dpadSize = Math.min(44, Math.max(38, Math.round(w * 0.11)));
-    let fireSize = Math.min(52, Math.max(44, Math.round(w * 0.13)));
+    const boardW = canvas.getBoundingClientRect().width;
+    let dpadSize = Math.min(44, Math.max(38, Math.round(boardW * 0.11)));
+    let fireSize = Math.min(52, Math.max(44, Math.round(boardW * 0.13)));
     if (coarse) {
       dpadSize = Math.max(44, dpadSize);
       fireSize = Math.max(44, fireSize);

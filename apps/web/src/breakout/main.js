@@ -60,11 +60,25 @@ function hideOverlay() {
 
 function fitCanvas() {
   const wrap = canvas.parentElement;
-  if (!wrap) return;
-  const r = wrap.getBoundingClientRect();
-  const scale = Math.min(r.width / CANVAS_W, r.height / CANVAS_H);
-  canvas.style.width = `${Math.floor(CANVAS_W * scale)}px`;
-  canvas.style.height = `${Math.floor(CANVAS_H * scale)}px`;
+  const zone = wrap?.parentElement;
+  if (!wrap || !zone) return;
+  const r = zone.getBoundingClientRect();
+  let displayW = Math.min(r.width, (r.height * CANVAS_W) / CANVAS_H);
+  let displayH = (displayW * CANVAS_H) / CANVAS_W;
+  if (displayH > r.height) {
+    displayH = r.height;
+    displayW = (displayH * CANVAS_W) / CANVAS_H;
+  }
+  displayW = Math.floor(displayW);
+  displayH = Math.floor(displayH);
+  if (displayW < 16 || displayH < 16) return;
+  wrap.style.width = `${displayW}px`;
+  wrap.style.height = `${displayH}px`;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.max(1, Math.floor(displayW * dpr));
+  canvas.height = Math.max(1, Math.floor(displayH * dpr));
+  canvas.style.width = `${displayW}px`;
+  canvas.style.height = `${displayH}px`;
 }
 
 function endRun() {
@@ -126,7 +140,7 @@ function loop(ts) {
       return;
     }
   }
-  drawBreakout(ctx, state);
+  drawBreakout(ctx, state, canvas);
   raf = requestAnimationFrame(loop);
 }
 

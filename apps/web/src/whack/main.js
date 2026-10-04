@@ -90,11 +90,16 @@ function endRun() {
 
 function fitCanvas() {
   const wrap = canvas.parentElement;
-  if (!wrap) return;
-  const r = wrap.getBoundingClientRect();
+  const zone = wrap?.parentElement;
+  if (!wrap || !zone) return;
+  const r = zone.getBoundingClientRect();
   const size = Math.floor(Math.min(r.width, r.height));
-  canvas.width = 400;
-  canvas.height = 400;
+  if (size < 16) return;
+  wrap.style.width = `${size}px`;
+  wrap.style.height = `${size}px`;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.max(1, Math.floor(size * dpr));
+  canvas.height = Math.max(1, Math.floor(size * dpr));
   canvas.style.width = `${size}px`;
   canvas.style.height = `${size}px`;
 }

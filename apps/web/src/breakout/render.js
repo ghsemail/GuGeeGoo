@@ -5,8 +5,18 @@ const BRICK_COLORS = ['', '#EF5350', '#FFA726', '#AB47BC'];
 /**
  * @param {CanvasRenderingContext2D} ctx
  * @param {import('./game.js').createBreakoutState extends () => infer S ? S : never} state
+ * @param {HTMLCanvasElement} canvasEl
  */
-export function drawBreakout(ctx, state) {
+export function drawBreakout(ctx, state, canvasEl) {
+  ctx.save();
+  ctx.setTransform(
+    canvasEl.width / CANVAS_W,
+    0,
+    0,
+    canvasEl.height / CANVAS_H,
+    0,
+    0
+  );
   ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
   const bg = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
   bg.addColorStop(0, '#1a237e');
@@ -59,6 +69,7 @@ export function drawBreakout(ctx, state) {
     ctx.textAlign = 'center';
     ctx.fillText('暂停', CANVAS_W / 2, CANVAS_H / 2);
   }
+  ctx.restore();
 }
 
 function roundRect(ctx, x, y, w, h, r) {
