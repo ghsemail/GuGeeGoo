@@ -694,11 +694,46 @@
   }
 
   .snake-page:has(#screen-game:not([hidden])) {
-    padding-bottom: 8px;
+    padding-bottom: 6px;
   }
 
   .screen-game .stats-bar-game {
     margin-bottom: 4px;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .screen-game {
+    margin-bottom: 14px;
+  }
+}
+
+@media (pointer: coarse) and (orientation: portrait) and (min-width: 481px) {
+  .snake-page:has(#screen-game:not([hidden])) {
+    padding: 10px 12px 10px;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .snake-header {
+    margin-bottom: 6px;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .stats-bar-game {
+    margin-bottom: 4px;
+  }
+
+  .screen-game .hint {
+    display: none;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .tagline {
+    display: none;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .screen {
+    margin-bottom: 8px;
+  }
+
+  .screen-game .toolbar-game {
+    margin-top: 6px;
+    margin-bottom: 6px;
   }
 }
 

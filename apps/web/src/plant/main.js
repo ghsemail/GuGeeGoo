@@ -446,4 +446,10 @@ syncUi();
 startLoops();
 initPlant3d();
 
+globalThis.__PLANT_TEST_RELOAD__ = () => {
+  loadFromStorage();
+  hideOverlay();
+  syncUi();
+};
+
 export { BRYOPHYTE_SPECIES };

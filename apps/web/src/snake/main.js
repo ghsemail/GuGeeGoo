@@ -259,7 +259,7 @@ function playfieldLayout() {
     const toolbarH = toolbar
       ? toolbar.getBoundingClientRect().height + 12
       : 48;
-    padH = Math.ceil(top + belowBoard + toolbarH + 8) + snakeLayoutPadExtra;
+    padH = Math.ceil(top + belowBoard + toolbarH + 4) + snakeLayoutPadExtra;
   }
   const availW = window.innerWidth - padW;
   const availH = window.innerHeight - padH;
@@ -302,20 +302,31 @@ function cellSize() {
 function resizeCanvas() {
   const lv = state.level;
   snakeLayoutPadExtra = 0;
-  for (let attempt = 0; attempt < 8; attempt++) {
+  for (let attempt = 0; attempt < 12; attempt++) {
     const cs = cellSize();
     const w = lv.cols * cs;
     const h = lv.rows * cs;
     canvas.width = w;
     canvas.height = h;
-    const { maxW, maxH } = playfieldLayout();
+    const { maxW, maxH, tablet, landscapeSide } = playfieldLayout();
     applyCanvasDisplaySize(canvas, w, h, maxW, maxH);
-    const { tablet, landscapeSide } = playfieldLayout();
-    if (!tablet || landscapeSide) break;
     const vh = document.documentElement.clientHeight;
     const scrollSlack = document.documentElement.scrollHeight - vh;
-    if (scrollSlack <= 2) break;
-    snakeLayoutPadExtra += Math.ceil(scrollSlack) + 4;
+    const boardSide = Math.min(
+      canvas.getBoundingClientRect().width,
+      canvas.getBoundingClientRect().height
+    );
+
+    if (tablet && !landscapeSide) {
+      if (scrollSlack <= 2 && boardSide >= 520 - 0.5) break;
+      if (scrollSlack > 2 && boardSide > 521) {
+        snakeLayoutPadExtra += Math.min(Math.ceil(scrollSlack), 8);
+        continue;
+      }
+      break;
+    }
+
+    break;
   }
 
   const stage = canvas.closest('.canvas-stage');

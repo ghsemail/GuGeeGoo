@@ -17,7 +17,7 @@
   --soil: #5d4037;
   --plant-stage-min: 240px;
   --plant-chrome-portrait: 340px;
-  --plant-chrome-landscape: 210px;
+  --plant-chrome-landscape: 348px;
   --plant-stage-portrait: clamp(
     var(--plant-stage-min),
     40dvh,
@@ -107,6 +107,10 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.plant-section-display > .visually-hidden {
+  display: none;
 }
 
 /* 挑苔藓 */
@@ -202,25 +206,36 @@
 }
 
 .pot-scene {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-areas: 'stage';
+  align-items: stretch;
+  justify-items: stretch;
   flex: 0 0 auto;
   width: 100%;
   min-height: var(--plant-stage-portrait);
   height: var(--plant-stage-portrait);
+  max-height: var(--plant-stage-portrait);
   container-type: size;
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 .plant-3d-mount {
-  position: absolute;
-  inset: 0;
+  grid-area: stage;
+  position: relative;
   width: 100%;
   height: 100%;
-  min-height: var(--plant-stage-portrait);
+  min-height: 0;
+  min-width: 0;
   z-index: 2;
   touch-action: none;
+}
+
+.plant-page.plant-3d-active .pot--fallback {
+  grid-area: stage;
+  justify-self: center;
+  align-self: center;
 }
 
 .plant-3d-canvas {
@@ -649,10 +664,6 @@
   animation: plant-fx-rise 0.7s ease-out forwards;
 }
 
-.pot-scene {
-  position: relative;
-}
-
 @keyframes plant-fx-rise {
   from {
     opacity: 1;
@@ -679,10 +690,10 @@
   }
 }
 
-/* 平板横屏：两列，避免纵向滚动 */
+/* 平板横屏：两列，主区文档流可滚动 */
 @media (orientation: landscape) and (min-width: 700px) {
   .plant-page {
-    padding: 6px 14px 8px;
+    padding: 6px 14px 10px;
   }
 
   .plant-header {
@@ -697,37 +708,41 @@
     display: none;
   }
 
-  .plant-page {
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
-    padding-bottom: 4px;
-    display: flex;
-    flex-direction: column;
-  }
-
   .plant-main {
-    flex: 1;
-    min-height: 0;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto auto auto auto;
     grid-template-areas:
       'pick pick'
-      'display side'
+      'stage side'
+      'info info'
       'save save';
     gap: 6px 10px;
-    align-content: stretch;
-    overflow: hidden;
+    align-content: start;
+    overflow: visible;
+  }
+
+  .plant-section-display {
+    display: contents;
+  }
+
+  .display-stack {
+    display: contents;
+  }
+
+  .pot-scene {
+    grid-area: stage;
+  }
+
+  .growth-stage-label,
+  .growth-progress,
+  .plant-info-panel {
+    grid-area: info;
   }
 
   .plant-side-stack {
     grid-area: side;
     align-self: start;
     justify-content: flex-start;
-  }
-
-  .plant-fact {
-    display: none;
   }
 
   .plant-section-pick {
@@ -750,41 +765,16 @@
     font-size: 12px;
   }
 
-  .plant-section-display {
-    grid-area: display;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
   .plant-section-save {
-    max-height: min(22vh, 140px);
-    overflow-y: auto;
-  }
-
-  .atlas-list {
-    max-height: 3.2em;
-    overflow-y: auto;
-  }
-
-  .display-stack .plant-info-panel {
-    max-height: 3.6em;
+    grid-area: save;
+    overflow: visible;
   }
 
   .pot-scene {
     flex: 0 0 auto;
     min-height: min(var(--plant-stage-landscape), calc(100dvh - var(--plant-chrome-landscape)));
     height: min(var(--plant-stage-landscape), calc(100dvh - var(--plant-chrome-landscape)));
-  }
-
-  .plant-3d-mount {
-    min-height: inherit;
-  }
-
-  .display-stack {
-    flex: 1;
-    min-height: 0;
-    justify-content: flex-start;
+    max-height: min(var(--plant-stage-landscape), calc(100dvh - var(--plant-chrome-landscape)));
   }
 
   .pot {
@@ -808,67 +798,62 @@
   min-width: 0;
 }
 
-/* 平板竖屏：紧凑单列 */
+/* 平板竖屏：单列文档流，次要区可滚动 */
 @media (orientation: portrait) and (min-width: 600px) {
   .plant-page {
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    --plant-chrome-portrait: 645px;
+    --plant-stage-portrait: clamp(
+      240px,
+      40dvh,
+      calc(100dvh - var(--plant-chrome-portrait))
+    );
   }
 
   .plant-main {
-    flex: 1;
-    min-height: 0;
     gap: 6px;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
     grid-template-areas:
       'pick'
-      'display'
+      'stage'
       'side'
+      'info'
       'save';
-    overflow: hidden;
+    overflow: visible;
+  }
+
+  .plant-section-pick {
+    grid-area: pick;
+  }
+
+  .plant-section-display {
+    display: contents;
+  }
+
+  .display-stack {
+    display: contents;
+  }
+
+  .pot-scene {
+    grid-area: stage;
+    flex: 0 0 auto;
+    min-height: min(var(--plant-stage-portrait), calc(100dvh - var(--plant-chrome-portrait)));
+    height: min(var(--plant-stage-portrait), calc(100dvh - var(--plant-chrome-portrait)));
+    max-height: min(var(--plant-stage-portrait), calc(100dvh - var(--plant-chrome-portrait)));
+  }
+
+  .growth-stage-label,
+  .growth-progress,
+  .plant-info-panel {
+    grid-area: info;
   }
 
   .plant-side-stack {
     grid-area: side;
   }
 
-  .plant-fact {
-    display: none;
-  }
-
-  .plant-section-display {
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .display-stack {
-    flex: 0 1 auto;
-    min-height: 0;
-  }
-
-  .display-stack .plant-info-panel {
-    max-height: 3.2em;
-  }
-
-  .pot-scene {
-    flex: 0 0 auto;
-    min-height: min(var(--plant-stage-portrait), calc(100dvh - var(--plant-chrome-portrait)));
-    height: min(var(--plant-stage-portrait), calc(100dvh - var(--plant-chrome-portrait)));
-  }
-
-  .plant-3d-mount {
-    min-height: inherit;
-  }
-
   .plant-section-save {
-    flex: 0 1 auto;
-    min-height: 0;
-    max-height: 22vh;
-    overflow-y: auto;
+    grid-area: save;
+    overflow: visible;
   }
 
   .pot {
