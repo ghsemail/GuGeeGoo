@@ -248,8 +248,8 @@ function playfieldLayout() {
   let padW = 32;
   let padH = 320;
   if (landscapeSide) {
-    padW = 258;
-    padH = 312;
+    padW = 250;
+    padH = 300;
   } else if (tablet) {
     const screen = document.querySelector('#screen-game:not([hidden])');
     const wrap = screen?.querySelector('.canvas-wrap');
@@ -296,15 +296,6 @@ function cellSize() {
     cs = Math.max(cs, Math.min(csForMin, csCap));
   }
   cs = Math.min(cs, Math.floor(maxW / lv.cols), Math.floor(maxH / lv.rows));
-  if (tablet && !landscapeSide) {
-    const csFor520 = Math.ceil(520 / lv.cols);
-    const csCapLocal = Math.min(
-      csCap,
-      Math.floor(maxW / lv.cols),
-      Math.floor(maxH / lv.rows)
-    );
-    cs = Math.max(cs, Math.min(csFor520, csCapLocal));
-  }
   return Math.max(cs, 12);
 }
 
@@ -320,14 +311,11 @@ function resizeCanvas() {
     const { maxW, maxH } = playfieldLayout();
     applyCanvasDisplaySize(canvas, w, h, maxW, maxH);
     const { tablet, landscapeSide } = playfieldLayout();
+    if (!tablet || landscapeSide) break;
     const vh = document.documentElement.clientHeight;
     const scrollSlack = document.documentElement.scrollHeight - vh;
     if (scrollSlack <= 2) break;
-    if (landscapeSide) {
-      snakeLayoutPadExtra += Math.ceil(scrollSlack) + 4;
-      continue;
-    }
-    break;
+    snakeLayoutPadExtra += Math.ceil(scrollSlack) + 4;
   }
 
   const stage = canvas.closest('.canvas-stage');

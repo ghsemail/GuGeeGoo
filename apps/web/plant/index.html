@@ -62,37 +62,39 @@
         </div>
       </section>
 
-      <section class="plant-section plant-section-status" aria-labelledby="status-heading">
-        <h2 id="status-heading" class="section-title">状态</h2>
-        <div class="stat-bars">
-          <label class="stat-row">
-            <span class="stat-label">💧 水分</span>
-            <span class="stat-track" aria-hidden="true"><span class="stat-fill" style="width: 40%"></span></span>
-            <span class="stat-value">40</span>
-          </label>
-          <label class="stat-row">
-            <span class="stat-label">☀️ 阳光</span>
-            <span class="stat-track" aria-hidden="true"><span class="stat-fill stat-fill-sun" style="width: 55%"></span></span>
-            <span class="stat-value">55</span>
-          </label>
-          <label class="stat-row">
-            <span class="stat-label">🧪 养分</span>
-            <span class="stat-track" aria-hidden="true"><span class="stat-fill stat-fill-nutrient" style="width: 35%"></span></span>
-            <span class="stat-value">35</span>
-          </label>
-        </div>
-      </section>
+      <div class="plant-side-stack">
+        <section class="plant-section plant-section-status" aria-labelledby="status-heading">
+          <h2 id="status-heading" class="section-title">状态</h2>
+          <div class="stat-bars">
+            <label class="stat-row">
+              <span class="stat-label">💧 水分</span>
+              <span class="stat-track" aria-hidden="true"><span class="stat-fill" style="width: 40%"></span></span>
+              <span class="stat-value">40</span>
+            </label>
+            <label class="stat-row">
+              <span class="stat-label">☀️ 阳光</span>
+              <span class="stat-track" aria-hidden="true"><span class="stat-fill stat-fill-sun" style="width: 55%"></span></span>
+              <span class="stat-value">55</span>
+            </label>
+            <label class="stat-row">
+              <span class="stat-label">🧪 养分</span>
+              <span class="stat-track" aria-hidden="true"><span class="stat-fill stat-fill-nutrient" style="width: 35%"></span></span>
+              <span class="stat-value">35</span>
+            </label>
+          </div>
+        </section>
 
-      <section class="plant-section plant-section-care" aria-labelledby="care-heading">
-        <h2 id="care-heading" class="section-title">照顾</h2>
-        <div class="care-row">
-          <button type="button" class="care-btn" data-care="water">💧 浇水</button>
-          <button type="button" class="care-btn" data-care="light">☀️ 晒太阳</button>
-          <button type="button" class="care-btn" data-care="nutrient">🧪 施肥</button>
-        </div>
-      </section>
+        <section class="plant-section plant-section-care" aria-labelledby="care-heading">
+          <h2 id="care-heading" class="section-title">照顾</h2>
+          <div class="care-row">
+            <button type="button" class="care-btn" data-care="water">💧 浇水</button>
+            <button type="button" class="care-btn" data-care="light">☀️ 晒太阳</button>
+            <button type="button" class="care-btn" data-care="nutrient">🧪 施肥</button>
+          </div>
+        </section>
+      </div>
 
-      <section class="plant-section plant-section-save" aria-labelledby="save-heading">
+      <section class="plant-section plant-section-save plant-section-scroll" aria-labelledby="save-heading">
         <h2 id="save-heading" class="section-title">存档 · 图鉴</h2>
         <div class="save-row">
           <button type="button" id="btn-save" class="save-btn">💾 保存</button>

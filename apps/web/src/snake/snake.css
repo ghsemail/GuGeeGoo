@@ -692,6 +692,14 @@
     margin-top: 8px;
     margin-bottom: 8px;
   }
+
+  .snake-page:has(#screen-game:not([hidden])) {
+    padding-bottom: 8px;
+  }
+
+  .screen-game .stats-bar-game {
+    margin-bottom: 4px;
+  }
 }
 
 @media (pointer: coarse) and (min-width: 481px) {

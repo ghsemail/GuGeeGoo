@@ -247,6 +247,7 @@ class Plant3dView {
     g.add(soil);
 
     const clayMat = createStylizedMaterial(THREE, pal.pot, { roughness: 0.68, emissiveScale: 0.05 });
+    clayMat.side = THREE.DoubleSide;
     const wall = new THREE.Mesh(
       new THREE.CylinderGeometry(0.48, 0.38, 0.32, 28, 1, true),
       clayMat
@@ -254,10 +255,14 @@ class Plant3dView {
     wall.position.y = -0.1;
     g.add(wall);
 
-    const bottom = new THREE.Mesh(new THREE.CircleGeometry(0.375, 28), clayMat);
-    bottom.rotation.x = -Math.PI / 2;
-    bottom.position.y = -0.26;
-    g.add(bottom);
+    const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.045, 28), clayMat);
+    foot.position.y = -0.278;
+    g.add(foot);
+
+    const bottomOuter = new THREE.Mesh(new THREE.CircleGeometry(0.4, 28), clayMat);
+    bottomOuter.rotation.x = Math.PI / 2;
+    bottomOuter.position.y = -0.302;
+    g.add(bottomOuter);
 
     const innerFloor = new THREE.Mesh(
       new THREE.CylinderGeometry(0.375, 0.375, 0.012, 28),
@@ -505,5 +510,31 @@ function installPlant3dTestHook(view) {
       };
     },
     resetView: () => view.resetView(),
+    setPolarDeg(deg) {
+      const c = view.controls;
+      const THREE = view.THREE;
+      if (!c || !view.camera || !view.renderer || !view.scene || !THREE) return null;
+      const phi = (deg * Math.PI) / 180;
+      const offset = view.camera.position.clone().sub(c.target);
+      const spherical = new THREE.Spherical().setFromVector3(offset);
+      spherical.phi = phi;
+      offset.setFromSpherical(spherical);
+      view.camera.position.copy(c.target).add(offset);
+      c.update();
+      view.renderer.render(view.scene, view.camera);
+      return phi;
+    },
+    sampleCanvasPixel(nx = 0.5, ny = 0.82) {
+      const canvas = view.canvas;
+      const renderer = view.renderer;
+      if (!canvas || !renderer) return null;
+      renderer.render(view.scene, view.camera);
+      const gl = renderer.getContext();
+      const x = Math.max(0, Math.min(canvas.width - 1, Math.floor(canvas.width * nx)));
+      const y = Math.max(0, Math.min(canvas.height - 1, Math.floor(canvas.height * (1 - ny))));
+      const px = new Uint8Array(4);
+      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      return { r: px[0], g: px[1], b: px[2], a: px[3] };
+    },
   };
 }

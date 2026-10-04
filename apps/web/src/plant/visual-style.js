@@ -88,4 +88,7 @@ export function applyStylizedLighting(THREE, scene, renderer) {
   const rim = new THREE.DirectionalLight(0xa5d6a7, 0.48);
   rim.position.set(-2.4, 1.8, -2.2);
   scene.add(rim);
+  const under = new THREE.DirectionalLight(0xbcaaa4, 0.42);
+  under.position.set(0, -2.5, 0.2);
+  scene.add(under);
 }

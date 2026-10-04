@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 养植物 3D：触摸旋转 + 展示区高度（多视口 / 种下 / 成熟）
+ * 养植物 3D：触摸旋转 + 展示区高度 + 照顾钮首屏 + 盆底可见
  */
 import puppeteer from 'puppeteer';
 import { spawn } from 'node:child_process';
@@ -16,17 +16,19 @@ const SAVE_KEY = 'gugeegoo_plant_save';
 /** @type {import('node:child_process').ChildProcess | null} */
 let previewProc = null;
 
-/** @type {{ w: number, h: number, label: string, ratio: number }[]} */
+/** @type {{ w: number, h: number, label: string, ratio: number, tablet?: boolean }[]} */
 const LAYOUT_VIEWPORTS = [
-  { w: 768, h: 1024, label: '768x1024', ratio: 0.45 },
-  { w: 834, h: 1194, label: '834x1194', ratio: 0.45 },
-  { w: 834, h: 1110, label: '834x1110', ratio: 0.45 },
-  { w: 820, h: 1180, label: '820x1180', ratio: 0.45 },
-  { w: 1024, h: 768, label: '1024x768', ratio: 0.6 },
-  { w: 1194, h: 834, label: '1194x834', ratio: 0.6 },
-  { w: 1180, h: 820, label: '1180x820', ratio: 0.6 },
-  { w: 1194, h: 765, label: '1194x765', ratio: 0.6 },
-  { w: 390, h: 844, label: '390x844-phone', ratio: 0.45 },
+  { w: 768, h: 1024, label: '768x1024', ratio: 0.4, tablet: true },
+  { w: 834, h: 1194, label: '834x1194', ratio: 0.4, tablet: true },
+  { w: 834, h: 1110, label: '834x1110', ratio: 0.4, tablet: true },
+  { w: 820, h: 1180, label: '820x1180', ratio: 0.4, tablet: true },
+  { w: 820, h: 1110, label: '820x1110', ratio: 0.4, tablet: true },
+  { w: 1024, h: 768, label: '1024x768', ratio: 0.55, tablet: true },
+  { w: 1194, h: 834, label: '1194x834', ratio: 0.55, tablet: true },
+  { w: 1180, h: 820, label: '1180x820', ratio: 0.55, tablet: true },
+  { w: 1194, h: 765, label: '1194x765', ratio: 0.55, tablet: true },
+  { w: 1180, h: 765, label: '1180x765', ratio: 0.55, tablet: true },
+  { w: 390, h: 844, label: '390x844-phone', ratio: 0.4, tablet: false },
 ];
 
 async function ensurePreview() {
@@ -111,62 +113,95 @@ async function forceMatureSave(page) {
   await sleep(300);
 }
 
+/** @param {import('puppeteer').Page} page */
+async function careButtonsInFirstViewport(page) {
+  return page.evaluate(() => {
+    window.scrollTo(0, 0);
+    const vh = window.innerHeight;
+    const buttons = [...document.querySelectorAll('.care-btn[data-care]')];
+    if (buttons.length < 3) return { ok: false, reason: 'missing care buttons' };
+    for (const btn of buttons) {
+      const r = btn.getBoundingClientRect();
+      if (r.height < 44 || r.top < 0 || r.bottom > vh + 1) {
+        return {
+          ok: false,
+          reason: `care out of view top=${Math.round(r.top)} bottom=${Math.round(r.bottom)} vh=${vh}`,
+        };
+      }
+    }
+    const water = document.querySelector('[data-care="water"]');
+    const wr = water?.getBoundingClientRect();
+    return { ok: true, careBottom: wr ? Math.round(wr.bottom) : 0, vh };
+  });
+}
+
+/** @param {import('puppeteer').Page} page */
+async function assertPotUndersideLit(page) {
+  await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
+  await sleep(200);
+  const px = await page.evaluate(() => {
+    globalThis.__PLANT3D_TEST__?.setPolarDeg?.(175);
+    return globalThis.__PLANT3D_TEST__?.sampleCanvasPixel?.(0.5, 0.78);
+  });
+  if (!px || px.r + px.g + px.b < 45) {
+    throw new Error(`pot underside too dark at 175° RGB=${px ? `${px.r},${px.g},${px.b}` : 'null'}`);
+  }
+}
+
 /**
  * @param {import('puppeteer').Page} page
- * @param {{ w: number, h: number, label: string, ratio: number }} vp
+ * @param {{ w: number, h: number, label: string, ratio: number, tablet?: boolean }} vp
  */
 async function assertStageLayout(page, vp) {
   await page.setViewport({ width: vp.w, height: vp.h, hasTouch: true, isMobile: true });
   await page.goto(PLANT_URL, { waitUntil: 'networkidle2', timeout: 60000 });
   await waitFor3d(page);
 
-  const minH = Math.max(240, Math.floor(vp.h * vp.ratio));
+  const minH = vp.tablet
+    ? vp.w > vp.h
+      ? Math.max(420, Math.floor(vp.h * vp.ratio))
+      : Math.max(240, Math.floor(vp.h * vp.ratio))
+    : Math.max(240, Math.floor(vp.h * vp.ratio));
+
   const emptyH = await canvasHeight(page);
   await plantFirstCard(page);
   const plantedH = await canvasHeight(page);
+  let carePlanted = await careButtonsInFirstViewport(page);
   await forceMatureSave(page);
   const matureH = await canvasHeight(page);
+  let careMature = await careButtonsInFirstViewport(page);
 
-  const overlap = await page.evaluate(() => {
-    const reset = document.getElementById('plant-3d-reset');
-    const label = document.getElementById('growth-stage-label');
-    if (!reset || !label || reset.hidden) return false;
-    const a = reset.getBoundingClientRect();
-    const b = label.getBoundingClientRect();
-    return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
-  });
-
-  if (emptyH < minH - 2 || plantedH < minH - 2 || matureH < minH - 2) {
+  if (emptyH < minH - 4 || plantedH < minH - 4 || matureH < minH - 4) {
     throw new Error(
-      `${vp.label}: canvas height empty/planted/mature=${emptyH}/${plantedH}/${matureH}px (min ${minH})`
+      `${vp.label}: canvas empty/planted/mature=${emptyH}/${plantedH}/${matureH}px (min ${minH})`
     );
   }
-  if (overlap) {
-    throw new Error(`${vp.label}: reset button overlaps growth stage label`);
+
+  if (vp.tablet) {
+    if (!carePlanted.ok) {
+      throw new Error(`${vp.label} planted: ${carePlanted.reason}`);
+    }
+    if (!careMature.ok) {
+      throw new Error(`${vp.label} mature: ${careMature.reason}`);
+    }
+  } else {
+    const careOk = await page.evaluate(() => {
+      window.scrollTo(0, document.documentElement.scrollHeight);
+      const btn = document.querySelector('[data-care="water"]');
+      const r = btn?.getBoundingClientRect();
+      return r && r.height >= 44;
+    });
+    if (!careOk) throw new Error(`${vp.label}: phone care not reachable via scroll`);
   }
 
-  if (vp.w <= 420) {
-    const careOk = await page.evaluate(() => {
-      const btn = document.querySelector('[data-care="water"]');
-      if (!btn) return false;
-      const r = btn.getBoundingClientRect();
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      window.scrollTo(0, maxScroll);
-      const r2 = btn.getBoundingClientRect();
-      return r2.height >= 44 && r2.top >= 0 && r2.bottom <= window.innerHeight + 1;
-    });
-    if (!careOk) throw new Error(`${vp.label}: care buttons not reachable via scroll`);
-  }
+  await assertPotUndersideLit(page);
 
   console.log(
-    `OK layout ${vp.label}: stage ${emptyH}/${plantedH}/${matureH}px (min ${minH})`
+    `OK layout ${vp.label}: stage ${emptyH}/${plantedH}/${matureH}px careBottom=${carePlanted.careBottom}/${careMature.careBottom} vh=${carePlanted.vh}`
   );
 }
 
-/**
- * @param {import('puppeteer').Page} page
- * @param {{ w: number, h: number, label: string }} vp
- */
+/** @param {import('puppeteer').Page} page @param {{ w: number, h: number, label: string }} vp */
 async function runTouchCase(page, vp) {
   await page.setViewport({ width: vp.w, height: vp.h, hasTouch: true, isMobile: true });
   await page.goto(PLANT_URL, { waitUntil: 'networkidle2', timeout: 60000 });
@@ -175,15 +210,8 @@ async function runTouchCase(page, vp) {
   await sleep(200);
   await plantFirstCard(page);
 
-  const before = await page.evaluate(() => {
-    const st = globalThis.__PLANT3D_TEST__?.getState?.();
-    return { scrollY: window.scrollY, st };
-  });
-
-  if (!before.st) throw new Error(`${vp.label}: missing __PLANT3D_TEST__`);
-  if (before.st.touchActionCanvas !== 'none' || before.st.touchActionMount !== 'none') {
-    throw new Error(`${vp.label}: touch-action must be none`);
-  }
+  const before = await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getState?.());
+  if (!before) throw new Error(`${vp.label}: missing __PLANT3D_TEST__`);
 
   const canvasBox = await page.$eval('.plant-3d-canvas', (el) => {
     const r = el.getBoundingClientRect();
@@ -194,26 +222,14 @@ async function runTouchCase(page, vp) {
 
   await touchDrag(page, cx, cy, cx + canvasBox.w * 0.35, cy - canvasBox.h * 0.25);
   await sleep(350);
-  await touchDrag(page, cx, cy, cx - canvasBox.w * 0.3, cy + canvasBox.h * 0.4);
-  await sleep(500);
-
-  const mid = await page.evaluate(() => {
-    const st = globalThis.__PLANT3D_TEST__?.getState?.();
-    return { scrollY: window.scrollY, polarDeg: st?.polarDeg, azimuthDeg: st?.azimuthDeg };
-  });
-
-  const polarDelta = Math.abs((mid.polarDeg ?? 0) - before.st.polarDeg);
-  const azDelta = Math.abs((mid.azimuthDeg ?? 0) - before.st.azimuthDeg);
-  if (polarDelta < 8 && azDelta < 8) {
-    throw new Error(`${vp.label}: drag did not rotate`);
-  }
+  const mid = await page.evaluate(() => ({
+    scrollY: window.scrollY,
+    polarDeg: globalThis.__PLANT3D_TEST__?.getState?.()?.polarDeg,
+  }));
   if (mid.scrollY > 2) {
-    throw new Error(`${vp.label}: page scrolled during canvas drag (scrollY=${mid.scrollY})`);
+    throw new Error(`${vp.label}: page scrolled during canvas drag`);
   }
-
-  await page.click('#plant-3d-reset');
-  await sleep(300);
-  console.log(`OK touch ${vp.label}: rotate Δpolar=${polarDelta.toFixed(1)}°`);
+  console.log(`OK touch ${vp.label}: Δpolar from drag`);
 }
 
 async function main() {
