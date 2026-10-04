@@ -24,6 +24,10 @@ import { buildSavePayload, readSave, writeSave } from './storage.js';
 import { drawPlant } from './draw.js';
 import { factAt } from './facts.js';
 
+/** @type {{ update: Function } | null} */
+let plant3dView = null;
+let plant3dReady = false;
+
 const pickerEl = document.getElementById('bryophyte-picker');
 const potNameEl = document.getElementById('pot-species-name');
 const potHabitEl = document.getElementById('pot-species-habit');
@@ -47,8 +51,6 @@ const statFills = {
 };
 const statValues = [...document.querySelectorAll('.stat-value')];
 
-/** @type {string | null} */
-let selectedSpeciesId = null;
 /** @type {import('./growth.js').PlantState} */
 let plantState = createEmptyState();
 /** @type {string[]} */
@@ -98,7 +100,6 @@ function renderBryophytePicker() {
 
 /** @param {string} id */
 function onPickSpecies(id) {
-  selectedSpeciesId = id;
   document.querySelectorAll('.bryo-card').forEach((c) => {
     c.classList.toggle('is-selected', c.dataset.speciesId === id);
   });
@@ -122,7 +123,6 @@ function onPickSpecies(id) {
 /** @param {string} speciesId */
 function startPlant(speciesId) {
   plantState = plantSpecies(speciesId);
-  selectedSpeciesId = speciesId;
   syncUi();
   persistSave();
   showToast(`🌱 种下了${getSpeciesById(speciesId)?.nameZh ?? '苔藓'}！`);
@@ -178,7 +178,8 @@ function updateGrowthUi(sp) {
   if (!plantState.planted || !sp) {
     stageLabelEl.textContent = '';
     progressFillEl.style.width = '0%';
-    drawPlant(plantSvg, null, 0, 'happy');
+    if (plant3dReady && plant3dView) plant3dView.update(null, 0, 'happy');
+    else drawPlant(plantSvg, null, 0, 'happy');
     return;
   }
   const idx = stageIndexFromGrowth(plantState.growth);
@@ -205,7 +206,11 @@ function updateGrowthUi(sp) {
   let mood = care.mood;
   if (plantState.status === 'withered') mood = 'withered';
   if (isVisiblyStressed(plantState)) mood = 'stressed';
-  drawPlant(plantSvg, sp, plantState.growth, mood);
+  if (plant3dReady && plant3dView) {
+    plant3dView.update(sp, plantState.growth, mood);
+  } else {
+    drawPlant(plantSvg, sp, plantState.growth, mood);
+  }
 }
 
 /** @param {import('./species.js').BryophyteSpecies | null} sp */
@@ -386,10 +391,25 @@ function startLoops() {
   rotateFact();
 }
 
+async function initPlant3d() {
+  const mount = document.getElementById('plant-3d-mount');
+  if (!mount) return;
+  const mod = await import('./plant3d.js');
+  const result = await mod.createPlant3dView(mount);
+  if (result.ok && result.view) {
+    plant3dView = result.view;
+    plant3dReady = true;
+    document.body.classList.add('plant-3d-active');
+    if (soilPlaceholder) soilPlaceholder.hidden = true;
+    syncUi();
+  }
+}
+
 loadFromStorage();
 renderBryophytePicker();
 bindUi();
 syncUi();
 startLoops();
+initPlant3d();
 
 export { BRYOPHYTE_SPECIES };
