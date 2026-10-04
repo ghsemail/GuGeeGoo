@@ -1,5 +1,9 @@
 # 3D 苔藓造型 — 参考来源（给家长/老师核对）
 
+## 画面风格（代码：`visual-style.js`）
+
+**柔和半写实（stylized-natural）**：结构按下面真实参考（叶状体裂片、胞芽杯、茎叶、孢蒴），形体用光滑低/中多边形并略放大以便辨认；颜色是自然绿与陶土色，**MeshStandardMaterial + 半球光 / 填光 / rim**，无照片贴图、无粗描边、无卡通脸。2D 回退（`draw.js`）用径向渐变与轻阴影，花盆 CSS 与 3D 陶土一致。
+
 ## 地钱 Marchantia polymorpha（幼苗 → 成熟）
 
 - https://www.cell.com/current-biology/fulltext/S0960-9822(15)01495-5 — 生活史图：扁平叶状体、胞芽杯、雄托（伞形）、雌托（掌形）

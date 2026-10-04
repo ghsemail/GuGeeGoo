@@ -235,7 +235,8 @@
   width: 72%;
   height: 10px;
   border-radius: 6px 6px 2px 2px;
-  background: #a1887f;
+  background: linear-gradient(180deg, #c4a898 0%, #b89585 55%, #9a7b6a 100%);
+  box-shadow: 0 1px 2px rgba(62, 39, 35, 0.2);
 }
 
 .pot-body {
@@ -243,7 +244,8 @@
   flex: 1;
   min-height: 72px;
   border-radius: 8px 8px 20px 20px;
-  background: linear-gradient(180deg, #a1887f 0%, var(--pot) 40%, #6d4c41 100%);
+  background: linear-gradient(180deg, #c4a898 0%, var(--pot) 38%, #8a7268 72%, #6d5c54 100%);
+  box-shadow: inset 0 -4px 12px rgba(62, 39, 35, 0.15);
   padding: 10px 12px 14px;
   display: flex;
   align-items: center;
@@ -255,7 +257,7 @@
   height: min(64px, 52%);
   max-height: calc(100% - 4px);
   border-radius: 50% 50% 45% 45%;
-  background: radial-gradient(circle at 30% 25%, #6d4c41, var(--soil));
+  background: radial-gradient(circle at 32% 28%, #5d4037, var(--soil) 55%, #3e2723 100%);
   display: flex;
   align-items: center;
   justify-content: center;

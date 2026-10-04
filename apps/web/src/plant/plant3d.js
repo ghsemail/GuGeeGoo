@@ -1,7 +1,13 @@
 /**
  * 花盆 3D 视图 — Three.js（只在养植物页 lazy-load）
+ * 风格见 visual-style.js（柔和半写实）
  */
 import { stageIndexFromGrowth } from './growth.js';
+import {
+  applyStylizedLighting,
+  createStylizedMaterial,
+  palette3d,
+} from './visual-style.js';
 
 /** @typedef {'happy'|'uneasy'|'stressed'|'withered'} PlantMood */
 
@@ -50,6 +56,8 @@ class Plant3dView {
     this.idleSpin = 0;
     /** @type {string} */
     this._sig = '';
+    /** @type {ReturnType<palette3d> | null} */
+    this._potPalette = null;
   }
 
   async init() {
@@ -73,15 +81,10 @@ class Plant3dView {
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 40);
     this.camera.position.set(0.9, 0.75, 1.15);
 
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-    const sun = new THREE.DirectionalLight(0xfff8e1, 0.95);
-    sun.position.set(2, 3, 1.5);
-    this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xc8e6c9, 0.35);
-    fill.position.set(-1.5, 1, -1);
-    this.scene.add(fill);
+    applyStylizedLighting(THREE, this.scene, this.renderer);
 
-    this.potGroup = this.buildPot();
+    this._potPalette = palette3d('happy', false);
+    this.potGroup = this.buildPot(this._potPalette);
     this.scene.add(this.potGroup);
     this.plantGroup = new THREE.Group();
     this.plantGroup.position.y = 0.02;
@@ -155,6 +158,7 @@ class Plant3dView {
   /** @param {import('./species.js').BryophyteSpecies | null} sp @param {number} growth @param {PlantMood} mood */
   update(sp, growth, mood) {
     if (!this.plantGroup || !this.THREE) return;
+    const mature = growth >= 100;
     const sig = `${sp?.id ?? ''}|${Math.floor(growth)}|${mood}`;
     if (sig === this._sig) {
       this.applyMoodTransform(mood);
@@ -163,7 +167,7 @@ class Plant3dView {
     this._sig = sig;
     this.clearGroup(this.plantGroup);
     if (!sp) return;
-    const palette = moodPalette(mood, growth >= 100);
+    const palette = palette3d(mood, mature);
     const stage = stageIndexFromGrowth(growth);
     const t = growth / 100;
     if (sp.group === 'liverwort') {
@@ -183,27 +187,25 @@ class Plant3dView {
     this.plantGroup.scale.setScalar(mood === 'withered' ? 0.85 : 1);
   }
 
-  buildPot() {
+  /** @param {ReturnType<palette3d>} pal */
+  buildPot(pal) {
     const { THREE } = this;
     const g = new THREE.Group();
-    const soil = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.42, 0.44, 0.06, 24),
-      new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.95 })
-    );
+    const soilMat = createStylizedMaterial(THREE, pal.soil, { roughness: 0.78, emissiveScale: 0.06 });
+    const soil = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.44, 0.06, 28), soilMat);
     soil.position.y = 0.03;
     g.add(soil);
 
+    const clayMat = createStylizedMaterial(THREE, pal.pot, { roughness: 0.68, emissiveScale: 0.05 });
     const wall = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.48, 0.38, 0.32, 24, 1, true),
-      new THREE.MeshStandardMaterial({ color: 0x8d6e63, roughness: 0.85, side: THREE.DoubleSide })
+      new THREE.CylinderGeometry(0.48, 0.38, 0.32, 28, 1, true),
+      clayMat
     );
     wall.position.y = -0.1;
     g.add(wall);
 
-    const rim = new THREE.Mesh(
-      new THREE.TorusGeometry(0.48, 0.035, 8, 24),
-      new THREE.MeshStandardMaterial({ color: 0xa1887f, roughness: 0.7 })
-    );
+    const rimMat = createStylizedMaterial(THREE, pal.potRim, { roughness: 0.62, emissiveScale: 0.06 });
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.038, 12, 32), rimMat);
     rim.rotation.x = Math.PI / 2;
     rim.position.y = 0.06;
     g.add(rim);
@@ -226,51 +228,35 @@ class Plant3dView {
   }
 }
 
-/** @param {PlantMood} mood @param {boolean} mature */
-function moodPalette(mood, mature) {
-  if (mature) return { main: 0x2e7d32, alt: 0x43a047, rim: 0x1b5e20 };
-  if (mood === 'withered') return { main: 0x8d6e63, alt: 0xa1887f, rim: 0x5d4037 };
-  if (mood === 'stressed') return { main: 0xc0a020, alt: 0xd4af37, rim: 0x8d6e00 };
-  if (mood === 'uneasy') return { main: 0x7cb342, alt: 0x9ccc65, rim: 0x558b2f };
-  return { main: 0x43a047, alt: 0x66bb6a, rim: 0x2e7d32 };
-}
-
 /**
  * @param {typeof import('three')} THREE
  * @param {import('three').Group} root
  */
 function buildLiverwort(THREE, root, id, stage, t, palette) {
-  const mat = new THREE.MeshStandardMaterial({
-    color: palette.main,
-    roughness: 0.75,
-    flatShading: true,
-  });
-  const matAlt = new THREE.MeshStandardMaterial({
-    color: palette.alt,
-    roughness: 0.8,
-    flatShading: true,
-  });
+  const mat = createStylizedMaterial(THREE, palette.main);
+  const matAlt = createStylizedMaterial(THREE, palette.alt, { roughness: 0.62 });
+  const matRim = createStylizedMaterial(THREE, palette.rim, { roughness: 0.65 });
 
-  const scale = 0.35 + t * 0.45;
+  const scale = (0.38 + t * 0.48) * 1.06;
 
   if (stage === 0) {
-    addLobe(THREE, root, mat, 0, 0, 0.08 * scale, 0.04 * scale);
-    addLobe(THREE, root, matAlt, 0.05, 0.01, 0.06 * scale, 0.035 * scale);
-    addLobe(THREE, root, matAlt, -0.04, -0.02, 0.05 * scale, 0.03 * scale);
+    addLobe(THREE, root, mat, 0, 0, 0.1 * scale, 0.05 * scale);
+    addLobe(THREE, root, matAlt, 0.06, 0.01, 0.075 * scale, 0.042 * scale);
+    addLobe(THREE, root, matAlt, -0.05, -0.02, 0.065 * scale, 0.038 * scale);
     return;
   }
 
   if (stage === 1) {
-    addRibbon(THREE, root, mat, 0, 0, 0.22 * scale, 0.07, 0);
-    addRibbon(THREE, root, matAlt, 0.02, 0.01, 0.14 * scale, 0.06, 0.4);
+    addRibbon(THREE, root, mat, 0, 0, 0.26 * scale, 0.085, 0);
+    addRibbon(THREE, root, matAlt, 0.02, 0.01, 0.17 * scale, 0.072, 0.4);
     return;
   }
 
   const branches = id === 'riccia' ? 4 : id === 'conocephalum' ? 3 : 2;
   for (let i = 0; i < branches; i++) {
     const ang = (i / branches) * Math.PI * 2 + 0.3;
-    const len = (0.28 + stage * 0.06) * scale;
-    const w = id === 'riccia' ? 0.045 : id === 'conocephalum' ? 0.11 : 0.08;
+    const len = (0.32 + stage * 0.07) * scale;
+    const w = id === 'riccia' ? 0.052 : id === 'conocephalum' ? 0.125 : 0.092;
     addRibbon(THREE, root, i % 2 ? mat : matAlt, Math.cos(ang) * 0.05, Math.sin(ang) * 0.04, len, w, ang);
     if (id === 'riccia' && stage >= 2) {
       addRibbon(
@@ -279,8 +265,8 @@ function buildLiverwort(THREE, root, id, stage, t, palette) {
         matAlt,
         Math.cos(ang) * 0.12,
         Math.sin(ang) * 0.1,
-        len * 0.65,
-        w * 0.85,
+        len * 0.68,
+        w * 0.88,
         ang + 0.7
       );
     }
@@ -288,52 +274,59 @@ function buildLiverwort(THREE, root, id, stage, t, palette) {
 
   if (id === 'conocephalum' && stage >= 2) {
     const bump = new THREE.Mesh(
-      new THREE.BoxGeometry(0.14 * scale, 0.02, 0.1 * scale),
+      new THREE.CapsuleGeometry(0.07 * scale, 0.12 * scale, 6, 12),
       matAlt
     );
-    bump.position.set(0, 0.025, 0);
+    bump.rotation.x = Math.PI / 2;
+    bump.position.set(0, 0.028, 0);
     root.add(bump);
   }
 
   if (stage >= 3 && (id === 'marchantia' || id === 'conocephalum')) {
     const cup = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.05 * scale, 0.07 * scale, 0.03, 10),
+      new THREE.CylinderGeometry(0.055 * scale, 0.078 * scale, 0.034, 14),
       matAlt
     );
-    cup.position.set(0.08 * scale, 0.04, 0.05 * scale);
+    cup.position.set(0.09 * scale, 0.042, 0.055 * scale);
     root.add(cup);
+    const cupInner = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.038 * scale, 0.048 * scale, 0.02, 12),
+      matRim
+    );
+    cupInner.position.set(0.09 * scale, 0.048, 0.055 * scale);
+    root.add(cupInner);
   }
 
   if (stage >= 4) {
     const stalk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.015, 0.02, 0.18 * scale, 8),
-      new THREE.MeshStandardMaterial({ color: palette.rim, flatShading: true })
+      new THREE.CylinderGeometry(0.016, 0.022, 0.2 * scale, 12),
+      matRim
     );
-    stalk.position.set(0, 0.09 * scale, 0);
+    stalk.position.set(0, 0.1 * scale, 0);
     root.add(stalk);
     if (id === 'marchantia') {
       const palm = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.11 * scale, 0.09 * scale, 0.025, 9),
+        new THREE.CylinderGeometry(0.12 * scale, 0.1 * scale, 0.028, 14),
         mat
       );
-      palm.position.set(0, 0.19 * scale, 0);
+      palm.position.set(0, 0.21 * scale, 0);
       root.add(palm);
       for (let f = 0; f < 7; f++) {
         const finger = new THREE.Mesh(
-          new THREE.BoxGeometry(0.025, 0.04, 0.06 * scale),
+          new THREE.CapsuleGeometry(0.022, 0.055 * scale, 4, 10),
           matAlt
         );
         const a = (f / 7) * Math.PI * 2;
-        finger.position.set(Math.cos(a) * 0.09 * scale, 0.21 * scale, Math.sin(a) * 0.07 * scale);
-        finger.rotation.y = a;
+        finger.position.set(Math.cos(a) * 0.095 * scale, 0.225 * scale, Math.sin(a) * 0.075 * scale);
+        finger.rotation.set(0.35, a, 0.15);
         root.add(finger);
       }
     } else if (id === 'conocephalum') {
       const cone = new THREE.Mesh(
-        new THREE.ConeGeometry(0.07 * scale, 0.12 * scale, 10),
+        new THREE.ConeGeometry(0.078 * scale, 0.13 * scale, 14),
         mat
       );
-      cone.position.set(0, 0.25 * scale, 0);
+      cone.position.set(0, 0.27 * scale, 0);
       root.add(cone);
     }
   }
@@ -347,30 +340,21 @@ function buildMossCushion(THREE, root, id, stage, t, palette) {
   const shootCount =
     stage === 0 ? 1 : stage === 1 ? 5 : stage === 2 ? 6 : stage === 3 ? 9 : 12;
   const heightBase =
-    id === 'polytrichum' ? 0.22 : id === 'funaria' ? 0.12 : id === 'hypnum' ? 0.1 : 0.14;
-  const h = heightBase * (0.45 + t * 0.9);
-  const spread = 0.12 + t * 0.22;
+    id === 'polytrichum' ? 0.24 : id === 'funaria' ? 0.13 : id === 'hypnum' ? 0.11 : 0.15;
+  const h = heightBase * (0.48 + t * 0.95) * 1.05;
+  const spread = 0.13 + t * 0.24;
 
-  const mat = new THREE.MeshStandardMaterial({
-    color: id === 'leucobryum' ? 0xdcedc8 : palette.main,
-    roughness: 0.82,
-    flatShading: true,
-  });
-  const leafMat = new THREE.MeshStandardMaterial({
-    color: palette.alt,
-    roughness: 0.85,
-    flatShading: true,
-  });
+  const mainColor = id === 'leucobryum' ? 0xdce8c8 : palette.main;
+  const mat = createStylizedMaterial(THREE, mainColor, { roughness: 0.6 });
+  const leafMat = createStylizedMaterial(THREE, palette.alt, { roughness: 0.55 });
+  const matRim = createStylizedMaterial(THREE, palette.rim, { roughness: 0.65 });
 
   for (let i = 0; i < shootCount; i++) {
     const ang = (i / shootCount) * Math.PI * 2 + (id === 'hypnum' ? i * 0.4 : 0);
     const rx = Math.cos(ang) * spread * (0.4 + (i % 3) * 0.15);
     const rz = Math.sin(ang) * spread * (0.4 + (i % 2) * 0.2);
-    const stemH = h * (0.75 + (i % 4) * 0.08);
-    const stem = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.012, 0.018, stemH, 6),
-      mat
-    );
+    const stemH = h * (0.78 + (i % 4) * 0.08);
+    const stem = new THREE.Mesh(new THREE.CapsuleGeometry(0.014, stemH, 5, 12), mat);
     stem.position.set(rx, stemH / 2 + 0.02, rz);
     if (id === 'hypnum') stem.rotation.z = 0.25 * Math.sin(ang);
     root.add(stem);
@@ -378,41 +362,30 @@ function buildMossCushion(THREE, root, id, stage, t, palette) {
     const leaves = stage >= 1 ? 3 + (stage >= 3 ? 2 : 0) : 1;
     for (let l = 0; l < leaves; l++) {
       const ly = 0.04 + l * (stemH / (leaves + 1));
-      const leaf = new THREE.Mesh(
-        new THREE.ConeGeometry(0.028, 0.05, 4),
-        leafMat
-      );
+      const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.055, 6), leafMat);
       leaf.position.set(rx, ly, rz);
       leaf.rotation.z = (l / leaves) * Math.PI * 0.35 + ang;
-      leaf.rotation.x = 0.4;
+      leaf.rotation.x = 0.42;
       root.add(leaf);
     }
   }
 
   if (stage >= 4 || (stage >= 3 && id === 'funaria')) {
-    const setaH = id === 'polytrichum' ? 0.35 : id === 'funaria' ? 0.22 : 0.28;
-    const seta = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.008, 0.012, setaH, 6),
-      new THREE.MeshStandardMaterial({ color: palette.rim, flatShading: true })
-    );
+    const setaH = id === 'polytrichum' ? 0.38 : id === 'funaria' ? 0.24 : 0.3;
+    const seta = new THREE.Mesh(new THREE.CapsuleGeometry(0.009, setaH, 4, 10), matRim);
     seta.position.set(0, setaH / 2 + 0.05, 0);
     if (id === 'funaria') seta.rotation.z = 0.35;
     root.add(seta);
 
     let cap;
+    const capMat = createStylizedMaterial(THREE, 0x6d4c41, { roughness: 0.55, emissiveScale: 0.08 });
     if (id === 'funaria') {
-      cap = new THREE.Mesh(
-        new THREE.SphereGeometry(0.045, 8, 10),
-        new THREE.MeshStandardMaterial({ color: 0x6d4c41, flatShading: true })
-      );
-      cap.scale.set(0.85, 1.25, 0.85);
+      cap = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 14), capMat);
+      cap.scale.set(0.88, 1.28, 0.88);
     } else {
-      cap = new THREE.Mesh(
-        new THREE.CapsuleGeometry(0.035, 0.05, 4, 8),
-        new THREE.MeshStandardMaterial({ color: 0x5d4037, flatShading: true })
-      );
+      cap = new THREE.Mesh(new THREE.CapsuleGeometry(0.038, 0.055, 5, 12), capMat);
     }
-    cap.position.set(id === 'funaria' ? 0.06 : 0, setaH + 0.06, id === 'funaria' ? 0.02 : 0);
+    cap.position.set(id === 'funaria' ? 0.06 : 0, setaH + 0.065, id === 'funaria' ? 0.02 : 0);
     root.add(cap);
   }
 }
@@ -423,15 +396,16 @@ function buildMossCushion(THREE, root, id, stage, t, palette) {
  * @param {import('three').Material} mat
  */
 function addLobe(THREE, root, mat, x, z, rx, rz) {
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(rx, rx * 0.9, 0.025, 10), mat);
-  m.position.set(x, 0.02, z);
-  m.scale.z = rz / rx;
+  const m = new THREE.Mesh(new THREE.SphereGeometry(rx, 14, 10), mat);
+  m.scale.set(1, 0.22, rz / rx);
+  m.position.set(x, 0.024, z);
   root.add(m);
 }
 
 function addRibbon(THREE, root, mat, x, z, length, width, rotY) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(length, 0.022, width), mat);
-  m.position.set(x + Math.cos(rotY) * length * 0.45, 0.025, z + Math.sin(rotY) * length * 0.45);
+  const m = new THREE.Mesh(new THREE.CapsuleGeometry(width * 0.42, length, 6, 14), mat);
   m.rotation.y = rotY;
+  m.rotation.z = Math.PI / 2;
+  m.position.set(x + Math.cos(rotY) * length * 0.45, 0.028, z + Math.sin(rotY) * length * 0.45);
   root.add(m);
 }
