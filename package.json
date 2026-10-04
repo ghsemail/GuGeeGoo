@@ -16,6 +16,7 @@
     "validate:tank-levels": "node scripts/validate-tank-levels.mjs",
     "validate:tank-boss-move": "node scripts/validate-tank-boss-move.mjs",
     "validate:tank-pickups": "node scripts/validate-tank-pickups.mjs",
+    "validate:plant": "node scripts/validate-plant.mjs",
     "lint:web": "eslint apps/web/src",
     "verify:game-controls": "node scripts/verify-game-controls.mjs"
   },

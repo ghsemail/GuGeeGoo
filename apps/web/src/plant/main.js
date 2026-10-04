@@ -1,117 +1,71 @@
 /**
- * 养电子植物 — 苔藓框架（暂无养成逻辑，便于后续扩展）
+ * 养电子植物 — 入口：界面、定时器、按钮
  */
 import './plant.css';
-
-/**
- * 物种习性参考（2026-03 查阅，供后续逻辑复用）：
- * - 地钱：marchantia.org/grow；维基百科「地钱」；zpnx.com 地钱养殖
- * - 蛇苔：台湾生命大百科 Conocephalum；GreenFlow 蛇苔；swild.cn
- * - 叉钱苔：jardineriaon.com / flowgrow.de「Riccia fluitans」
- * - 白发藓：ttxn.com；huajiangbk.com 白发藓
- * - 大灰藓：大灰藓栽培研究；DB3311/T 276-2024 摘要；gdylzz 林下冠层论文
- * - 金发藓：Glime《Moss Garden》；金发藓属形态描述（酸性湿润林地）
- * - 葫芦藓：中国湿地植物数据库；huajiangbk.com 葫芦藓
- *
- * @typedef {{ id: string, group: 'liverwort'|'moss', groupTitle: string, nameZh: string, latin: string, icon: string, summary: string, habit: string }} BryophyteSpecies
- */
-
-/** @type {BryophyteSpecies[]} */
-export const BRYOPHYTE_SPECIES = [
-  {
-    id: 'marchantia',
-    group: 'liverwort',
-    groupTitle: '地钱类（苔类）',
-    nameZh: '地钱',
-    latin: 'Marchantia polymorpha',
-    icon: '🌿',
-    summary: '半阴 · 常湿 · 15～22℃',
-    habit:
-      '散射光、半阴就好，怕暴晒。土要常润、空气要潮，但别泡烂。15～22℃ 最舒服，别超过 28℃。几乎不用施肥。',
-  },
-  {
-    id: 'conocephalum',
-    group: 'liverwort',
-    groupTitle: '地钱类（苔类）',
-    nameZh: '蛇苔',
-    latin: 'Conocephalum conicum',
-    icon: '🍀',
-    summary: '散射光 · 中湿 · 15～25℃',
-    habit:
-      '明亮散射光，忌暴晒。喜欢湿石头和湿土，湿度大约 50～70%。15～25℃ 左右。几乎不用施肥。',
-  },
-  {
-    id: 'riccia',
-    group: 'liverwort',
-    groupTitle: '地钱类（苔类）',
-    nameZh: '叉钱苔（鹿角苔）',
-    latin: 'Riccia fluitans',
-    icon: '🌱',
-    summary: '中亮 · 很湿 · 18～26℃',
-    habit:
-      '中偏亮散射光，别长时间暴晒。喜欢很湿：可漂在水上或绑在沉木上。18～26℃ 最好。几乎不用施肥。',
-  },
-  {
-    id: 'leucobryum',
-    group: 'moss',
-    groupTitle: '其他苔藓（藓类）',
-    nameZh: '白发藓',
-    latin: 'Leucobryum',
-    icon: '🌿',
-    summary: '半阴 · 高湿 · 20～25℃',
-    habit:
-      '半阴、散射光，别直射。空气湿 70% 上下，土微湿别积水。20～25℃ 左右，夏天别太热。弱酸土；几乎不用施肥。',
-  },
-  {
-    id: 'hypnum',
-    group: 'moss',
-    groupTitle: '其他苔藓（藓类）',
-    nameZh: '大灰藓',
-    latin: 'Hypnum plumaeforme',
-    icon: '🍀',
-    summary: '半阴 · 润土 · 18～25℃',
-    habit:
-      '像林下那种半阴散射光，忌烈日。湿度 60～80%，土要润。18～25℃ 较合适。几乎不用施肥。',
-  },
-  {
-    id: 'polytrichum',
-    group: 'moss',
-    groupTitle: '其他苔藓（藓类）',
-    nameZh: '金发藓',
-    latin: 'Polytrichum',
-    icon: '🌱',
-    summary: '稍耐光 · 喜湿 · 15～25℃',
-    habit:
-      '比很多藓更能耐一点光，但仍忌夏日暴晒。喜湿酸性土，可喷雾。15～25℃ 较舒适。几乎不用施肥。',
-  },
-  {
-    id: 'funaria',
-    group: 'moss',
-    groupTitle: '其他苔藓（藓类）',
-    nameZh: '葫芦藓',
-    latin: 'Funaria hygrometrica',
-    icon: '🌿',
-    summary: '阴湿散射 · 常微湿 · 15～25℃',
-    habit:
-      '阴湿、明亮散射光，不要直射。土要常微湿，空气也要潮。15～25℃，冬天别低于 5℃。几乎不用施肥。',
-  },
-];
+import {
+  AUTO_SAVE_MS,
+  OFFLINE_DRAIN_CAP_MS,
+  TICK_INTERVAL_MS,
+} from './constants.js';
+import { BRYOPHYTE_SPECIES, getSpeciesById } from './species.js';
+import {
+  applyCareAction,
+  applyOfflineDrain,
+  assessCare,
+  createEmptyState,
+  isVisiblyStressed,
+  plantSpecies,
+  stageIndexFromGrowth,
+  stageProgressInBar,
+  STAGE_NAMES,
+  tickPlant,
+} from './growth.js';
+import { buildSavePayload, readSave, writeSave } from './storage.js';
+import { drawPlant } from './draw.js';
+import { factAt } from './facts.js';
 
 const pickerEl = document.getElementById('bryophyte-picker');
 const potNameEl = document.getElementById('pot-species-name');
 const potHabitEl = document.getElementById('pot-species-habit');
-const hintEl = document.getElementById('plant-hint');
-let hintTimer = 0;
-/** @type {HTMLButtonElement[]} */
-let speciesCards = [];
+const soilPlaceholder = document.getElementById('soil-placeholder');
+const plantSvg = /** @type {SVGElement | null} */ (document.getElementById('plant-draw'));
+const stageLabelEl = document.getElementById('growth-stage-label');
+const progressFillEl = document.getElementById('growth-progress-fill');
+const moodHintEl = document.getElementById('mood-hint');
+const factEl = document.getElementById('plant-fact');
+const toastEl = document.getElementById('plant-toast');
+const overlayEl = document.getElementById('plant-overlay');
+const overlayTitleEl = document.getElementById('overlay-title');
+const overlayMsgEl = document.getElementById('overlay-msg');
+const atlasListEl = document.getElementById('atlas-list');
+const potSceneEl = document.querySelector('.pot-scene');
 
-/** 渲染「挑苔藓」分组卡片 */
+const statFills = {
+  water: document.querySelector('.stat-fill:not(.stat-fill-sun):not(.stat-fill-nutrient)'),
+  light: document.querySelector('.stat-fill-sun'),
+  nutrient: document.querySelector('.stat-fill-nutrient'),
+};
+const statValues = [...document.querySelectorAll('.stat-value')];
+
+/** @type {string | null} */
+let selectedSpeciesId = null;
+/** @type {import('./growth.js').PlantState} */
+let plantState = createEmptyState();
+/** @type {string[]} */
+let collection = [];
+let factIndex = 0;
+let tickTimer = 0;
+let autoSaveTimer = 0;
+let factTimer = 0;
+let lastFrameMs = Date.now();
+let toastHideTimer = 0;
+
+/** 渲染「挑苔藓」卡片 */
 function renderBryophytePicker() {
   if (!pickerEl) return;
   pickerEl.innerHTML = '';
-  /** @type {string|null} */
   let lastGroup = null;
-  /** @type {HTMLElement|null} */
+  /** @type {HTMLElement | null} */
   let currentRow = null;
   for (const sp of BRYOPHYTE_SPECIES) {
     if (sp.groupTitle !== lastGroup) {
@@ -125,54 +79,317 @@ function renderBryophytePicker() {
       currentRow.dataset.group = sp.group;
       pickerEl.appendChild(currentRow);
     }
-    const row = /** @type {HTMLElement} */ (currentRow);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'bryo-card';
     btn.dataset.speciesId = sp.id;
+    if (collection.includes(sp.id)) {
+      btn.classList.add('is-in-atlas');
+    }
     btn.innerHTML = `
       <span class="bryo-card-icon" aria-hidden="true">${sp.icon}</span>
       <span class="bryo-card-name">${sp.nameZh}</span>
       <span class="bryo-card-summary">${sp.summary}</span>
     `;
-    row.appendChild(btn);
+    currentRow?.appendChild(btn);
+    btn.addEventListener('click', () => onPickSpecies(sp.id));
   }
-  speciesCards = [...document.querySelectorAll('.bryo-card')];
-  speciesCards.forEach((card) => {
-    card.addEventListener('click', () => {
-      const id = card.dataset.speciesId;
-      const sp = BRYOPHYTE_SPECIES.find((s) => s.id === id);
-      if (!sp) return;
-      speciesCards.forEach((c) => c.classList.remove('is-selected'));
-      card.classList.add('is-selected');
-      showSpeciesInPot(sp);
-    });
+}
+
+/** @param {string} id */
+function onPickSpecies(id) {
+  selectedSpeciesId = id;
+  document.querySelectorAll('.bryo-card').forEach((c) => {
+    c.classList.toggle('is-selected', c.dataset.speciesId === id);
+  });
+  const sp = getSpeciesById(id);
+  if (!sp) return;
+
+  if (
+    plantState.planted &&
+    plantState.speciesId !== id &&
+    plantState.status !== 'withered' &&
+    plantState.status !== 'idle'
+  ) {
+    const ok = window.confirm(
+      `盆里已经在养${getSpeciesById(plantState.speciesId)?.nameZh ?? '苔藓'}了，要换成${sp.nameZh}吗？`
+    );
+    if (!ok) return;
+  }
+  startPlant(id);
+}
+
+/** @param {string} speciesId */
+function startPlant(speciesId) {
+  plantState = plantSpecies(speciesId);
+  selectedSpeciesId = speciesId;
+  syncUi();
+  persistSave();
+  showToast(`🌱 种下了${getSpeciesById(speciesId)?.nameZh ?? '苔藓'}！`);
+}
+
+function syncUi() {
+  const sp = plantState.speciesId ? getSpeciesById(plantState.speciesId) : null;
+
+  if (potNameEl) {
+    potNameEl.hidden = !sp;
+    potNameEl.textContent = sp ? `${sp.icon} ${sp.nameZh}（${sp.latin}）` : '';
+  }
+  if (potHabitEl) {
+    potHabitEl.textContent = sp
+      ? sp.habit
+      : '先挑一种苔藓，点卡片就能种下';
+  }
+  if (soilPlaceholder) {
+    soilPlaceholder.hidden = !!plantState.planted;
+  }
+
+  updateBars();
+  updateGrowthUi(sp);
+  updateMood(sp);
+  renderAtlas();
+
+  document.querySelectorAll('.bryo-card').forEach((c) => {
+    c.classList.toggle('is-selected', c.dataset.speciesId === plantState.speciesId);
+    c.classList.toggle('is-in-atlas', collection.includes(c.dataset.speciesId ?? ''));
+  });
+
+  const careDisabled =
+    !plantState.planted ||
+    plantState.status === 'withered' ||
+    plantState.status === 'mature';
+  document.querySelectorAll('[data-care]').forEach((btn) => {
+    btn.disabled = careDisabled;
   });
 }
 
-/** @param {BryophyteSpecies} sp */
-function showSpeciesInPot(sp) {
-  if (potNameEl) {
-    potNameEl.hidden = false;
-    potNameEl.textContent = `${sp.icon} ${sp.nameZh}（${sp.latin}）`;
+function updateBars() {
+  const vals = [plantState.water, plantState.light, plantState.nutrient];
+  const fills = [statFills.water, statFills.light, statFills.nutrient];
+  vals.forEach((v, i) => {
+    if (fills[i]) fills[i].style.width = `${Math.round(v)}%`;
+    if (statValues[i]) statValues[i].textContent = String(Math.round(v));
+  });
+}
+
+/** @param {import('./species.js').BryophyteSpecies | null} sp */
+function updateGrowthUi(sp) {
+  if (!stageLabelEl || !progressFillEl) return;
+  if (!plantState.planted || !sp) {
+    stageLabelEl.textContent = '';
+    progressFillEl.style.width = '0%';
+    drawPlant(plantSvg, null, 0, 'happy');
+    return;
   }
-  if (potHabitEl) {
-    potHabitEl.textContent = sp.habit;
+  const idx = stageIndexFromGrowth(plantState.growth);
+  const bar = stageProgressInBar(plantState.growth);
+  stageLabelEl.textContent =
+    plantState.status === 'mature'
+      ? `阶段：${STAGE_NAMES[4]} · 100%`
+      : plantState.status === 'withered'
+        ? '已枯萎 — 挑别的苔藓或重新开始'
+        : `阶段：${STAGE_NAMES[idx]} · 本阶段 ${bar}%`;
+
+  progressFillEl.style.width = `${plantState.growth}%`;
+
+  const care = sp
+    ? assessCare(
+        {
+          water: plantState.water,
+          light: plantState.light,
+          nutrient: plantState.nutrient,
+        },
+        sp
+      )
+    : { mood: 'happy' };
+  let mood = care.mood;
+  if (plantState.status === 'withered') mood = 'withered';
+  if (isVisiblyStressed(plantState)) mood = 'stressed';
+  drawPlant(plantSvg, sp, plantState.growth, mood);
+}
+
+/** @param {import('./species.js').BryophyteSpecies | null} sp */
+function updateMood(sp) {
+  if (!moodHintEl) return;
+  if (!plantState.planted || !sp) {
+    moodHintEl.textContent = '';
+    return;
+  }
+  if (plantState.status === 'mature') {
+    moodHintEl.textContent = '🎉 成熟啦！已收入「我的苔藓图鉴」。';
+    return;
+  }
+  if (plantState.status === 'withered') {
+    moodHintEl.textContent = '太久没照顾好…可以点「重新开始」再试一次。';
+    return;
+  }
+  const care = assessCare(
+    {
+      water: plantState.water,
+      light: plantState.light,
+      nutrient: plantState.nutrient,
+    },
+    sp
+  );
+  moodHintEl.textContent = care.ok
+    ? '状态不错，继续慢慢长～'
+    : care.hint;
+}
+
+function renderAtlas() {
+  if (!atlasListEl) return;
+  atlasListEl.innerHTML = '';
+  if (collection.length === 0) {
+    atlasListEl.innerHTML = '<li class="atlas-empty">还没有养熟的，加油！</li>';
+    return;
+  }
+  for (const id of collection) {
+    const sp = getSpeciesById(id);
+    if (!sp) continue;
+    const li = document.createElement('li');
+    li.textContent = `${sp.icon} ${sp.nameZh}`;
+    atlasListEl.appendChild(li);
   }
 }
 
-/** 占位功能：短暂提示 */
-function showStubHint() {
-  if (!hintEl) return;
-  hintEl.hidden = false;
-  window.clearTimeout(hintTimer);
-  hintTimer = window.setTimeout(() => {
-    hintEl.hidden = true;
+/** @param {string} msg */
+function showToast(msg) {
+  if (!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.hidden = false;
+  window.clearTimeout(toastHideTimer);
+  toastHideTimer = window.setTimeout(() => {
+    toastEl.hidden = true;
   }, 2200);
 }
 
-renderBryophytePicker();
+/** @param {'water'|'light'|'nutrient'} action */
+function onCare(action) {
+  const result = applyCareAction(plantState, action, Date.now());
+  if (!result.ok) {
+    if (result.reason === 'cooldown') showToast('稍等一下再点～');
+    return;
+  }
+  plantState = result.state;
+  syncUi();
+  playCareFx(action);
+  persistSave();
+}
 
-document.querySelectorAll('[data-stub-care], [data-stub-save]').forEach((btn) => {
-  btn.addEventListener('click', showStubHint);
-});
+/** @param {'water'|'light'|'nutrient'} action */
+function playCareFx(action) {
+  if (!potSceneEl) return;
+  potSceneEl.classList.remove('fx-water', 'fx-sun', 'fx-nutrient');
+  void potSceneEl.offsetWidth;
+  if (action === 'water') potSceneEl.classList.add('fx-water');
+  if (action === 'light') potSceneEl.classList.add('fx-sun');
+  if (action === 'nutrient') potSceneEl.classList.add('fx-nutrient');
+}
+
+function gameTick() {
+  const now = Date.now();
+  const dtSec = Math.min(3, (now - lastFrameMs) / 1000);
+  lastFrameMs = now;
+  if (!plantState.planted) return;
+
+  const prevStatus = plantState.status;
+  plantState = tickPlant(plantState, dtSec);
+
+  if (prevStatus !== 'mature' && plantState.status === 'mature' && plantState.speciesId) {
+    if (!collection.includes(plantState.speciesId)) {
+      collection.push(plantState.speciesId);
+    }
+    showMatureOverlay();
+  }
+  syncUi();
+}
+
+function showMatureOverlay() {
+  if (!overlayEl || !plantState.speciesId) return;
+  const sp = getSpeciesById(plantState.speciesId);
+  overlayTitleEl.textContent = '🎉 养熟啦！';
+  overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经成熟，图鉴里解锁了！`;
+  overlayEl.hidden = false;
+}
+
+function hideOverlay() {
+  if (overlayEl) overlayEl.hidden = true;
+}
+
+function persistSave() {
+  writeSave(buildSavePayload(plantState, collection));
+}
+
+function loadFromStorage() {
+  const data = readSave();
+  if (!data) {
+    plantState = createEmptyState();
+    collection = [];
+    return;
+  }
+  plantState = applyOfflineDrain(data.plant, Date.now(), OFFLINE_DRAIN_CAP_MS);
+  collection = data.collection;
+}
+
+function onManualSave() {
+  persistSave();
+  showToast('✅ 已保存');
+}
+
+function onManualLoad() {
+  const data = readSave();
+  if (!data) {
+    showToast('还没有存档哦');
+    return;
+  }
+  plantState = applyOfflineDrain(data.plant, Date.now(), OFFLINE_DRAIN_CAP_MS);
+  collection = data.collection;
+  syncUi();
+  showToast('📂 已读取');
+}
+
+function restartPlant() {
+  if (!plantState.speciesId) return;
+  const id = plantState.speciesId;
+  plantState = plantSpecies(id);
+  hideOverlay();
+  syncUi();
+  persistSave();
+  showToast('🌱 重新开始');
+}
+
+function rotateFact() {
+  if (!factEl) return;
+  factEl.textContent = `小知识：${factAt(factIndex)}`;
+  factIndex += 1;
+}
+
+function bindUi() {
+  document.querySelector('[data-care="water"]')?.addEventListener('click', () => onCare('water'));
+  document.querySelector('[data-care="light"]')?.addEventListener('click', () => onCare('light'));
+  document.querySelector('[data-care="nutrient"]')?.addEventListener('click', () => onCare('nutrient'));
+  document.getElementById('btn-save')?.addEventListener('click', onManualSave);
+  document.getElementById('btn-load')?.addEventListener('click', onManualLoad);
+  document.getElementById('btn-restart')?.addEventListener('click', restartPlant);
+  document.getElementById('overlay-close')?.addEventListener('click', hideOverlay);
+
+  window.addEventListener('pagehide', persistSave);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') persistSave();
+  });
+}
+
+function startLoops() {
+  tickTimer = window.setInterval(gameTick, TICK_INTERVAL_MS);
+  autoSaveTimer = window.setInterval(persistSave, AUTO_SAVE_MS);
+  factTimer = window.setInterval(rotateFact, 12000);
+  rotateFact();
+}
+
+loadFromStorage();
+renderBryophytePicker();
+bindUi();
+syncUi();
+startLoops();
+
+export { BRYOPHYTE_SPECIES };

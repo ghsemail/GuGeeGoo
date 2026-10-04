@@ -26,16 +26,27 @@
               <div class="pot-rim"></div>
               <div class="pot-body">
                 <div class="soil-spot">
-                  <p class="soil-placeholder-text">苔藓会在这里长大</p>
+                  <svg
+                    id="plant-draw"
+                    class="plant-draw"
+                    viewBox="0 0 100 100"
+                    aria-hidden="true"
+                  ></svg>
+                  <p id="soil-placeholder" class="soil-placeholder-text">点上面的卡片种下苔藓</p>
                 </div>
               </div>
             </div>
+          </div>
+          <p id="growth-stage-label" class="growth-stage-label"></p>
+          <div class="growth-progress" aria-hidden="true">
+            <span id="growth-progress-fill" class="growth-progress-fill"></span>
           </div>
           <div class="plant-info-panel" id="plant-info-panel">
             <p id="pot-species-name" class="pot-species-name" hidden></p>
             <p id="pot-species-habit" class="pot-species-habit">
               先挑一种苔藓，看看它喜欢什么样的环境
             </p>
+            <p id="mood-hint" class="mood-hint" role="status"></p>
           </div>
         </div>
       </section>
@@ -64,22 +75,36 @@
       <section class="plant-section plant-section-care" aria-labelledby="care-heading">
         <h2 id="care-heading" class="section-title">照顾</h2>
         <div class="care-row">
-          <button type="button" class="care-btn" data-stub-care>💧 浇水</button>
-          <button type="button" class="care-btn" data-stub-care>☀️ 晒太阳</button>
-          <button type="button" class="care-btn" data-stub-care>🧪 施肥</button>
+          <button type="button" class="care-btn" data-care="water">💧 浇水</button>
+          <button type="button" class="care-btn" data-care="light">☀️ 晒太阳</button>
+          <button type="button" class="care-btn" data-care="nutrient">🧪 施肥</button>
         </div>
       </section>
 
       <section class="plant-section plant-section-save" aria-labelledby="save-heading">
-        <h2 id="save-heading" class="section-title visually-hidden">存档</h2>
+        <h2 id="save-heading" class="section-title">存档 · 图鉴</h2>
         <div class="save-row">
-          <button type="button" class="save-btn" data-stub-save>💾 保存</button>
-          <button type="button" class="save-btn" data-stub-save>📂 读取</button>
+          <button type="button" id="btn-save" class="save-btn">💾 保存</button>
+          <button type="button" id="btn-load" class="save-btn">📂 读取</button>
+          <button type="button" id="btn-restart" class="save-btn save-btn-restart">🔄 重新开始</button>
+        </div>
+        <div class="atlas-panel">
+          <h3 class="atlas-title">我的苔藓图鉴</h3>
+          <ul id="atlas-list" class="atlas-list"></ul>
         </div>
       </section>
     </main>
 
-    <p id="plant-hint" class="plant-hint" hidden role="status">这个功能还在做～</p>
+    <p id="plant-fact" class="plant-fact"></p>
+    <p id="plant-toast" class="plant-toast" hidden role="status"></p>
+
+    <div id="plant-overlay" class="plant-overlay" hidden>
+      <div class="plant-overlay-card">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-msg"></p>
+        <button type="button" id="overlay-close" class="care-btn overlay-btn">太棒了！</button>
+      </div>
+    </div>
 
     <script type="module" src="/src/plant/main.js"></script>
   </body>

@@ -358,7 +358,7 @@
 
 .save-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -374,16 +374,221 @@
   touch-action: manipulation;
 }
 
-.plant-hint {
-  flex-shrink: 0;
-  margin: 6px 0 0;
-  padding: 8px 12px;
+.soil-spot {
+  position: relative;
+  overflow: visible;
+}
+
+.plant-draw {
+  position: absolute;
+  inset: 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.plant-draw--visible {
+  opacity: 1;
+}
+
+.soil-placeholder-text {
+  position: relative;
+  z-index: 1;
+}
+
+.growth-stage-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
   text-align: center;
-  font-size: 14px;
-  font-weight: 600;
+  color: var(--text);
+}
+
+.growth-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.growth-progress-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #66bb6a, #43a047);
+  transition: width 0.35s ease;
+}
+
+.mood-hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 700;
   color: #e65100;
-  background: rgba(255, 243, 224, 0.95);
+  line-height: 1.45;
+}
+
+.plant-fact {
+  flex-shrink: 0;
+  margin: 4px 0 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--muted);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.55);
   border-radius: 10px;
+}
+
+.plant-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 50;
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1b5e20;
+  background: #c8e6c9;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.atlas-panel {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.atlas-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.atlas-list {
+  margin: 0;
+  padding: 0 0 0 1.1em;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.atlas-empty {
+  list-style: none;
+  margin-left: -1.1em;
+}
+
+.bryo-card.is-in-atlas::after {
+  content: ' ✓';
+  color: var(--accent);
+}
+
+.care-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.save-btn-restart {
+  grid-column: span 1;
+}
+
+.plant-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.plant-overlay[hidden] {
+  display: none !important;
+}
+
+.plant-overlay-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px 18px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.plant-overlay-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+
+.plant-overlay-card p {
+  margin: 0 0 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.overlay-btn {
+  width: 100%;
+}
+
+.pot-scene.fx-water::after {
+  content: '💧';
+  position: absolute;
+  font-size: 1.5rem;
+  animation: plant-fx-rise 0.7s ease-out forwards;
+}
+
+.pot-scene.fx-sun::after {
+  content: '☀️';
+  position: absolute;
+  font-size: 1.5rem;
+  animation: plant-fx-glow 0.8s ease-out forwards;
+}
+
+.pot-scene.fx-nutrient::after {
+  content: '✨';
+  position: absolute;
+  font-size: 1.5rem;
+  animation: plant-fx-rise 0.7s ease-out forwards;
+}
+
+.pot-scene {
+  position: relative;
+}
+
+@keyframes plant-fx-rise {
+  from {
+    opacity: 1;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}
+
+@keyframes plant-fx-glow {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
 }
 
 /* 平板横屏：两列，避免纵向滚动 */
@@ -455,6 +660,13 @@
 
   .plant-section-save {
     grid-area: save;
+    max-height: 22vh;
+    overflow: hidden;
+  }
+
+  .atlas-list {
+    max-height: 3.2em;
+    overflow-y: auto;
   }
 
   .pot-scene {
