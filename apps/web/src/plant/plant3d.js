@@ -124,6 +124,8 @@ class Plant3dView {
 
     this._defaultCameraPos = this.camera.position.clone();
     this._defaultTarget = this.controls.target.clone();
+    this.controls.update();
+    this.controls.saveState();
 
     this.canvas.addEventListener('pointerdown', (e) => {
       this.controls.autoRotate = false;
@@ -223,9 +225,19 @@ class Plant3dView {
     if (!this.camera || !this.controls || !this._defaultCameraPos || !this._defaultTarget) return;
     this.controls.autoRotate = false;
     this.idleSpin = 0;
+    const wasDamping = this.controls.enableDamping;
+    this.controls.enableDamping = false;
+    this.controls._sphericalDelta.set(0, 0, 0);
+    this.controls._scale = 1;
     this.camera.position.copy(this._defaultCameraPos);
     this.controls.target.copy(this._defaultTarget);
-    this.controls.update();
+    for (let i = 0; i < 4; i++) {
+      this.controls.update();
+    }
+    this.controls.enableDamping = wasDamping;
+    if (this.renderer && this.scene) {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   /** @param {PlantMood} mood */
@@ -492,16 +504,29 @@ function addRibbon(THREE, root, mat, x, z, length, width, rotY) {
 function installPlant3dTestHook(view) {
   if (typeof globalThis === 'undefined') return;
   const g = globalThis;
+  const rad2deg = (r) => (r * 180) / Math.PI;
+  const defaultAngles = () => {
+    if (!view.camera || !view.controls || !view._defaultCameraPos || !view._defaultTarget) {
+      return { polarDeg: 0, azimuthDeg: 0 };
+    }
+    const THREE = view.THREE;
+    const offset = view._defaultCameraPos.clone().sub(view._defaultTarget);
+    const spherical = new THREE.Spherical().setFromVector3(offset);
+    return { polarDeg: rad2deg(spherical.phi), azimuthDeg: rad2deg(spherical.theta) };
+  };
+
   g.__PLANT3D_TEST__ = {
     getState() {
       const c = view.controls;
       const canvas = view.canvas;
       const mount = view.mount;
       if (!c || !canvas) return null;
-      const rad2deg = (r) => (r * 180) / Math.PI;
+      const def = defaultAngles();
       return {
         polarDeg: rad2deg(c.getPolarAngle()),
         azimuthDeg: rad2deg(c.getAzimuthalAngle()),
+        defaultPolarDeg: def.polarDeg,
+        defaultAzimuthDeg: def.azimuthDeg,
         minPolarDeg: rad2deg(c.minPolarAngle),
         maxPolarDeg: rad2deg(c.maxPolarAngle),
         touchActionCanvas: canvas ? getComputedStyle(canvas).touchAction : '',

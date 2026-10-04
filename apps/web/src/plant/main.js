@@ -66,6 +66,29 @@ let lastFrameMs = Date.now();
 let toastHideTimer = 0;
 
 /** 渲染「挑苔藓」卡片 */
+function syncPortraitStageCap() {
+  const mq = window.matchMedia('(orientation: portrait) and (min-width: 600px)');
+  if (!mq.matches) {
+    document.documentElement.style.removeProperty('--plant-stage-cap');
+    return;
+  }
+  const header = document.querySelector('.plant-header');
+  const pick = document.querySelector('.plant-section-pick');
+  const side = document.querySelector('.plant-side-stack');
+  const bodyStyle = getComputedStyle(document.body);
+  const padY =
+    (parseFloat(bodyStyle.paddingTop) || 0) + (parseFloat(bodyStyle.paddingBottom) || 0);
+  const vh = window.innerHeight;
+  const used =
+    (header?.getBoundingClientRect().height ?? 0) +
+    (pick?.getBoundingClientRect().height ?? 0) +
+    (side?.getBoundingClientRect().height ?? 0) +
+    padY +
+    28;
+  const cap = Math.max(200, Math.min(Math.floor(vh * 0.42), Math.floor(vh - used)));
+  document.documentElement.style.setProperty('--plant-stage-cap', `${cap}px`);
+}
+
 function renderBryophytePicker() {
   if (!pickerEl) return;
   pickerEl.innerHTML = '';
@@ -99,6 +122,7 @@ function renderBryophytePicker() {
     currentRow?.appendChild(btn);
     btn.addEventListener('click', () => onPickSpecies(sp.id));
   }
+  syncPortraitStageCap();
 }
 
 /** @param {string} id */
@@ -166,6 +190,7 @@ function syncUi() {
   document.querySelectorAll('.stat-row').forEach((row, i) => {
     row.classList.toggle('stat-row--mature-light', mature && i === 1);
   });
+  syncPortraitStageCap();
 }
 
 function updateBars() {
@@ -451,5 +476,8 @@ globalThis.__PLANT_TEST_RELOAD__ = () => {
   hideOverlay();
   syncUi();
 };
+
+window.addEventListener('resize', () => syncPortraitStageCap());
+requestAnimationFrame(() => syncPortraitStageCap());
 
 export { BRYOPHYTE_SPECIES };

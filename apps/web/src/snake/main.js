@@ -257,9 +257,9 @@ function playfieldLayout() {
     const top = wrap?.getBoundingClientRect().top ?? 0;
     const belowBoard = measureSnakeStageBelowBoard();
     const toolbarH = toolbar
-      ? toolbar.getBoundingClientRect().height + 12
-      : 48;
-    padH = Math.ceil(top + belowBoard + toolbarH + 4) + snakeLayoutPadExtra;
+      ? toolbar.getBoundingClientRect().height + 8
+      : 44;
+    padH = Math.ceil(top + belowBoard + toolbarH + 2) + snakeLayoutPadExtra;
   }
   const availW = window.innerWidth - padW;
   const availH = window.innerHeight - padH;
@@ -299,34 +299,76 @@ function cellSize() {
   return Math.max(cs, 12);
 }
 
+function applyBoardSizeFromCellSize(cs) {
+  const lv = state.level;
+  const w = lv.cols * cs;
+  const h = lv.rows * cs;
+  canvas.width = w;
+  canvas.height = h;
+  const { maxW, maxH } = playfieldLayout();
+  applyCanvasDisplaySize(canvas, w, h, maxW, maxH);
+}
+
 function resizeCanvas() {
   const lv = state.level;
-  snakeLayoutPadExtra = 0;
-  for (let attempt = 0; attempt < 12; attempt++) {
-    const cs = cellSize();
-    const w = lv.cols * cs;
-    const h = lv.rows * cs;
-    canvas.width = w;
-    canvas.height = h;
-    const { maxW, maxH, tablet, landscapeSide } = playfieldLayout();
-    applyCanvasDisplaySize(canvas, w, h, maxW, maxH);
-    const vh = document.documentElement.clientHeight;
-    const scrollSlack = document.documentElement.scrollHeight - vh;
-    const boardSide = Math.min(
-      canvas.getBoundingClientRect().width,
-      canvas.getBoundingClientRect().height
-    );
+  const { tablet, landscapeSide } = playfieldLayout();
 
-    if (tablet && !landscapeSide) {
-      if (scrollSlack <= 2 && boardSide >= 520 - 0.5) break;
-      if (scrollSlack > 2 && boardSide > 521) {
-        snakeLayoutPadExtra += Math.min(Math.ceil(scrollSlack), 8);
-        continue;
+  if (tablet && !landscapeSide) {
+    /** @type {{ extra: number, side: number, slack: number } | null} */
+    let best = null;
+    for (let extra = 0; extra <= 280; extra += 2) {
+      snakeLayoutPadExtra = extra;
+      applyBoardSizeFromCellSize(cellSize());
+      const vh = document.documentElement.clientHeight;
+      const scrollSlack = document.documentElement.scrollHeight - vh;
+      const boardSide = Math.min(
+        canvas.getBoundingClientRect().width,
+        canvas.getBoundingClientRect().height
+      );
+      if (boardSide < 520 - 0.5) continue;
+      if (
+        !best ||
+        scrollSlack < best.slack ||
+        (scrollSlack === best.slack && boardSide > best.side)
+      ) {
+        best = { extra, side: boardSide, slack: scrollSlack };
       }
-      break;
+      if (scrollSlack <= 0 && boardSide >= 520 - 0.5) break;
     }
-
-    break;
+    if (best) {
+      snakeLayoutPadExtra = best.extra;
+      applyBoardSizeFromCellSize(cellSize());
+      for (let bump = 2; bump <= 24; bump += 2) {
+        snakeLayoutPadExtra = best.extra + bump;
+        applyBoardSizeFromCellSize(cellSize());
+        const scrollSlack =
+          document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const boardSide = Math.min(
+          canvas.getBoundingClientRect().width,
+          canvas.getBoundingClientRect().height
+        );
+        if (boardSide < 520 - 0.5) {
+          snakeLayoutPadExtra = best.extra + bump - 2;
+          applyBoardSizeFromCellSize(cellSize());
+          break;
+        }
+        if (scrollSlack <= 0) break;
+      }
+    } else {
+      snakeLayoutPadExtra = 0;
+      applyBoardSizeFromCellSize(cellSize());
+    }
+  } else {
+    snakeLayoutPadExtra = 0;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const cs = cellSize();
+      applyBoardSizeFromCellSize(cs);
+      if (!tablet || landscapeSide) break;
+      const vh = document.documentElement.clientHeight;
+      const scrollSlack = document.documentElement.scrollHeight - vh;
+      if (scrollSlack <= 2) break;
+      snakeLayoutPadExtra += Math.ceil(scrollSlack) + 2;
+    }
   }
 
   const stage = canvas.closest('.canvas-stage');

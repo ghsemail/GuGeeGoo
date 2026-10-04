@@ -13,12 +13,24 @@ const BASE = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
 const PLANT_URL = `${BASE.replace(/\/$/, '')}/plant/`;
 const SAVE_KEY = 'gugeegoo_plant_save';
 
+const ALL_SPECIES_IDS = [
+  'marchantia',
+  'conocephalum',
+  'riccia',
+  'leucobryum',
+  'hypnum',
+  'polytrichum',
+  'funaria',
+];
+
+const ATLAS_UNLOCK_COUNTS = [0, 1, 7];
+
 /** @type {import('node:child_process').ChildProcess | null} */
 let previewProc = null;
 
 /** @type {{ w: number, h: number, label: string, ratio: number, tablet?: boolean }[]} */
 const LAYOUT_VIEWPORTS = [
-  { w: 768, h: 1024, label: '768x1024', ratio: 0.37, tablet: true },
+  { w: 768, h: 1024, label: '768x1024', ratio: 0.35, tablet: true },
   { w: 834, h: 1194, label: '834x1194', ratio: 0.4, tablet: true },
   { w: 834, h: 1110, label: '834x1110', ratio: 0.4, tablet: true },
   { w: 820, h: 1180, label: '820x1180', ratio: 0.4, tablet: true },
@@ -106,6 +118,83 @@ async function canvasHeight(page) {
     const c = document.querySelector('.plant-3d-canvas');
     return c ? Math.round(c.getBoundingClientRect().height) : 0;
   });
+}
+
+/**
+ * @param {import('puppeteer').Page | import('playwright-core').Page} page
+ * @param {number} count
+ */
+async function setAtlasUnlocked(page, count) {
+  await page.evaluate(
+    ({ key, atlasCount, allIds }) => {
+      const raw = localStorage.getItem(key);
+      const data = raw ? JSON.parse(raw) : {};
+      if (!data.plant) {
+        data.plant = {
+          speciesId: null,
+          planted: false,
+          growth: 0,
+          status: 'idle',
+          water: 40,
+          light: 55,
+          nutrient: 35,
+        };
+      }
+      data.collection =
+        atlasCount === 0 ? [] : atlasCount === 1 ? [allIds[0]] : [...allIds];
+      localStorage.setItem(key, JSON.stringify(data));
+      globalThis.__PLANT_TEST_RELOAD__?.();
+    },
+    { key: SAVE_KEY, atlasCount: count, allIds: ALL_SPECIES_IDS }
+  );
+  await sleep(250);
+}
+
+/** @param {import('puppeteer').Page | import('playwright-core').Page} page */
+async function assertAtlasCardHeightsUniform(page) {
+  const ok = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.bryo-card')];
+    if (cards.length < 2) return true;
+    const h0 = cards[0].getBoundingClientRect().height;
+    return cards.every((c) => Math.abs(c.getBoundingClientRect().height - h0) <= 2);
+  });
+  if (!ok) throw new Error('atlas badge changed bryo-card heights');
+}
+
+/** @param {import('puppeteer').Page | import('playwright-core').Page} page */
+async function assertGrowthBlocksLayout(page) {
+  const err = await page.evaluate(() => {
+    /** @param {Element} el */
+    const pageRect = (el) => {
+      const r = el.getBoundingClientRect();
+      const sy = window.scrollY;
+      return { left: r.left, right: r.right, top: r.top + sy, bottom: r.bottom + sy };
+    };
+    const overlap = (a, b) =>
+      !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+
+    const meta = document.querySelector('.plant-growth-meta');
+    const label = document.getElementById('growth-stage-label');
+    const bar = document.querySelector('.growth-progress');
+    const info = document.getElementById('plant-info-panel');
+    if (!meta || !info) return 'missing growth-meta or info panel';
+    const mr = pageRect(meta);
+    const ir = pageRect(info);
+    if (overlap(mr, ir)) return 'growth-meta overlaps info panel';
+    if (mr.bottom > ir.top + 0.5) return 'growth-meta overlaps info panel (vertical)';
+    if (label && bar) {
+      const lr = pageRect(label);
+      const br = pageRect(bar);
+      if (overlap(lr, ir) || overlap(br, ir)) return 'growth label/bar overlaps info';
+      if (lr.bottom > br.top + 0.5 && overlap(lr, br)) return 'label overlaps progress bar';
+    }
+    const lh = label?.getBoundingClientRect().height ?? 0;
+    const bh = bar?.getBoundingClientRect().height ?? 0;
+    if (lh > 0 && bh > 0 && lh < 8) return 'growth label not visible';
+    if (bh < 6) return 'growth progress bar not visible';
+    return null;
+  });
+  if (err) throw new Error(`growth layout: ${err}`);
 }
 
 /** @param {import('puppeteer').Page} page */
@@ -208,6 +297,12 @@ async function assertHitTestLayout(page, tablet) {
       { id: 'btn-save', el: document.getElementById('btn-save'), primary: false, scroll: true },
       { id: 'btn-load', el: document.getElementById('btn-load'), primary: false, scroll: true },
       { id: 'btn-restart', el: document.getElementById('btn-restart'), primary: false, scroll: true },
+      {
+        id: 'growth-meta',
+        el: document.querySelector('.plant-growth-meta'),
+        primary: false,
+        scroll: true,
+      },
       { id: 'plant-info', el: document.getElementById('plant-info-panel'), primary: false, scroll: true },
       { id: 'atlas', el: document.querySelector('.atlas-panel'), primary: false, scroll: true },
       { id: 'plant-fact', el: document.getElementById('plant-fact'), primary: false, scroll: true },
@@ -293,11 +388,13 @@ async function assertPotUndersideLit(page) {
  * @param {import('puppeteer').Page | import('playwright-core').Page} page
  * @param {{ w: number, h: number, label: string, ratio: number, tablet?: boolean }} vp
  * @param {string} engineLabel
+ * @param {number} [atlasCount]
  */
-async function assertStageLayout(page, vp, engineLabel) {
+async function assertStageLayout(page, vp, engineLabel, atlasCount = 0) {
   await setPageViewport(page, vp);
   await gotoPlant(page);
   await waitFor3d(page);
+  await setAtlasUnlocked(page, atlasCount);
 
   const minH = vp.tablet
     ? vp.w > vp.h
@@ -331,6 +428,8 @@ async function assertStageLayout(page, vp, engineLabel) {
       throw new Error(`${vp.label} mature stats: ${statsMature.reason}`);
     }
     await assertHitTestLayout(page, true);
+    await assertGrowthBlocksLayout(page);
+    if (atlasCount > 0) await assertAtlasCardHeightsUniform(page);
   } else {
     const careOk = await page.evaluate(() => {
       window.scrollTo(0, document.documentElement.scrollHeight);
@@ -344,7 +443,7 @@ async function assertStageLayout(page, vp, engineLabel) {
   await assertPotUndersideLit(page);
 
   console.log(
-    `[${engineLabel}] OK layout ${vp.label}: stage ${emptyH}/${plantedH}/${matureH}px careBottom=${carePlanted.careBottom}/${careMature.careBottom} vh=${carePlanted.vh}`
+    `[${engineLabel}] OK layout ${vp.label} atlas=${atlasCount}: stage ${emptyH}/${plantedH}/${matureH}px careBottom=${careMature.careBottom}/${carePlanted.vh} vh=${careMature.vh ?? carePlanted.vh}`
   );
 }
 
@@ -397,7 +496,23 @@ async function runTouchCase(page, vp) {
   if (mid.scrollY > 2) {
     throw new Error(`${vp.label}: page scrolled during canvas drag`);
   }
-  console.log(`OK touch ${vp.label}: Δpolar from drag`);
+  await sleep(550);
+  await page.click('#plant-3d-reset');
+  await sleep(120);
+  const resetCheck = await page.evaluate(() => {
+    const s = globalThis.__PLANT3D_TEST__?.getState?.();
+    if (!s) return { ok: false, reason: 'no state' };
+    const dPolar = Math.abs(s.polarDeg - s.defaultPolarDeg);
+    const dAz = Math.abs(s.azimuthDeg - s.defaultAzimuthDeg);
+    if (dPolar > 1.5 || dAz > 1.5) {
+      return { ok: false, reason: `drift polar=${dPolar.toFixed(2)} az=${dAz.toFixed(2)}` };
+    }
+    return { ok: true };
+  });
+  if (!resetCheck.ok) {
+    throw new Error(`${vp.label}: reset after drag ${resetCheck.reason}`);
+  }
+  console.log(`OK touch ${vp.label}: drag + exact reset`);
 }
 
 async function runChromiumSuite() {
@@ -407,8 +522,11 @@ async function runChromiumSuite() {
   });
   try {
     const page = await browser.newPage();
-    for (const vp of LAYOUT_VIEWPORTS) {
-      await assertStageLayout(page, vp, 'chromium');
+    for (const atlasCount of ATLAS_UNLOCK_COUNTS) {
+      for (const vp of LAYOUT_VIEWPORTS) {
+        if (!vp.tablet && atlasCount !== 0) continue;
+        await assertStageLayout(page, vp, 'chromium', atlasCount);
+      }
     }
     await screenshotMature(page, 'chromium');
     await runTouchCase(page, { w: 1194, h: 834, label: '1194x834' });
@@ -425,19 +543,22 @@ async function runWebkitSuite() {
   } catch (e) {
     throw new Error(`playwright-core required for webkit verify: ${e}`);
   }
-  for (const vp of LAYOUT_VIEWPORTS) {
-    const browser = await webkit.launch({ headless: true });
-    try {
-      const context = await browser.newContext({
-        viewport: { width: vp.w, height: vp.h },
-        isMobile: true,
-        hasTouch: true,
-      });
-      const page = await context.newPage();
-      await assertStageLayout(page, vp, 'webkit');
-      await context.close();
-    } finally {
-      await browser.close();
+  for (const atlasCount of ATLAS_UNLOCK_COUNTS) {
+    for (const vp of LAYOUT_VIEWPORTS) {
+      if (!vp.tablet && atlasCount !== 0) continue;
+      const browser = await webkit.launch({ headless: true });
+      try {
+        const context = await browser.newContext({
+          viewport: { width: vp.w, height: vp.h },
+          isMobile: true,
+          hasTouch: true,
+        });
+        const page = await context.newPage();
+        await assertStageLayout(page, vp, 'webkit', atlasCount);
+        await context.close();
+      } finally {
+        await browser.close();
+      }
     }
   }
   for (const s of [

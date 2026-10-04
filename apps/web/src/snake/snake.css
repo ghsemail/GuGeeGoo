@@ -708,32 +708,53 @@
 
 @media (pointer: coarse) and (orientation: portrait) and (min-width: 481px) {
   .snake-page:has(#screen-game:not([hidden])) {
-    padding: 10px 12px 10px;
+    padding: 6px 10px 8px;
   }
 
   .snake-page:has(#screen-game:not([hidden])) .snake-header {
-    margin-bottom: 6px;
-  }
-
-  .snake-page:has(#screen-game:not([hidden])) .stats-bar-game {
     margin-bottom: 4px;
   }
 
-  .screen-game .hint {
-    display: none;
+  .snake-page:has(#screen-game:not([hidden])) .snake-header h1 {
+    font-size: clamp(22px, 4.5vw, 28px);
+    line-height: 1.1;
   }
 
   .snake-page:has(#screen-game:not([hidden])) .tagline {
-    display: none;
+    font-size: 11px;
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .stats-bar-game .stat {
+    padding: 5px 6px;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .canvas-stage {
+    gap: 8px;
+  }
+
+  .snake-page:has(#screen-game:not([hidden])) .stats-bar-game {
+    margin-bottom: 2px;
   }
 
   .snake-page:has(#screen-game:not([hidden])) .screen {
+    margin-bottom: 6px;
+  }
+
+  .screen-game .hint {
+    margin-bottom: 4px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .screen-game .canvas-wrap {
     margin-bottom: 8px;
   }
 
   .screen-game .toolbar-game {
-    margin-top: 6px;
-    margin-bottom: 6px;
+    margin-top: 4px;
+    margin-bottom: 4px;
   }
 }
 
