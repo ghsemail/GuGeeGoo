@@ -18,6 +18,7 @@
 | Day 4（11 题） | **8/11** | live 误写 recycle；选词 food waste / lots of 互换 |
 | Unit 1 薄弱点回顾（5 题） | **5/5** | WP-002→MP-009 |
 | Unit 2 单元小测（7 题） | **6/7** | Q4 live a green life 错 |
+| 复习单词听写 Unit 1–2（20 词） | **16/20** | 只写英文；错 whoa、chocolate、metal、bottle；10-04 新表；change 重读不计错；下次复习听写前换表 |
 | 复习单词听写 Unit 1–2（20 词） | **19/20** | 只写英文；错 chips；同 10-02 表重新打乱；下次复习听写前换表 |
 | 复习单词听写 Unit 1–2（20 词） | **19/20** | 只写英文；错 stomach；中文提示 2 次待确认 |
 | 复习单词听写 Unit 1–2（19 词） | **11/19** | 只写英文；错 stomach、enough、potato、snack、sugar、sleepy、problem、choose |
@@ -29,8 +30,8 @@
 
 | 项目 | 内容 |
 |------|------|
-| 待巩固 | stomach 巩固中 1/2；chips 不熟悉 0/2（共 2 词） |
-| 固定表 | 10-04 新表 20 词（待巩固 stomach、chips + Unit 1–2 随机 18）；待听写；10-02 表已替换；10-02 中文提示 2 次待家长确认 |
+| 待巩固 | chips 巩固中 1/2；whoa、chocolate、metal、bottle 不熟悉 0/2（共 5 词） |
+| 固定表 | 10-04 表已听写 16/20；有新待巩固，下次复习听写前换表；10-02 中文提示 2 次待家长确认 |
 | 详情 | `学科学习/英语/五年级/词汇/听写单词本.md` |
 
 ---
@@ -133,7 +134,7 @@
 
 | 日期 | 内容 |
 |------|------|
-| 2026-10-04 | 新复习单词听写固定表（20 词：待巩固 stomach、chips + Unit 1–2 随机 18）；待听写 |
+| 2026-10-04 | 复习单词听写 16/20（新表）；stomach 已掌握；chips 升巩固中；soup/oil/change 首听已掌握；whoa（woah）不熟悉；chocolate（chotogh）、metal（matel）、bottle（botter）退回不熟悉；待巩固 5 词，下次换表 |
 | 2026-10-03 | 复习单词听写 19/20（同 10-02 表重新打乱）；sugar/snack/problem/enough/potato/choose/sleepy 已掌握；stomach 升巩固中；chips（chip）退回不熟悉；待巩固 2 词，下次换表 |
 | 2026-10-02 | 更正：throw 家长核对写对，听写改为 19/20，待巩固 8 词 |
 | 2026-10-02 | 复习单词听写 19/20；recycle、a few 已掌握；sleepy/choose/sugar/problem/snack/potato/enough 升巩固中；chips/bar/oats 首听已掌握；throw 已掌握；stomach（stemck）再错；待巩固 8 词；中文提示 2 次待确认 |
