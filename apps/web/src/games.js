@@ -64,6 +64,14 @@ export const GAMES = [
       lifetime: 'gugeegoo_2048_lifetime_earned',
     },
   },
+  {
+    id: 'plant',
+    title: '养电子植物',
+    emoji: '🌱',
+    href: '/plant/',
+    description:
+      '挑一种苔藓，浇水、晒太阳、施肥，看着它在花盆里慢慢长大——还能收进图鉴！',
+  },
 ];
 
 /** 从 localStorage 读取某游戏的本地最高分与最高关卡（导航页展示用） */
