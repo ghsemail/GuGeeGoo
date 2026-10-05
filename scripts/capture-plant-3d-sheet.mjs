@@ -86,11 +86,17 @@ async function setupPlant(page, speciesId, growth) {
     growth
   );
   await sleep(900);
-  await page.waitForFunction(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.(), { timeout: 20000 });
+  await page.waitForFunction(
+    (g) => {
+      const s = globalThis.__PLANT3D_TEST__?.getMeshStats?.();
+      const minTris = g < 25 ? 180 : 2000;
+      return s && s.triangles > minTris;
+    },
+    { timeout: 25000 },
+    growth
+  );
   await page.evaluate(() => {
-    const t = globalThis.__PLANT3D_TEST__;
-    t?.resetView?.();
-    if (t?.setPolarDeg) t.setPolarDeg(52);
+    globalThis.__PLANT3D_TEST__?.resetView?.();
   });
   await sleep(400);
 }
@@ -103,7 +109,7 @@ async function main() {
     args: ['--no-sandbox', '--enable-webgl', '--ignore-gpu-blocklist'],
   });
   const page = await browser.newPage();
-  await page.setViewport({ width: 900, height: 700, deviceScaleFactor: 2 });
+  await page.setViewport({ width: 1194, height: 834, deviceScaleFactor: 2 });
 
   const stats = {};
   for (const id of SPECIES) {

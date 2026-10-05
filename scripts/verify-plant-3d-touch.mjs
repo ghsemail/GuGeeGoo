@@ -54,7 +54,7 @@ async function setPageViewport(page, vp) {
 
 /** @param {import('puppeteer').Page | import('playwright-core').Page} page */
 async function gotoPlant(page) {
-  const opts = { waitUntil: 'networkidle2', timeout: 60000 };
+  const opts = { waitUntil: 'domcontentloaded', timeout: 60000 };
   if ('goto' in page) {
     try {
       await page.goto(PLANT_URL, opts);
@@ -471,7 +471,7 @@ async function screenshotMature(page, engineLabel) {
 /** @param {import('puppeteer').Page} page @param {{ w: number, h: number, label: string }} vp */
 async function runTouchCase(page, vp) {
   await page.setViewport({ width: vp.w, height: vp.h, hasTouch: true, isMobile: true });
-  await page.goto(PLANT_URL, { waitUntil: 'networkidle2', timeout: 60000 });
+  await page.goto(PLANT_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await waitFor3d(page);
   await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
   await sleep(200);

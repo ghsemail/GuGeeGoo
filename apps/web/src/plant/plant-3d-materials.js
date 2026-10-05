@@ -1,14 +1,12 @@
 /**
- * 3D 苔藓/叶状体材质 — 程序化多层绿色、绒面感（仅植物体，花盆仍用 createStylizedMaterial）
+ * 3D 苔藓/叶状体材质 — 明亮多层绿、绒面感（仅植物体）
  */
 
-/** @typedef {'happy'|'uneasy'|'stressed'|'withered'} PlantMood */
-
 /**
- * @param {number} t 0=基部 … 1=叶尖
- * @param {number} layer 0–1 侧向/层次
+ * @param {number} t 0=基部 … 1=叶尖/表面
+ * @param {number} layer 0–1
  * @param {ReturnType<import('./visual-style.js').palette3d>} palette
- * @param {{ hueShift?: number, sat?: number, species?: string }} [opts]
+ * @param {{ hueShift?: number, satBoost?: number, lightMin?: number, liverwort?: boolean }} [opts]
  */
 export function mossFoliageColor(t, layer, palette, opts = {}) {
   const THREE = globalThis.__PLANT_THREE__;
@@ -18,21 +16,20 @@ export function mossFoliageColor(t, layer, palette, opts = {}) {
   const alt = new THREE.Color(palette.alt);
   const rim = new THREE.Color(palette.rim);
 
-  const hueShift = opts.hueShift ?? 0;
-  const mix = t * 0.55 + layer * 0.25 + (Math.sin(t * 12.7 + layer * 8.3) * 0.04);
-  const c = base.clone().lerp(alt, Math.min(1, mix + 0.15));
-  c.lerp(rim, (1 - t) * 0.35);
+  const mix = t * 0.5 + layer * 0.22 + Math.sin(t * 11 + layer * 6) * 0.05;
+  const c = base.clone().lerp(alt, Math.min(1, mix + 0.25));
+  c.lerp(rim, Math.max(0, (1 - t) * 0.22));
 
   const h = { h: 0, s: 0, l: 0 };
   c.getHSL(h);
-  h.h += hueShift + (opts.species === 'leucobryum' ? -0.02 : 0);
-  h.s = Math.min(0.72, (opts.sat ?? 0.52) + layer * 0.08 + t * 0.12);
-  h.l = Math.min(0.68, 0.28 + t * 0.34 + layer * 0.08);
-  if (t > 0.75) h.l += 0.1;
-  if (layer > 0.85) h.l += 0.05;
-  const brown = (1 - t) * 0.06 + (Math.sin(t * 23) * 0.015);
-  h.l -= brown;
-  c.setHSL(h.h, h.s, h.l);
+  h.h += opts.hueShift ?? 0;
+  const sat = Math.min(0.85, 0.58 + (opts.satBoost ?? 0.12) + t * 0.1);
+  h.s = sat;
+  const lightMin = opts.lightMin ?? (opts.liverwort ? 0.42 : 0.38);
+  h.l = Math.max(lightMin, 0.36 + t * 0.32 + (1 - layer) * 0.06);
+  if (t > 0.7) h.l += 0.12;
+  if (opts.liverwort) h.l += 0.06;
+  c.setHSL(h.h, h.s, Math.min(0.78, h.l));
   return c.getHex();
 }
 
@@ -41,52 +38,47 @@ export function mossFoliageColor(t, layer, palette, opts = {}) {
  * @param {number} [baseColor]
  */
 export function createMossFoliageMaterial(THREE, baseColor) {
-  const c = baseColor != null ? new THREE.Color(baseColor) : new THREE.Color(0x3d8b40);
+  const c = baseColor != null ? new THREE.Color(baseColor) : new THREE.Color(0x52ae56);
   return new THREE.MeshStandardMaterial({
-    color: c,
-    roughness: 0.82,
-    metalness: 0.02,
-    flatShading: false,
+    color: 0xffffff,
+    roughness: 0.78,
+    metalness: 0.04,
     vertexColors: true,
     side: THREE.DoubleSide,
-    emissive: c.clone().multiplyScalar(0.06),
-    emissiveIntensity: 0.28,
+    emissive: new THREE.Color(0x1a3d1c),
+    emissiveIntensity: 0.55,
   });
 }
 
-/**
- * @param {typeof import('three')} THREE
- * @param {number} color
- */
-export function createMossStemMaterial(THREE, color) {
-  const c = new THREE.Color(color);
+/** 外层绒面壳（略亮、半透明叠层感） */
+export function createMossShellMaterial(THREE) {
   return new THREE.MeshStandardMaterial({
-    color: c,
-    roughness: 0.86,
-    metalness: 0.01,
+    color: 0xffffff,
+    roughness: 0.72,
+    metalness: 0.05,
     vertexColors: true,
-    emissive: c.clone().multiplyScalar(0.05),
-    emissiveIntensity: 0.22,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.72,
+    depthWrite: false,
+    emissive: new THREE.Color(0x2d5a30),
+    emissiveIntensity: 0.45,
   });
 }
 
 /**
  * @param {typeof import('three')} THREE
- * @param {ReturnType<import('./visual-style.js').palette3d> | { main: number }} palette
  */
-export function createThallusMaterial(THREE, palette) {
-  const c = new THREE.Color(palette.main);
-  const mat = new THREE.MeshStandardMaterial({
-    color: c,
-    roughness: 0.74,
-    metalness: 0.03,
+export function createThallusMaterial(THREE) {
+  return new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.62,
+    metalness: 0.06,
     vertexColors: true,
-    transparent: true,
-    opacity: 0.96,
-    emissive: c.clone().multiplyScalar(0.07),
-    emissiveIntensity: 0.32,
+    side: THREE.DoubleSide,
+    emissive: new THREE.Color(0x234a28),
+    emissiveIntensity: 0.5,
   });
-  return mat;
 }
 
 /**
@@ -98,15 +90,41 @@ export function createPlantAccentMaterial(THREE, color, opts = {}) {
   const c = new THREE.Color(color);
   return new THREE.MeshStandardMaterial({
     color: c,
-    roughness: opts.roughness ?? 0.68,
-    metalness: 0.04,
-    vertexColors: false,
-    emissive: c.clone().multiplyScalar(0.08),
-    emissiveIntensity: 0.3,
+    roughness: opts.roughness ?? 0.65,
+    metalness: 0.03,
+    emissive: c.clone().multiplyScalar(0.12),
+    emissiveIntensity: 0.35,
   });
 }
 
-/** 供 mossFoliageColor 使用（构建时注入 THREE） */
 export function bindPlantThree(THREE) {
   globalThis.__PLANT_THREE__ = THREE;
+}
+
+/** @param {import('three').Object3D} root @param {typeof import('three')} THREE */
+export function tallyPlantMesh(root, THREE) {
+  let drawCalls = 0;
+  let triangles = 0;
+  root.traverse((ch) => {
+    if (ch.isInstancedMesh) {
+      drawCalls += 1;
+      const g = ch.geometry;
+      let per = 0;
+      if (g?.index) per = g.index.count / 3;
+      else if (g?.parameters?.widthSegments != null) {
+        per = g.parameters.widthSegments * g.parameters.heightSegments * 2;
+      } else if (g?.attributes?.position) {
+        per = Math.max(2, g.attributes.position.count / 3);
+      }
+      triangles += per * ch.count;
+      return;
+    }
+    if (ch.isMesh) {
+      drawCalls += 1;
+      const g = ch.geometry;
+      if (g?.index) triangles += g.index.count / 3;
+      else if (g?.attributes?.position) triangles += g.attributes.position.count / 3;
+    }
+  });
+  return { drawCalls, triangles: Math.round(triangles) };
 }

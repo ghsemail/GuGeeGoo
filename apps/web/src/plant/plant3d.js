@@ -10,6 +10,7 @@ import {
 } from './visual-style.js';
 import { buildLiverwort } from './plant-3d-liverwort.js';
 import { buildMossCushion } from './plant-3d-moss.js';
+import { tallyPlantMesh } from './plant-3d-materials.js';
 
 /** @typedef {'happy'|'uneasy'|'stressed'|'withered'} PlantMood */
 
@@ -364,7 +365,8 @@ function installPlant3dTestHook(view) {
       return phi;
     },
     getMeshStats() {
-      return view._meshStats;
+      if (!view.plantGroup || !view.THREE) return view._meshStats;
+      return tallyPlantMesh(view.plantGroup, view.THREE);
     },
     sampleCanvasPixel(nx = 0.5, ny = 0.82) {
       const canvas = view.canvas;

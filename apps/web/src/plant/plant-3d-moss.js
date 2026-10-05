@@ -1,39 +1,127 @@
 /**
- * 藓类 3D — 茎 + InstancedMesh 小叶，按种类区分形态
+ * 藓类 — 密集垫状丛 + 多层叶卡/绒面壳
  */
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   bindPlantThree,
   createMossFoliageMaterial,
-  createMossStemMaterial,
+  createMossShellMaterial,
   createPlantAccentMaterial,
   mossFoliageColor,
+  tallyPlantMesh,
 } from './plant-3d-materials.js';
 
 /** @type {import('three').BufferGeometry | null} */
-let sharedLeafletGeo = null;
+let leafGeoInner = null;
+/** @type {import('three').BufferGeometry | null} */
+let leafGeoOuter = null;
 
 /**
  * @param {typeof import('three')} THREE
+ * @param {boolean} outer
  */
-function getLeafletGeometry(THREE) {
-  if (sharedLeafletGeo) return sharedLeafletGeo;
-  const w = 0.014;
-  const h = 0.026;
-  const geo = new THREE.PlaneGeometry(w, h, 2, 4);
+function getLeafGeometry(THREE, outer) {
+  if (outer && leafGeoOuter) return leafGeoOuter;
+  if (!outer && leafGeoInner) return leafGeoInner;
+  const w = outer ? 0.028 : 0.022;
+  const h = outer ? 0.042 : 0.034;
+  const geo = new THREE.PlaneGeometry(w, h, 2, 3);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const y = pos.getY(i);
     const t = y / h + 0.5;
-    const curl = Math.sin(t * Math.PI) * 0.005;
-    const twist = Math.sin(t * 6.28) * 0.002;
-    pos.setZ(i, curl);
-    pos.setX(i, pos.getX(i) + twist);
+    pos.setZ(i, Math.sin(t * Math.PI) * (outer ? 0.008 : 0.006));
   }
   pos.needsUpdate = true;
   geo.computeVertexNormals();
-  sharedLeafletGeo = geo;
+  if (outer) leafGeoOuter = geo;
+  else leafGeoInner = geo;
   return geo;
+}
+
+/**
+ * @param {typeof import('three')} THREE
+ * @param {import('three').InstancedMesh} mesh
+ * @param {number} idx
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {number} rotY
+ * @param {number} tilt
+ * @param {number} scale
+ * @param {number} hex
+ */
+function setLeafInstance(THREE, mesh, idx, x, y, z, rotY, tilt, scale, hex) {
+  const dummy = new THREE.Object3D();
+  dummy.position.set(x, y, z);
+  dummy.rotation.set(tilt, rotY, 0);
+  dummy.scale.setScalar(scale);
+  dummy.updateMatrix();
+  mesh.setMatrixAt(idx, dummy.matrix);
+  const color = new THREE.Color(hex);
+  mesh.setColorAt(idx, color);
+}
+
+/** @typedef {{ shoots: number, radius: number, height: number, leavesPerShoot: number, shells: number, satBoost: number, hueShift: number, flatMat?: boolean, pale?: boolean }} MossSpeciesLayout */
+
+/** @param {string} id @param {number} stage @param {number} t */
+function layoutFor(id, stage, t) {
+  const mature = stage >= 4;
+  const mid = stage >= 2;
+  /** @type {MossSpeciesLayout} */
+  const base = {
+    shoots: stage === 0 ? 6 : stage === 1 ? 10 : mid ? 48 : 72,
+    radius: stage === 0 ? 0.1 : stage === 1 ? 0.16 : 0.28 + t * 0.06,
+    height: 0.08,
+    leavesPerShoot: stage === 0 ? 6 : stage === 1 ? 8 : 10,
+    shells: mature ? 2 : stage === 0 ? 0 : 1,
+    satBoost: 0.1,
+    hueShift: 0,
+  };
+
+  if (id === 'leucobryum') {
+    return {
+      ...base,
+      shoots: mature ? 110 : base.shoots,
+      height: mature ? 0.09 : 0.06,
+      radius: mature ? 0.3 : base.radius,
+      leavesPerShoot: mature ? 9 : base.leavesPerShoot,
+      pale: true,
+      hueShift: -0.03,
+      satBoost: 0.06,
+    };
+  }
+  if (id === 'hypnum') {
+    return {
+      ...base,
+      shoots: mature ? 130 : base.shoots,
+      height: mature ? 0.07 : 0.05,
+      flatMat: true,
+      leavesPerShoot: mature ? 8 : base.leavesPerShoot,
+      satBoost: 0.14,
+      hueShift: 0.02,
+    };
+  }
+  if (id === 'polytrichum') {
+    return {
+      ...base,
+      shoots: mature ? 95 : base.shoots,
+      height: mature ? 0.22 : 0.1,
+      radius: mature ? 0.27 : base.radius,
+      leavesPerShoot: mature ? 14 : base.leavesPerShoot,
+      satBoost: 0.08,
+      hueShift: -0.01,
+    };
+  }
+  if (id === 'funaria') {
+    return {
+      ...base,
+      shoots: mature ? 100 : base.shoots,
+      height: mature ? 0.11 : 0.06,
+      radius: mature ? 0.26 : base.radius,
+      leavesPerShoot: mature ? 9 : base.leavesPerShoot,
+    };
+  }
+  return base;
 }
 
 /**
@@ -43,172 +131,141 @@ function getLeafletGeometry(THREE) {
  * @param {number} stage
  * @param {number} t
  * @param {ReturnType<import('./visual-style.js').palette3d>} palette
- * @returns {{ triangles: number, drawCalls: number }}
  */
 export function buildMossCushion(THREE, root, id, stage, t, palette) {
   bindPlantThree(THREE);
-
-  const shootCount =
-    stage === 0 ? 6 : stage === 1 ? 6 : stage === 2 ? 6 : stage === 3 ? 9 : 12;
-  const heightBase =
-    id === 'polytrichum' ? 0.24 : id === 'funaria' ? 0.13 : id === 'hypnum' ? 0.11 : 0.15;
-  const stageScale = stage === 0 ? 0.42 : stage === 1 ? 0.55 : 0.48 + t * 0.95;
-  const h = heightBase * stageScale * 1.05;
-  const spread = stage === 0 ? 0.11 : 0.13 + t * 0.24;
-
-  const speciesOpts = { species: id, hueShift: id === 'leucobryum' ? -0.04 : 0, sat: 0.48 };
-  const stemBaseColor = id === 'leucobryum' ? 0xc5d4b0 : palette.rim;
-  const leafMat = createMossFoliageMaterial(THREE, palette.main);
-  const stemMat = createMossStemMaterial(THREE, stemBaseColor);
-  const matRim = createPlantAccentMaterial(THREE, palette.rim, { roughness: 0.72 });
-
-  const leafGeo = getLeafletGeometry(THREE);
-  const leavesPerShoot =
-    stage === 0
-      ? 7
-      : stage === 1
-        ? 10
-        : stage >= 3
-          ? id === 'polytrichum'
-            ? 22
-            : id === 'hypnum'
-              ? 16
-              : 14
-          : 12;
-  const branchFactor = id === 'hypnum' && stage >= 2 ? 1.45 : 1;
-  const totalLeaves = Math.ceil(shootCount * leavesPerShoot * branchFactor);
-
-  const leafInst = new THREE.InstancedMesh(leafGeo, leafMat, totalLeaves);
-  leafInst.castShadow = false;
-  const dummy = new THREE.Object3D();
-  const color = new THREE.Color();
-  let leafIdx = 0;
-
-  const stemGeos = [];
-
-  for (let i = 0; i < shootCount; i++) {
-    const ang = (i / shootCount) * Math.PI * 2 + (id === 'hypnum' ? i * 0.4 : 0);
-    const rx = Math.cos(ang) * spread * (0.4 + (i % 3) * 0.15);
-    const rz = Math.sin(ang) * spread * (0.4 + (i % 2) * 0.2);
-    const stemH = h * (0.78 + (i % 4) * 0.08);
-    const stemRad = id === 'polytrichum' ? 0.011 : 0.009;
-    const stemGeo = new THREE.CylinderGeometry(stemRad * 0.85, stemRad, stemH, 6, 1);
-    stemGeo.translate(rx, stemH / 2 + 0.02, rz);
-    if (id === 'hypnum') {
-      stemGeo.rotateZ(0.25 * Math.sin(ang));
-    }
-    stemGeos.push(stemGeo);
-
-    const placeLeaf = (lx, ly, lz, rotY, rotX, scaleMul, alongT) => {
-      if (leafIdx >= totalLeaves) return;
-      dummy.position.set(lx, ly, lz);
-      dummy.rotation.set(rotX, rotY, id === 'hypnum' ? 0.12 : 0);
-      const s = scaleMul * (0.85 + (i % 3) * 0.06);
-      dummy.scale.set(s, s * (1.05 + alongT * 0.15), s * 0.75);
-      dummy.updateMatrix();
-      leafInst.setMatrixAt(leafIdx, dummy.matrix);
-      color.setHex(mossFoliageColor(alongT, (rotY % 1) * 0.3, palette, speciesOpts));
-      leafInst.setColorAt(leafIdx, color);
-      leafIdx += 1;
+  const cfg = layoutFor(id, stage, t);
+  const mature = stage >= 4;
+  const colorOpts = {
+    hueShift: cfg.hueShift,
+    satBoost: cfg.satBoost,
+    lightMin: cfg.pale ? 0.48 : 0.4,
+  };
+  if (cfg.pale) {
+    palette = {
+      ...palette,
+      main: 0xb8cf9a,
+      alt: 0xdce8c8,
+      rim: 0x8fa876,
     };
+  }
 
-    const leafCount = Math.floor(leavesPerShoot * (stage === 0 ? 0.6 : 1));
-    for (let l = 0; l < leafCount; l++) {
-      const alongT = l / Math.max(1, leafCount - 1);
-      const ly = 0.03 + alongT * stemH * 0.92;
-      const spiral = l * (id === 'polytrichum' ? 0.55 : 0.72) + ang;
-      const radial =
-        id === 'polytrichum' && alongT > 0.65
-          ? 0.042
-          : id === 'polytrichum'
-            ? 0.028
-            : 0.024;
-      const lx = rx + Math.cos(spiral) * radial;
-      const lz = rz + Math.sin(spiral) * radial;
-      const tilt = 0.35 + alongT * (id === 'polytrichum' ? 0.55 : 0.35);
-      placeLeaf(lx, ly, lz, spiral, tilt, 1, alongT);
-    }
+  const innerMat = createMossFoliageMaterial(THREE, palette.main);
+  const shellMat = createMossShellMaterial(THREE);
+  const accentMat = createPlantAccentMaterial(THREE, 0x7d5e48, { roughness: 0.6 });
 
-    if (id === 'hypnum' && stage >= 2 && leafIdx < totalLeaves - 4) {
-      const sideLen = stemH * 0.45;
-      const bx = rx + Math.cos(ang + 0.9) * 0.04;
-      const bz = rz + Math.sin(ang + 0.9) * 0.04;
-      for (let b = 0; b < 6; b++) {
-        const bt = b / 5;
-        const ly = 0.04 + bt * sideLen;
-        placeLeaf(
-          bx + Math.cos(ang + 1.2) * 0.018 * bt,
-          ly,
-          bz + Math.sin(ang + 1.2) * 0.018 * bt,
-          ang + 1.4,
-          0.5,
-          0.75,
-          bt
+  const golden = Math.PI * (3 - Math.sqrt(5));
+  const totalInner = cfg.shoots * cfg.leavesPerShoot;
+  const shellMul = cfg.shells > 0 ? cfg.shells : 0;
+  const totalOuter = Math.floor(totalInner * 0.85) * shellMul;
+  const innerMesh = new THREE.InstancedMesh(
+    getLeafGeometry(THREE, false),
+    innerMat,
+    totalInner
+  );
+  /** @type {import('three').InstancedMesh | null} */
+  let shellMesh = null;
+  if (totalOuter > 0) {
+    shellMesh = new THREE.InstancedMesh(getLeafGeometry(THREE, true), shellMat, totalOuter);
+  }
+
+  let innerIdx = 0;
+  let shellIdx = 0;
+
+  for (let i = 0; i < cfg.shoots; i++) {
+    const rNorm = Math.sqrt((i + 0.5) / cfg.shoots);
+    const r = rNorm * cfg.radius;
+    const ang = i * golden;
+    const rx = Math.cos(ang) * r;
+    const rz = Math.sin(ang) * r;
+    const dist = r / Math.max(0.01, cfg.radius);
+    let stemH = cfg.height * (0.65 + (1 - dist) * 0.55);
+    if (id === 'polytrichum' && dist < 0.35) stemH *= 1.35;
+    if (cfg.flatMat) stemH *= 0.55 + (1 - dist) * 0.35;
+
+    for (let l = 0; l < cfg.leavesPerShoot; l++) {
+      const along = l / Math.max(1, cfg.leavesPerShoot - 1);
+      const ly = 0.022 + along * stemH;
+      const spiral = ang + l * (id === 'polytrichum' ? 0.62 : 0.95);
+      const spread =
+        (cfg.flatMat ? 0.034 : 0.028) * (0.7 + along * 0.65) * (1 + dist * 0.25);
+      const lx = rx + Math.cos(spiral) * spread;
+      const lz = rz + Math.sin(spiral) * spread;
+      const tilt = cfg.flatMat ? 0.65 + along * 0.25 : 0.45 + along * 0.4;
+      const scale = (cfg.pale ? 1.05 : 1) * (0.9 + (i % 5) * 0.04);
+      const hex = mossFoliageColor(along, dist * 0.4, palette, colorOpts);
+      if (innerIdx < totalInner) {
+        setLeafInstance(THREE, innerMesh, innerIdx++, lx, ly, lz, spiral, tilt, scale, hex);
+      }
+      if (shellMesh && l % 2 === 0 && shellIdx < totalOuter) {
+        const hex2 = mossFoliageColor(Math.min(1, along + 0.15), dist * 0.3, palette, {
+          ...colorOpts,
+          lightMin: (colorOpts.lightMin ?? 0.4) + 0.08,
+        });
+        setLeafInstance(
+          THREE,
+          shellMesh,
+          shellIdx++,
+          lx,
+          ly + 0.012,
+          lz,
+          spiral + 0.4,
+          tilt * 0.92,
+          scale * 1.22,
+          hex2
         );
       }
     }
-  }
 
-  leafInst.count = leafIdx;
-  leafInst.instanceMatrix.needsUpdate = true;
-  if (leafInst.instanceColor) leafInst.instanceColor.needsUpdate = true;
-  root.add(leafInst);
-
-  let stemTris = 0;
-  if (stemGeos.length) {
-    const merged = mergeGeometries(stemGeos, false);
-    stemGeos.forEach((g) => g.dispose());
-    if (merged) {
-      const pos = merged.attributes.position;
-      const colArr = new Float32Array(pos.count * 3);
-      for (let i = 0; i < pos.count; i++) {
-        const y = pos.getY(i);
-        const along = Math.min(1, y / (h + 0.08));
-        const hex = mossFoliageColor(along * 0.4, 0.1, palette, { ...speciesOpts, sat: 0.38 });
-        colArr[i * 3] = ((hex >> 16) & 255) / 255;
-        colArr[i * 3 + 1] = ((hex >> 8) & 255) / 255;
-        colArr[i * 3 + 2] = (hex & 255) / 255;
+    if (cfg.flatMat && mature && i % 3 === 0) {
+      for (let b = 0; b < 4 && innerIdx < totalInner; b++) {
+        const bx = rx + Math.cos(ang + 1.1) * 0.02 * b;
+        const bz = rz + Math.sin(ang + 1.1) * 0.02 * b;
+        const hex = mossFoliageColor(0.5, 0.5, palette, colorOpts);
+        setLeafInstance(THREE, innerMesh, innerIdx++, bx, 0.028, bz, ang + 1.2, 0.75, 0.85, hex);
       }
-      merged.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
-      stemTris = merged.index ? merged.index.count / 3 : pos.count / 3;
-      root.add(new THREE.Mesh(merged, stemMat));
     }
   }
 
-  let extraTris = 0;
-  let extraDraw = 2;
+  innerMesh.count = innerIdx;
+  innerMesh.instanceMatrix.needsUpdate = true;
+  if (innerMesh.instanceColor) innerMesh.instanceColor.needsUpdate = true;
+  root.add(innerMesh);
 
-  if (stage >= 4 || (stage >= 3 && id === 'funaria')) {
-    const setaH = id === 'polytrichum' ? 0.38 : id === 'funaria' ? 0.24 : 0.3;
-    const seta = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.007, 0.009, setaH, 8),
-      matRim
-    );
-    seta.position.set(0, setaH / 2 + 0.05, 0);
-    if (id === 'funaria') seta.rotation.z = 0.35;
-    root.add(seta);
-    extraTris += 8 * 2;
-    extraDraw += 1;
-
-    const capMat = createPlantAccentMaterial(THREE, 0x6d4c41, { roughness: 0.62 });
-    let cap;
-    if (id === 'funaria') {
-      cap = new THREE.Mesh(new THREE.SphereGeometry(0.048, 10, 12), capMat);
-      cap.scale.set(0.88, 1.28, 0.88);
-    } else {
-      cap = new THREE.Mesh(new THREE.SphereGeometry(0.036, 10, 10), capMat);
-      cap.scale.set(1, 1.35, 1);
-    }
-    cap.position.set(id === 'funaria' ? 0.06 : 0, setaH + 0.062, id === 'funaria' ? 0.02 : 0);
-    root.add(cap);
-    extraTris += 120;
-    extraDraw += 1;
+  if (shellMesh && shellIdx > 0) {
+    shellMesh.count = shellIdx;
+    shellMesh.instanceMatrix.needsUpdate = true;
+    if (shellMesh.instanceColor) shellMesh.instanceColor.needsUpdate = true;
+    root.add(shellMesh);
   }
 
-  const leafTris = leafIdx * 16;
-  const drawCalls = extraDraw + (stemTris > 0 ? 1 : 0) + (leafIdx > 0 ? 1 : 0);
-  return {
-    triangles: Math.round(leafTris + stemTris + extraTris),
-    drawCalls,
-  };
+  if (mature || (stage >= 3 && id === 'funaria')) {
+    const sporCount = id === 'funaria' ? 3 : 2;
+    for (let s = 0; s < sporCount; s++) {
+      const ang = (s / sporCount) * Math.PI * 2 + 0.5;
+      const sx = Math.cos(ang) * 0.08;
+      const sz = Math.sin(ang) * 0.07;
+      const setaH =
+        (id === 'polytrichum' ? 0.22 : id === 'funaria' ? 0.16 : 0.18) *
+        (0.85 + (s % 2) * 0.12);
+      const seta = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.004, 0.005, setaH, 6),
+        accentMat
+      );
+      seta.position.set(sx, setaH / 2 + 0.04, sz);
+      if (id === 'funaria' && s === 0) seta.rotation.z = 0.28;
+      root.add(seta);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 8), accentMat);
+      if (id === 'funaria') cap.scale.set(0.9, 1.25, 0.9);
+      else cap.scale.set(1, 1.2, 1);
+      cap.position.set(
+        sx + (id === 'funaria' && s === 0 ? 0.025 : 0),
+        setaH + 0.038,
+        sz + (id === 'funaria' && s === 0 ? 0.01 : 0)
+      );
+      root.add(cap);
+    }
+  }
+
+  return tallyPlantMesh(root, THREE);
 }
