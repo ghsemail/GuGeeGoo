@@ -366,6 +366,35 @@ function installPlant3dTestHook(view) {
       if (!view.plantGroup || !view.THREE) return view._meshStats;
       return tallyPlantMesh(view.plantGroup, view.THREE);
     },
+    getPlantFootprintPct() {
+      const THREE = view.THREE;
+      if (!view.plantGroup || !THREE) return null;
+      view.plantGroup.updateWorldMatrix(true, true);
+      const v = new THREE.Vector3();
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minZ = Infinity;
+      let maxZ = -Infinity;
+      view.plantGroup.traverse((ch) => {
+        if (!ch.isMesh || !ch.geometry?.attributes?.position) return;
+        const pos = ch.geometry.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i);
+          v.applyMatrix4(ch.matrixWorld);
+          if (v.y > 0.12) continue;
+          minX = Math.min(minX, v.x);
+          maxX = Math.max(maxX, v.x);
+          minZ = Math.min(minZ, v.z);
+          maxZ = Math.max(maxZ, v.z);
+        }
+      });
+      if (!Number.isFinite(minX)) return null;
+      const dx = maxX - minX;
+      const dz = maxZ - minZ;
+      const diam = (dx + dz) * 0.5;
+      const pct = Math.min(100, (diam / 0.84) ** 2 * 68);
+      return { pct, diam, dx, dz };
+    },
     sampleCanvasPixel(nx = 0.5, ny = 0.82) {
       const canvas = view.canvas;
       const renderer = view.renderer;

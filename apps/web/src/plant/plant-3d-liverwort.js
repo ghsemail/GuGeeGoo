@@ -1,92 +1,149 @@
 /**
- * 地钱类 — 平滑扁带叶状体（单面连续条带 + 二叉圆尖）
+ * 地钱类 — Shape 扁带叶状体（平滑单面 + 程序化纹理）
  */
 import {
   bindPlantThree,
   createPlantAccentMaterial,
-  createThallusMaterial,
   mossFoliageColor,
   tallyPlantMesh,
 } from './plant-3d-materials.js';
 
 /** @typedef {'happy'|'uneasy'|'stressed'|'withered'} PlantMood */
 
+/** @type {Map<string, import('three').MeshStandardMaterial>} */
+const thallusMatCache = new Map();
+
 /**
  * @param {typeof import('three')} THREE
- * @param {number} length
- * @param {number} width
  * @param {'marchantia'|'conocephalum'|'riccia'} kind
- * @param {ReturnType<import('./visual-style.js').palette3d>} palette
- * @param {{ yBase?: number, pore?: boolean }} [opts]
  */
-function createSmoothRibbonStrip(THREE, length, width, kind, palette, opts = {}) {
-  const segL = Math.max(14, Math.floor(length * 40));
-  const segW = kind === 'riccia' ? 5 : 7;
-  const yBase = opts.yBase ?? 0.018;
-  const geo = new THREE.BufferGeometry();
-  const verts = [];
-  const colors = [];
-  const indices = [];
+function createThallusTexture(THREE, kind) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
 
-  for (let j = 0; j <= segW; j++) {
-    const v = j / segW;
-    const across = (v - 0.5) * 2;
-    for (let i = 0; i <= segL; i++) {
-      const u = i / segL;
-      const along = (u - 0.5) * length;
-      const tip = Math.sin(u * Math.PI);
-      const halfW = width * 0.5 * tip;
-      const marginLift = 1 - Math.abs(across) * 0.22;
-      const midrib = 1 - Math.abs(across) * 1.25;
-      const edgeWave = Math.sin(u * 5.2 + across * 1.8) * 0.004 * tip * Math.abs(across);
-      const py = yBase + edgeWave + midrib * 0.0025;
-      const px = along;
-      const pz = across * halfW;
-      verts.push(px, py, pz);
+  const grd = ctx.createLinearGradient(0, 0, 0, 256);
+  grd.addColorStop(0, kind === 'riccia' ? '#7cb87a' : '#5a9e52');
+  grd.addColorStop(0.45, kind === 'riccia' ? '#8ecf88' : '#6bb862');
+  grd.addColorStop(0.5, kind === 'riccia' ? '#3d7040' : '#2e6534');
+  grd.addColorStop(0.55, kind === 'riccia' ? '#8ecf88' : '#6bb862');
+  grd.addColorStop(1, kind === 'riccia' ? '#7cb87a' : '#5a9e52');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 512, 256);
 
-      const layer = Math.abs(across);
-      const hex = mossFoliageColor(
-        0.48 + tip * 0.22 + (1 - layer) * 0.12,
-        layer * 0.22,
-        palette,
-        {
-          liverwort: true,
-          satBoost: kind === 'riccia' ? 0.22 : 0.28,
-          lightMin: kind === 'riccia' ? 0.36 : 0.32,
-        }
-      );
-      let r = ((hex >> 16) & 255) / 255;
-      let g = ((hex >> 8) & 255) / 255;
-      let b = (hex & 255) / 255;
-      const groove = 0.78 + midrib * 0.22;
-      const rimBright = 0.92 + (1 - Math.abs(across)) * 0.08;
-      r *= groove * rimBright;
-      g *= groove * rimBright;
-      b *= groove * rimBright;
-      if (opts.pore && kind === 'conocephalum') {
-        const pore = (Math.sin(u * 28) * Math.sin(v * 22) + 1) * 0.04;
-        r *= 1 - pore;
-        g *= 1 - pore * 0.6;
-        b *= 1 - pore;
+  ctx.strokeStyle = 'rgba(28,72,32,0.55)';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(256, 8);
+  ctx.lineTo(256, 248);
+  ctx.stroke();
+
+  if (kind === 'conocephalum') {
+    ctx.fillStyle = 'rgba(22,58,28,0.12)';
+    const step = 22;
+    for (let py = 10; py < 246; py += step) {
+      for (let px = 10; px < 502; px += step * 1.15) {
+        const ox = ((py / step) % 2) * (step * 0.55);
+        ctx.beginPath();
+        ctx.arc(px + ox, py, 4.5, 0, Math.PI * 2);
+        ctx.fill();
       }
-      colors.push(r, g, b);
+    }
+  }
+  if (kind === 'marchantia') {
+    ctx.fillStyle = 'rgba(18,50,24,0.1)';
+    for (let i = 0; i < 120; i++) {
+      const px = 40 + ((i * 47) % 430);
+      const py = 20 + ((i * 83) % 210);
+      ctx.beginPath();
+      ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 
-  const row = segW + 1;
-  for (let j = 0; j < segW; j++) {
-    for (let i = 0; i < segL; i++) {
-      const a = j * row + i;
-      const b = a + 1;
-      const c = a + row;
-      const d = c + 1;
-      indices.push(a, c, b, b, c, d);
-    }
-  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  return tex;
+}
 
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  geo.setIndex(indices);
+/**
+ * @param {typeof import('three')} THREE
+ * @param {'marchantia'|'conocephalum'|'riccia'} kind
+ */
+function getThallusMaterial(THREE, kind) {
+  const key = kind;
+  if (thallusMatCache.has(key)) return thallusMatCache.get(key);
+  const map = createThallusTexture(THREE, kind);
+  const mat = new THREE.MeshStandardMaterial({
+    map,
+    color: 0xffffff,
+    roughness: 0.5,
+    metalness: 0.09,
+    side: THREE.DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: 2,
+    polygonOffsetUnits: 2,
+  });
+  thallusMatCache.set(key, mat);
+  return mat;
+}
+
+/**
+ * @param {typeof import('three')} THREE
+ * @param {'marchantia'|'conocephalum'|'riccia'} kind
+ * @param {number} length 沿叶状体方向（未缩放）
+ * @param {number} halfW 最大半宽
+ * @param {boolean} forkTip
+ */
+function createForkedStrapShape(THREE, kind, length, halfW, forkTip) {
+  const shape = new THREE.Shape();
+  const L = length;
+  const W = halfW;
+  const fork = forkTip && kind !== 'riccia';
+  const forkW = kind === 'riccia' ? 0.55 : 0.72;
+
+  shape.moveTo(0, 0);
+  shape.bezierCurveTo(-W * 0.35, L * 0.15, -W * 0.95, L * 0.42, -W * 0.88, L * 0.62);
+  if (fork) {
+    shape.bezierCurveTo(-W * 0.75, L * 0.78, -W * forkW, L * 0.92, -W * 0.42, L * 1.02);
+    shape.quadraticCurveTo(-W * 0.18, L * 1.08, 0, L * 0.96);
+    shape.quadraticCurveTo(W * 0.18, L * 1.08, W * 0.42, L * 1.02);
+    shape.bezierCurveTo(W * forkW, L * 0.92, W * 0.75, L * 0.78, W * 0.88, L * 0.62);
+  } else {
+    shape.quadraticCurveTo(-W * 0.35, L * 0.95, 0, L * 1.02);
+    shape.quadraticCurveTo(W * 0.35, L * 0.95, W * 0.88, L * 0.62);
+  }
+  shape.bezierCurveTo(W * 0.95, L * 0.42, W * 0.35, L * 0.15, 0, 0);
+  return shape;
+}
+
+/**
+ * @param {typeof import('three')} THREE
+ * @param {'marchantia'|'conocephalum'|'riccia'} kind
+ * @param {number} length
+ * @param {number} halfW
+ * @param {boolean} forkTip
+ */
+function buildLobeGeometry(THREE, kind, length, halfW, forkTip) {
+  const shape = createForkedStrapShape(THREE, kind, length, halfW, forkTip);
+  const segments = kind === 'riccia' ? 28 : 36;
+  const geo = new THREE.ShapeGeometry(shape, segments);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    const u = x / Math.max(0.001, length);
+    const v = Math.abs(z) / Math.max(0.001, halfW);
+    const edge = Math.min(1, v);
+    const curl = edge * edge * 0.012 * Math.sin(u * 7.5);
+    const wave = 0.004 * Math.sin(u * 11 + z * 18);
+    pos.setY(i, 0.018 + curl + wave);
+  }
+  pos.needsUpdate = true;
   geo.computeVertexNormals();
   return geo;
 }
@@ -94,117 +151,55 @@ function createSmoothRibbonStrip(THREE, length, width, kind, palette, opts = {})
 /**
  * @param {typeof import('three')} THREE
  * @param {import('three').Group} root
- * @param {import('three').Material} mat
+ * @param {'marchantia'|'conocephalum'|'riccia'} kind
  * @param {number} ox
  * @param {number} oz
  * @param {number} rotY
  * @param {number} length
- * @param {number} width
- * @param {'marchantia'|'conocephalum'|'riccia'} kind
- * @param {ReturnType<import('./visual-style.js').palette3d>} palette
- * @param {{ pore?: boolean, y?: number }} [opts]
+ * @param {number} halfW
+ * @param {boolean} forkTip
+ * @param {number} yLift
  */
-function addRibbonStrip(
+function addLobe(
   THREE,
   root,
-  mat,
+  kind,
   ox,
   oz,
   rotY,
   length,
-  width,
-  kind,
-  palette,
-  opts = {}
+  halfW,
+  forkTip,
+  yLift
 ) {
-  const geo = createSmoothRibbonStrip(THREE, length, width, kind, palette, {
-    yBase: opts.y ?? 0.018,
-    pore: opts.pore,
-  });
+  const mat = getThallusMaterial(THREE, kind);
+  const geo = buildLobeGeometry(THREE, kind, length, halfW, forkTip);
   const mesh = new THREE.Mesh(geo, mat);
-  const reach = length * 0.48;
-  mesh.position.set(ox + Math.cos(rotY) * reach * 0.42, 0, oz + Math.sin(rotY) * reach * 0.42);
+  const reach = length * 0.52;
+  mesh.position.set(ox + Math.cos(rotY) * reach * 0.38, yLift, oz + Math.sin(rotY) * reach * 0.38);
   mesh.rotation.y = rotY;
   root.add(mesh);
-  return mesh;
 }
 
-/** 二叉分叉：两条平滑带共基 */
-function addForkedRibbon(
-  THREE,
-  root,
-  mat,
-  ox,
-  oz,
-  rotY,
-  length,
-  width,
-  kind,
-  palette,
-  forkSpread = 0.42
-) {
-  addRibbonStrip(THREE, root, mat, ox, oz, rotY, length * 0.62, width, kind, palette);
-  addRibbonStrip(
-    THREE,
-    root,
-    mat,
-    ox,
-    oz,
-    rotY + forkSpread,
-    length * 0.48,
-    width * 0.82,
-    kind,
-    palette,
-    { y: 0.019 }
-  );
-  addRibbonStrip(
-    THREE,
-    root,
-    mat,
-    ox,
-    oz,
-    rotY - forkSpread,
-    length * 0.48,
-    width * 0.82,
-    kind,
-    palette,
-    { y: 0.017 }
-  );
-}
-
-/**
- * @param {typeof import('three')} THREE
- * @param {import('three').Group} root
- * @param {number} x
- * @param {number} z
- * @param {number} scale
- * @param {ReturnType<import('./visual-style.js').palette3d>} palette
- */
 function addGemmaCup(THREE, root, x, z, scale, palette) {
   const cupMat = createPlantAccentMaterial(THREE, palette.rim, { roughness: 0.62 });
   const outer = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.022 * scale, 0.028 * scale, 0.012 * scale, 10, 1, true),
+    new THREE.CylinderGeometry(0.024 * scale, 0.03 * scale, 0.011 * scale, 10, 1, true),
     cupMat
   );
-  outer.position.set(x, 0.026 * scale, z);
+  outer.position.set(x, 0.028 * scale, z);
   root.add(outer);
   const inner = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.014 * scale, 0.018 * scale, 0.008 * scale, 8),
+    new THREE.CylinderGeometry(0.015 * scale, 0.019 * scale, 0.007 * scale, 8),
     createPlantAccentMaterial(THREE, palette.main, { roughness: 0.55 })
   );
-  inner.position.set(x, 0.028 * scale, z);
+  inner.position.set(x, 0.029 * scale, z);
   root.add(inner);
 }
 
-/**
- * @param {typeof import('three')} THREE
- * @param {import('three').Group} root
- * @param {number} scale
- * @param {ReturnType<import('./visual-style.js').palette3d>} palette
- * @param {import('three').Material} thallusMat
- */
-function addMarchantiaArchegoniophore(THREE, root, scale, palette, thallusMat) {
+function addMarchantiaArchegoniophore(THREE, root, scale, palette) {
   const stalkMat = createPlantAccentMaterial(THREE, 0x5a7048, { roughness: 0.65 });
+  const thallusMat = getThallusMaterial(THREE, 'marchantia');
   const stalk = new THREE.Mesh(
     new THREE.CylinderGeometry(0.0045 * scale, 0.006 * scale, 0.1 * scale, 8),
     stalkMat
@@ -235,105 +230,75 @@ function addMarchantiaArchegoniophore(THREE, root, scale, palette, thallusMat) {
  */
 export function buildLiverwort(THREE, root, id, stage, t, palette, _mood = 'happy') {
   bindPlantThree(THREE);
+  void palette;
   const kind =
     id === 'riccia' ? 'riccia' : id === 'conocephalum' ? 'conocephalum' : 'marchantia';
 
-  const mat = createThallusMaterial(THREE);
-  const matAlt = createThallusMaterial(THREE);
-
-  const scale = (0.42 + t * 0.52) * 1.08;
+  const spread = 1.55 + t * 0.45;
+  const mature = stage >= 4;
 
   if (stage === 0) {
-    const s0 = Math.max(0.95, scale);
-    addForkedRibbon(THREE, root, mat, 0, 0, 0.1, 0.16 * s0, 0.09 * s0, kind, palette, 0.38);
-    addRibbonStrip(THREE, root, matAlt, 0.04, 0.02, 1.2, 0.12 * s0, 0.07 * s0, kind, palette, {
-      y: 0.017,
-    });
-    addRibbonStrip(THREE, root, matAlt, -0.03, -0.02, -0.7, 0.11 * s0, 0.065 * s0, kind, palette, {
-      y: 0.016,
-    });
+    addLobe(THREE, root, kind, 0, 0, 0.15, 0.22 * spread, 0.055, true, 0.018);
+    addLobe(THREE, root, kind, 0.03, 0.02, 1.05, 0.16 * spread, 0.042, false, 0.017);
+    addLobe(THREE, root, kind, -0.02, -0.02, -0.65, 0.14 * spread, 0.038, false, 0.016);
     return tallyPlantMesh(root, THREE);
   }
 
   if (stage === 1) {
-    addRibbonStrip(THREE, root, mat, 0, 0, 0, 0.34 * scale, 0.13, kind, palette);
-    addForkedRibbon(
-      THREE,
-      root,
-      matAlt,
-      0.02,
-      0.01,
-      0.55,
-      0.24 * scale,
-      0.1,
-      kind,
-      palette,
-      0.35
-    );
+    addLobe(THREE, root, kind, 0, 0, 0, 0.38 * spread, 0.075, true, 0.018);
+    addLobe(THREE, root, kind, 0.02, 0.01, 0.62, 0.28 * spread, 0.06, true, 0.019);
     return tallyPlantMesh(root, THREE);
   }
 
-  const arms = id === 'riccia' ? 5 : id === 'conocephalum' ? 4 : 3;
-  const widthMain =
-    id === 'riccia' ? 0.1 : id === 'conocephalum' ? 0.18 : 0.16;
-  const lenBase = (0.46 + stage * 0.05) * scale;
+  const lobes = id === 'riccia' ? 6 : id === 'conocephalum' ? 5 : 4;
+  const len =
+    id === 'riccia' ? 0.42 * spread : id === 'conocephalum' ? 0.58 * spread : 0.55 * spread;
+  const halfW =
+    id === 'riccia' ? 0.048 * spread : id === 'conocephalum' ? 0.095 * spread : 0.088 * spread;
+  const fork = stage >= 2;
 
-  for (let i = 0; i < arms; i++) {
-    const ang = (i / arms) * Math.PI * 2 + 0.22;
-    const len = Math.min(lenBase, 0.38);
-    const ox = Math.cos(ang) * 0.015;
-    const oz = Math.sin(ang) * 0.015;
-    if (stage >= 2) {
-      addForkedRibbon(
+  for (let i = 0; i < lobes; i++) {
+    const ang = (i / lobes) * Math.PI * 2 + 0.18;
+    const ox = Math.cos(ang) * 0.055;
+    const oz = Math.sin(ang) * 0.055;
+    addLobe(THREE, root, kind, ox, oz, ang, len, halfW, fork, 0.016 + i * 0.003);
+    if (id === 'riccia' && stage >= 2 && i % 2 === 0) {
+      addLobe(
         THREE,
         root,
-        i % 2 ? mat : matAlt,
-        ox,
-        oz,
-        ang,
-        len,
-        widthMain,
         kind,
-        palette,
-        id === 'riccia' ? 0.48 : 0.4
-      );
-    } else {
-      addRibbonStrip(
-        THREE,
-        root,
-        i % 2 ? mat : matAlt,
-        ox,
-        oz,
-        ang,
-        len,
-        widthMain,
-        kind,
-        palette,
-        { pore: id === 'conocephalum' }
+        ox + Math.cos(ang) * len * 0.35,
+        oz + Math.sin(ang) * len * 0.35,
+        ang + 0.55,
+        len * 0.55,
+        halfW * 0.75,
+        true,
+        0.018 + (i % 2) * 0.002
       );
     }
   }
 
   if (id === 'marchantia' && stage >= 3) {
-    addGemmaCup(THREE, root, 0.08 * scale, 0.05 * scale, scale, palette);
-    addGemmaCup(THREE, root, -0.06 * scale, 0.04 * scale, scale * 0.9, palette);
+    addGemmaCup(THREE, root, 0.12 * spread, 0.08 * spread, spread, palette);
+    addGemmaCup(THREE, root, -0.1 * spread, 0.06 * spread, spread * 0.92, palette);
   }
 
-  if (stage >= 4) {
+  if (mature) {
     if (id === 'marchantia') {
-      addMarchantiaArchegoniophore(THREE, root, scale, palette, matAlt);
+      addMarchantiaArchegoniophore(THREE, root, spread, palette);
     } else if (id === 'conocephalum') {
+      const mat = getThallusMaterial(THREE, kind);
       const stalk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.0035 * scale, 0.005 * scale, 0.075 * scale, 8),
+        new THREE.CylinderGeometry(0.0035 * spread, 0.005 * spread, 0.075 * spread, 8),
         createPlantAccentMaterial(THREE, 0x6a8060, { roughness: 0.55 })
       );
-      stalk.position.set(0.02 * scale, 0.038 * scale, -0.01 * scale);
+      stalk.position.set(0.02 * spread, 0.038 * spread, -0.01 * spread);
       root.add(stalk);
       const cap = new THREE.Mesh(
-        new THREE.ConeGeometry(0.022 * scale, 0.035 * scale, 8),
+        new THREE.ConeGeometry(0.022 * spread, 0.035 * spread, 8),
         mat
       );
-      cap.position.set(0.02 * scale, 0.078 * scale, -0.01 * scale);
+      cap.position.set(0.02 * spread, 0.078 * spread, -0.01 * spread);
       root.add(cap);
     }
   }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * QA 截图：7 种 mature + 3 地钱类 start + 金发藓/地钱/蛇苔/叉钱苔近景
+ * QA 截图：4 种 mature 近景 + 默认视图 + 叶状体覆盖估算
  */
 import puppeteer from 'puppeteer';
 import { spawn } from 'node:child_process';
@@ -15,23 +15,14 @@ const PLANT_URL = `${BASE.replace(/\/$/, '')}/plant/`;
 const OUT = process.env.PLANT_SHOT_DIR || path.join(REPO_ROOT, 'plantshots');
 const SAVE_KEY = 'gugeegoo_plant_save';
 
-const SPECIES = [
-  'marchantia',
-  'conocephalum',
-  'riccia',
-  'leucobryum',
-  'hypnum',
-  'polytrichum',
-  'funaria',
-];
-
-const LIVERWORT_START = ['marchantia', 'conocephalum', 'riccia'];
 const CLOSEUPS = [
   ['polytrichum', 100, 38],
   ['marchantia', 100, 36],
   ['conocephalum', 100, 36],
   ['riccia', 100, 36],
 ];
+
+const LIVERWORTS = ['marchantia', 'conocephalum', 'riccia'];
 
 /** @type {import('node:child_process').ChildProcess | null} */
 let previewProc = null;
@@ -57,11 +48,6 @@ async function ensurePreview() {
   throw new Error('preview failed');
 }
 
-/**
- * @param {import('puppeteer').Page} page
- * @param {string} speciesId
- * @param {number} growth
- */
 async function setup(page, speciesId, growth) {
   await page.goto(PLANT_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForSelector('.plant-3d-canvas', { timeout: 25000 });
@@ -113,41 +99,44 @@ async function main() {
   const page = await browser.newPage();
   await page.setViewport({ width: 1194, height: 834, deviceScaleFactor: 1 });
 
-  const report = { mature: {}, start: {}, closeup: {} };
-  for (const id of SPECIES) {
-    await setup(page, id, 100);
-    const file = path.join(OUT, `qa-v69-mature-${id}.png`);
-    await page.screenshot({ path: file });
-    report.mature[id] = {
-      stats: await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.()),
-      file,
-    };
-    console.log('mature', id, report.mature[id].stats);
-  }
-  for (const id of LIVERWORT_START) {
-    await setup(page, id, 8);
-    const file = path.join(OUT, `qa-v69-start-${id}.png`);
-    await page.screenshot({ path: file });
-    report.start[id] = {
-      stats: await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.()),
-      file,
-    };
-  }
+  const report = { closeup: {}, defaultView: {}, coverage: {}, pixels: {} };
+
   for (const [id, growth, polar] of CLOSEUPS) {
     await setup(page, id, growth);
-    await page.evaluate((deg) => globalThis.__PLANT3D_TEST__?.setPolarDeg?.(deg), polar);
-    await sleep(300);
+    if (polar) {
+      await page.evaluate((deg) => globalThis.__PLANT3D_TEST__?.setPolarDeg?.(deg), polar);
+      await sleep(300);
+    }
     const el = await page.$('.plant-3d-canvas');
-    const file = path.join(OUT, `qa-v69-closeup-${id}.png`);
+    const file = path.join(OUT, `qa-v70-closeup-${id}.png`);
     if (el) await el.screenshot({ path: file });
-    report.closeup[id] = { file };
-    console.log('closeup', file);
+    else await page.screenshot({ path: file });
+    const stats = await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.());
+    const px = await page.evaluate(() =>
+      globalThis.__PLANT3D_TEST__?.sampleCanvasRegionMean?.({ nx: 0.5, ny: 0.52, w: 0.28, h: 0.32 })
+    );
+    report.closeup[id] = { file, stats, pixels: px };
+    report.pixels[id] = px;
+    console.log('closeup', id, stats, px);
   }
 
-  fs.writeFileSync(path.join(OUT, 'qa-v69-report.json'), JSON.stringify(report, null, 2));
+  for (const id of CLOSEUPS.map((c) => c[0])) {
+    await setup(page, id, 100);
+    const file = path.join(OUT, `qa-v70-mature-${id}.png`);
+    await page.screenshot({ path: file });
+    const stats = await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.());
+    report.defaultView[id] = { file, stats };
+    if (LIVERWORTS.includes(id)) {
+      const cov = await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getPlantFootprintPct?.());
+      report.coverage[id] = cov;
+      console.log('coverage', id, cov);
+    }
+  }
+
+  fs.writeFileSync(path.join(OUT, 'qa-v70-report.json'), JSON.stringify(report, null, 2));
   await browser.close();
   if (previewProc) previewProc.kill();
-  console.log('done', path.join(OUT, 'qa-v69-report.json'));
+  console.log('done', path.join(OUT, 'qa-v70-report.json'));
 }
 
 main().catch((e) => {

@@ -18,18 +18,18 @@ let leafGeoInner = null;
 /** @type {import('three').BufferGeometry | null} */
 let leafGeoOuter = null;
 /** @type {import('three').BufferGeometry | null} */
-let leafGeoSpike = null;
+let leafGeoLance = null;
 
 /**
  * @param {typeof import('three')} THREE
- * @param {'inner'|'outer'|'spike'} kind
+ * @param {'inner'|'outer'|'lance'} kind
  */
 function getLeafGeometry(THREE, kind) {
   if (kind === 'inner' && leafGeoInner) return leafGeoInner;
   if (kind === 'outer' && leafGeoOuter) return leafGeoOuter;
-  if (kind === 'spike' && leafGeoSpike) return leafGeoSpike;
-  const w = kind === 'outer' ? 0.016 : kind === 'spike' ? 0.007 : 0.013;
-  const h = kind === 'outer' ? 0.024 : kind === 'spike' ? 0.019 : 0.02;
+  if (kind === 'lance' && leafGeoLance) return leafGeoLance;
+  const w = kind === 'outer' ? 0.016 : kind === 'lance' ? 0.009 : 0.013;
+  const h = kind === 'outer' ? 0.024 : kind === 'lance' ? 0.034 : 0.02;
   const geo = new THREE.PlaneGeometry(w, h, 1, 2);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
@@ -41,7 +41,7 @@ function getLeafGeometry(THREE, kind) {
   ensureWhiteVertexColors(geo, THREE);
   geo.computeVertexNormals();
   if (kind === 'outer') leafGeoOuter = geo;
-  else if (kind === 'spike') leafGeoSpike = geo;
+  else if (kind === 'lance') leafGeoLance = geo;
   else leafGeoInner = geo;
   return geo;
 }
@@ -64,19 +64,22 @@ function buildPolytrichumCushion(THREE, root, stage, t, palette, mood) {
   const mature = stage >= 4;
   const droop = moodDroop(mood);
   const start = stage === 0;
-  const shoots = start ? 6 : stage === 1 ? 12 : mature ? 80 : 40;
-  const radius = start ? 0.1 : mature ? 0.22 : 0.18;
-  const stemH = start ? 0.09 : mature ? 0.2 : 0.12;
-  const whorls = start ? 4 : mature ? 7 : 5;
-  const leavesPerWhorl = 5;
-  const totalLeaves = shoots * whorls * leavesPerWhorl;
+  const shoots = start ? 6 : stage === 1 ? 12 : mature ? 58 : 36;
+  const radius = start ? 0.1 : mature ? 0.21 : 0.17;
+  const stemH = start ? 0.09 : mature ? 0.19 : 0.12;
+  const whorls = start ? 4 : mature ? 6 : 5;
+  const leavesPerWhorl = 6;
+  const upperWhorls = start ? whorls : Math.max(3, Math.floor(whorls * 0.65));
+  const totalLeaves = shoots * upperWhorls * leavesPerWhorl;
   const scaleMul = start ? 1.5 : stage === 1 ? 1.2 : 1;
 
   const leafMat = createMossFoliageMaterial(THREE, palette.main);
-  const stemMat = createPlantAccentMaterial(THREE, palette.main, { roughness: 0.72 });
+  leafMat.emissive = new THREE.Color(0x3a7a3e);
+  leafMat.emissiveIntensity = 0.28;
+  const stemMat = createPlantAccentMaterial(THREE, palette.rim, { roughness: 0.74 });
   const setaMat = createPlantAccentMaterial(THREE, 0x8b4a3a, { roughness: 0.58 });
-  const leafMesh = new THREE.InstancedMesh(getLeafGeometry(THREE, 'spike'), leafMat, totalLeaves);
-  const stemGeo = new THREE.CylinderGeometry(0.0055, 0.007, 1, 7);
+  const leafMesh = new THREE.InstancedMesh(getLeafGeometry(THREE, 'lance'), leafMat, totalLeaves);
+  const stemGeo = new THREE.CylinderGeometry(0.0028, 0.0038, 1, 6);
   const stemMesh = new THREE.InstancedMesh(stemGeo, stemMat, shoots);
   let leafIdx = 0;
   const golden = Math.PI * (3 - Math.sqrt(5));
@@ -96,27 +99,30 @@ function buildPolytrichumCushion(THREE, root, stage, t, palette, mood) {
     dummy.updateMatrix();
     stemMesh.setMatrixAt(i, dummy.matrix);
 
-    for (let w = 0; w < whorls; w++) {
-      const along = w / Math.max(1, whorls - 1);
+    for (let w = 0; w < upperWhorls; w++) {
+      const along = 0.38 + (w / Math.max(1, upperWhorls - 1)) * 0.62;
       const ly = 0.022 + along * h;
       for (let k = 0; k < leavesPerWhorl; k++) {
-        const leafAng = ang + (k / leavesPerWhorl) * Math.PI * 2 + w * 0.38;
-        const tilt = 0.52 + droop * along * 0.35;
-        const hex = mossFoliageColor(along, rNorm * 0.3, palette, {
-          satBoost: 0.16,
-          lightMin: 0.46,
+        const leafAng = ang + (k / leavesPerWhorl) * Math.PI * 2 + w * 0.31;
+        const tilt = 0.92 + droop * along * 0.22;
+        const out = 0.006 + along * 0.004;
+        const lx = rx + Math.cos(leafAng) * out;
+        const lz = rz + Math.sin(leafAng) * out;
+        const hex = mossFoliageColor(along, rNorm * 0.22, palette, {
+          satBoost: 0.22,
+          lightMin: 0.54,
         });
         if (leafIdx < totalLeaves) {
           setLeafInstance(
             THREE,
             leafMesh,
             leafIdx++,
-            rx,
+            lx,
             ly,
-            rz,
+            lz,
             leafAng,
             tilt,
-            scaleMul * (0.88 + (k % 2) * 0.06),
+            scaleMul * (1.18 + (k % 2) * 0.1),
             hex
           );
         }

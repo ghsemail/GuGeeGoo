@@ -260,8 +260,8 @@ async function assertMatureMossPixels(page, label) {
     if (!sample || sample.n < 20) {
       throw new Error(`${label} moss ${sid}: insufficient canvas samples (${sample?.n ?? 0})`);
     }
-    const minG = sid === 'polytrichum' ? 66 : 90;
-    const minBright = sid === 'polytrichum' ? 38 : 55;
+    const minG = sid === 'polytrichum' ? 82 : 90;
+    const minBright = sid === 'polytrichum' ? 45 : 55;
     if (sample.g < minG || sample.brightness < minBright) {
       throw new Error(
         `${label} moss ${sid}: mean green ${sample.g} (rgb ${sample.r},${sample.g},${sample.b}) brightness ${sample.brightness} — too dark`
