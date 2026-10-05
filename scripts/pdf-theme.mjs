@@ -60,6 +60,70 @@ export const worksheetCss = `
   img.fig-wide { width: 17cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
 `;
 
+/** 英语客观题练习：题间距紧凑；仿写留 2 行书写空，改错/连词成句留 1 行 */
+export const englishWorksheetCss = `
+  @page { size: A4; margin: 16mm 18mm; }
+  body {
+    font-family: "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    font-size: 17px;
+    line-height: 1.85;
+    color: #000;
+    margin: 0;
+  }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  .meta { 
+    font-size: 15px; 
+    color: #333; 
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .meta-left { }
+  .meta-right { text-align: right; }
+  .meta-right u { 
+    text-decoration: underline; 
+    text-underline-offset: 3px;
+    letter-spacing: 2px;
+  }
+  h2 { font-size: 18px; margin: 0 0 4px; }
+  h3 { font-size: 17px; margin: 12px 0 8px; }
+  p { margin: 7px 0; }
+  em { font-style: italic; color: #333; }
+  strong { font-weight: 700; }
+  u { text-decoration: underline; text-underline-offset: 3px; }
+  .page-break { page-break-before: always; }
+  .hint { margin: 6px 0 10px; color: #333; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px;
+    font-size: 16px;
+  }
+  th, td {
+    border: 1px solid #333;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #f0f0f0; font-weight: 700; }
+  .question-block {
+    page-break-inside: avoid;
+    margin-bottom: 1em;
+  }
+  .question-block.q-write-2 {
+    padding-bottom: 3.7em;
+  }
+  .question-block.q-write-1 {
+    padding-bottom: 1.85em;
+  }
+  .question-block:last-child { margin-bottom: 0; }
+  .question-block h2 { margin-top: 0; }
+  .fig-wrap { margin: 10px 0 14px; text-align: left; page-break-inside: avoid; overflow: visible; }
+  img.fig { width: 8cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
+  img.fig-wide { width: 17cm; max-width: 100%; height: auto; object-fit: contain; overflow: visible; }
+`;
+
 export const quizCss = `
   @page { size: A4; margin: 16mm 18mm; }
   body {

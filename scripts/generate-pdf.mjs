@@ -12,6 +12,7 @@
  *   --title <标题>           覆盖 MD 中的标题
  *   --meta <元信息>          覆盖 MD 中的元信息
  *   --multi <文件1,文件2>    多页练习模式，逗号分隔文件名
+ *   --english-compact        英语练习紧凑题间距（`学科学习/英语/` 下 worksheet 默认开启）
  * 
  * 示例：
  *   npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/第2单元-四天巩固-第1天.md
@@ -28,7 +29,13 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer";
-import { worksheetCss, quizCss, answersCss, memoCss } from "./pdf-theme.mjs";
+import {
+  worksheetCss,
+  englishWorksheetCss,
+  quizCss,
+  answersCss,
+  memoCss,
+} from "./pdf-theme.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -119,16 +126,28 @@ function detectType(filename, md) {
   return "worksheet";
 }
 
-function getCss(type) {
+function getCss(type, { englishCompact = false } = {}) {
   switch (type) {
     case "quiz": return quizCss;
     case "answers": return answersCss;
     case "memo": return memoCss;
-    default: return worksheetCss;
+    default:
+      return englishCompact ? englishWorksheetCss : worksheetCss;
   }
 }
 
-function mdToHtmlBody(md, baseDir, { wrapQuestions = false } = {}) {
+function isEnglishWorksheetPath(filePath) {
+  const normalized = filePath.replace(/\\/g, "/");
+  return /学科学习\/英语\//.test(normalized);
+}
+
+function englishQuestionSpacingClass(h2PlainText) {
+  if (/仿写|书面表达/.test(h2PlainText)) return "q-write-2";
+  if (/改错|连词成句/.test(h2PlainText)) return "q-write-1";
+  return "";
+}
+
+function mdToHtmlBody(md, baseDir, { wrapQuestions = false, englishCompact = false } = {}) {
   const lines = md.split(/\r?\n/);
   const body = [];
   let inQuestionBlock = false;
@@ -140,9 +159,14 @@ function mdToHtmlBody(md, baseDir, { wrapQuestions = false } = {}) {
     }
   }
 
-  function openQuestionBlock(h2Html) {
+  function openQuestionBlock(h2Html, h2PlainText) {
     closeQuestionBlock();
-    body.push(`<div class="question-block">${h2Html}`);
+    let blockClass = "question-block";
+    if (englishCompact) {
+      const spacing = englishQuestionSpacingClass(h2PlainText);
+      if (spacing) blockClass += ` ${spacing}`;
+    }
+    body.push(`<div class="${blockClass}">${h2Html}`);
     inQuestionBlock = true;
   }
 
@@ -173,9 +197,10 @@ function mdToHtmlBody(md, baseDir, { wrapQuestions = false } = {}) {
     if (line.trim() === "") { i++; continue; }
 
     if (line.startsWith("## ")) {
-      const h2 = `<h2>${escapeHtml(line.slice(3))}</h2>`;
+      const plain = line.slice(3);
+      const h2 = `<h2>${escapeHtml(plain)}</h2>`;
       if (wrapQuestions) {
-        openQuestionBlock(h2);
+        openQuestionBlock(h2, plain);
       } else {
         body.push(h2);
       }
@@ -222,10 +247,11 @@ function mdToHtmlBody(md, baseDir, { wrapQuestions = false } = {}) {
   return body.join("\n");
 }
 
-function mdToHtml(md, { title, meta, css, type, baseDir }) {
+function mdToHtml(md, { title, meta, css, type, baseDir, englishCompact = false }) {
   const isWorksheet = type === "worksheet" || type === "quiz";
   const body = mdToHtmlBody(md, baseDir || process.cwd(), {
     wrapQuestions: isWorksheet,
+    englishCompact: isWorksheet && englishCompact,
   });
   
   const dateBlank = isWorksheet 
@@ -242,7 +268,7 @@ function mdToHtml(md, { title, meta, css, type, baseDir }) {
 </body></html>`;
 }
 
-function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
+function mdMultiToHtml(files, css, baseMeta, type = "worksheet", englishCompact = false) {
   const isWorksheet = type === "worksheet" || type === "quiz";
   const dateBlank = isWorksheet 
     ? `<span class="meta-right">日期：<u>____________</u></span>`
@@ -253,6 +279,7 @@ function mdMultiToHtml(files, css, baseMeta, type = "worksheet") {
     const { title, meta } = extractMeta(md);
     const body = mdToHtmlBody(md, path.dirname(file), {
       wrapQuestions: isWorksheet,
+      englishCompact: isWorksheet && englishCompact,
     });
     const cls = i === 0 ? "sheet" : "sheet page-break";
     return `<section class="${cls}">
@@ -316,6 +343,7 @@ async function main() {
   --title <标题>           覆盖标题
   --meta <元信息>          覆盖元信息
   --multi <文件列表>       多页模式，逗号分隔
+  --english-compact        英语练习紧凑题间距
 
 示例:
   npm run pdf -- 学科学习/英语/五年级/练习/第2单元/源文件/第2单元-四天巩固-第1天.md
@@ -341,20 +369,31 @@ async function main() {
   const inputName = path.basename(inputPath, ".md");
   const outDir = options.out ? path.resolve(options.out) : path.join(inputDir, "..");
 
+  const englishCompactExplicit = options["english-compact"] === true;
+  const englishCompactOff = options["english-compact"] === "false";
+  const englishCompact =
+    !englishCompactOff &&
+    (englishCompactExplicit || isEnglishWorksheetPath(inputPath));
+
   if (options.multi) {
     const multiFiles = options.multi.split(",").map(f => 
       path.isAbsolute(f.trim()) ? f.trim() : path.join(inputDir, f.trim())
     );
     const type = options.type || "worksheet";
-    const css = getCss(type);
-    const html = mdMultiToHtml(multiFiles, css, options.meta || "顾景源", type);
+    const multiCompact =
+      !englishCompactOff &&
+      (englishCompactExplicit ||
+        multiFiles.some((f) => isEnglishWorksheetPath(f)));
+    const css = getCss(type, { englishCompact: multiCompact });
+    const html = mdMultiToHtml(multiFiles, css, options.meta || "顾景源", type, multiCompact);
     const pdfPath = path.join(outDir, `${inputName}.pdf`);
     await generatePdf(html, pdfPath);
   } else {
     const md = readFileSync(inputPath, "utf8");
     const { title: autoTitle, meta: autoMeta } = extractMeta(md);
     const type = options.type || detectType(inputPath, md);
-    const css = getCss(type);
+    const useEnglishCompact = englishCompact && type === "worksheet";
+    const css = getCss(type, { englishCompact: useEnglishCompact });
 
     const html = mdToHtml(md, {
       title: options.title || autoTitle,
@@ -362,6 +401,7 @@ async function main() {
       css,
       type,
       baseDir: inputDir,
+      englishCompact: useEnglishCompact,
     });
 
     const pdfPath = path.join(outDir, `${inputName.replace(/-answers$/, "")}.pdf`);
