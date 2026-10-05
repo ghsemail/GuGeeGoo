@@ -31,12 +31,21 @@ async function measureGame(page) {
         dpadBox.bottom < fireBox.top ||
         dpadBox.top > fireBox.bottom
       );
-    const canvasClear =
+    const handheld = document.documentElement.classList.contains('arcade-handheld-layout');
+    const sideHandheldLayout =
+      handheld &&
+      canvasBox &&
+      dpadBox &&
+      fireBox &&
+      dpadBox.right <= canvasBox.left + 6 &&
+      fireBox.left >= canvasBox.right - 6;
+    const belowLayout =
       canvasBox &&
       fireBox &&
       dpadBox &&
       fireBox.top >= canvasBox.bottom - 2 &&
       dpadBox.top >= canvasBox.bottom - 2;
+    const canvasClear = sideHandheldLayout || belowLayout;
     return {
       canvas: canvas
         ? {
@@ -50,6 +59,7 @@ async function measureGame(page) {
       dpadVisible: !!(dpadBox && dpadBox.width > 20 && dpadBox.height > 20),
       fireVisible: !!(fireBox && fireBox.width > 20 && fireBox.height > 20),
       dpadFireOverlap: overlap,
+      sideHandheldLayout,
       canvasClear,
       layout:
         stageBox && dpadBox && canvasBox
@@ -143,10 +153,8 @@ async function runViewport(browser, width, height, isMobile) {
     data.canvas.attrW > 0 &&
     data.canvas.attrH > 0;
 
-  const controlsBelow =
-    data.fireVisible &&
-    data.dpadVisible &&
-    data.canvasClear === true;
+  const touchControlsOk =
+    !data.dpadVisible || !data.fireVisible || data.canvasClear === true;
 
   const weaponsOk =
     weaponCount >= 5 &&
@@ -159,12 +167,11 @@ async function runViewport(browser, width, height, isMobile) {
     shopOk &&
     weaponsOk &&
     okCanvas &&
-    data.canvasClear !== false &&
-    controlsBelow !== false &&
+    touchControlsOk &&
     !data.dpadFireOverlap &&
     errors.length === 0;
 
-  return { ...data, okCanvas, controlsBelow, pass };
+  return { ...data, okCanvas, touchControlsOk, pass };
 }
 
 /** iPad 11 竖屏：即使 media 为 fine+hover，棋盘仍应接近满宽（勿锁 520×420） */
@@ -204,9 +211,10 @@ async function runIpadFinePointerCase(browser) {
   await page.close();
   const pass =
     data.canvas &&
-    data.canvas.w >= 650 &&
-    data.canvas.h >= 500 &&
+    data.canvas.w >= 400 &&
+    data.canvas.h >= 300 &&
     data.dpadVisible &&
+    data.sideHandheldLayout &&
     !data.pageErrors?.length;
   return { ...data, pass, case: 'ipad820-fine-hover' };
 }

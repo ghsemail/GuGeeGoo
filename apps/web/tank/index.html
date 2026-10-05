@@ -99,26 +99,26 @@
 
       <div class="canvas-wrap game-controls-block">
         <div class="canvas-stage" aria-label="棋盘与触屏操作">
-          <div class="touch-side-left" aria-label="武器与开火">
+          <div class="touch-rail touch-rail-left" aria-label="方向控制">
+            <div class="dpad-overlay">
+              <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>
+              <button type="button" class="dpad-btn dpad-left" data-dir="left">◀</button>
+              <button type="button" class="dpad-btn dpad-right" data-dir="right">▶</button>
+              <button type="button" class="dpad-btn dpad-down" data-dir="down">▼</button>
+            </div>
+          </div>
+          <div class="canvas-board-wrap">
+            <canvas id="game-canvas" aria-label="坦克大战"></canvas>
+          </div>
+          <div class="touch-side-right" aria-label="开火与道具">
             <div id="weapon-bar-host" class="weapon-bar-host"></div>
-            <div class="touch-left-col">
+            <div class="touch-right-col">
               <button type="button" id="btn-forward" class="forward-btn game-touch-btn" aria-label="背景前进">
                 前进 ▶
               </button>
               <button type="button" id="btn-fire" class="fire-btn game-touch-btn" aria-label="发射">
                 🔫
               </button>
-            </div>
-          </div>
-          <div class="canvas-board-wrap">
-            <canvas id="game-canvas" aria-label="坦克大战"></canvas>
-          </div>
-          <div class="touch-rail touch-rail-right" aria-label="方向控制">
-            <div class="dpad-overlay">
-              <button type="button" class="dpad-btn dpad-up" data-dir="up">▲</button>
-              <button type="button" class="dpad-btn dpad-left" data-dir="left">◀</button>
-              <button type="button" class="dpad-btn dpad-right" data-dir="right">▶</button>
-              <button type="button" class="dpad-btn dpad-down" data-dir="down">▼</button>
             </div>
           </div>
         </div>

@@ -213,8 +213,16 @@ function isTouchUi() {
   return false;
 }
 
+function isHandheldTabletLayout() {
+  return isTouchUi() && window.innerWidth >= 481;
+}
+
 function syncTouchControlsVisibility() {
   document.documentElement.classList.toggle('no-touch-controls', !isTouchUi());
+  document.documentElement.classList.toggle(
+    'arcade-handheld-layout',
+    isHandheldTabletLayout()
+  );
 }
 
 if (typeof window !== 'undefined') {
@@ -242,31 +250,50 @@ function measureSnakeStageBelowBoard() {
 
 function playfieldLayout() {
   const coarse = isTouchUi();
+  const handheldSide = isHandheldTabletLayout();
   const landscapeSide =
-    coarse &&
+    handheldSide &&
     window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches;
-  const tablet = coarse && window.innerWidth >= 481;
+  const tablet = handheldSide;
   let padW = 32;
   let padH = 320;
-  if (landscapeSide) {
-    padW = 250;
-    padH = 300;
-  } else if (tablet) {
+  let railW = 0;
+  if (handheldSide) {
     const screen = document.querySelector('#screen-game:not([hidden])');
+    const stage = screen?.querySelector('.canvas-stage');
     const wrap = screen?.querySelector('.canvas-wrap');
     const toolbar = screen?.querySelector('.toolbar-game');
     const top = wrap?.getBoundingClientRect().top ?? 0;
-    const belowBoard = measureSnakeStageBelowBoard();
     const toolbarH = toolbar
       ? toolbar.getBoundingClientRect().height + 8
       : 44;
-    padH = Math.ceil(top + belowBoard + toolbarH + 2) + snakeLayoutPadExtra;
+    padH = Math.ceil(top + toolbarH + 12) + snakeLayoutPadExtra;
+    if (stage) {
+      const leftW =
+        stage.querySelector('.touch-rail-left')?.getBoundingClientRect().width ?? 0;
+      const rightW =
+        stage.querySelector('.touch-rail-right')?.getBoundingClientRect().width ?? 0;
+      railW = leftW + rightW + 28;
+    } else {
+      railW = 320;
+    }
+    padW = railW + 24;
   }
   const availW = window.innerWidth - padW;
   const availH = window.innerHeight - padH;
-  const maxW = landscapeSide || tablet ? availW : Math.min(availW, 520);
-  const maxH = landscapeSide || tablet ? availH : Math.min(availH, 420);
-  const minDisplayH = landscapeSide ? Math.floor(window.innerHeight * 0.6) : 0;
+  let maxW = handheldSide ? availW : Math.min(availW, 520);
+  if (handheldSide) {
+    const stage = document.querySelector('#screen-game:not([hidden]) .canvas-stage');
+    if (stage?.clientWidth > 0 && railW > 0) {
+      maxW = Math.max(120, stage.clientWidth - railW);
+    }
+  }
+  const maxH = handheldSide ? availH : Math.min(availH, 420);
+  const minDisplayH = landscapeSide
+    ? Math.floor(window.innerHeight * 0.6)
+    : handheldSide
+      ? Math.floor(window.innerHeight * 0.48)
+      : 0;
   return {
     maxW,
     maxH,
@@ -274,6 +301,7 @@ function playfieldLayout() {
     coarse,
     landscapeSide,
     tablet,
+    handheldSide,
   };
 }
 
@@ -311,53 +339,15 @@ function applyBoardSizeFromCellSize(cs) {
 }
 
 function resizeCanvas() {
-  const lv = state.level;
-  const { tablet, landscapeSide } = playfieldLayout();
-
-  if (tablet && !landscapeSide) {
-    /** @type {{ extra: number, side: number, slack: number } | null} */
-    let best = null;
-    for (let extra = 0; extra <= 280; extra += 2) {
-      snakeLayoutPadExtra = extra;
+  const { tablet, landscapeSide, handheldSide } = playfieldLayout();
+  if (handheldSide) {
+    snakeLayoutPadExtra = 0;
+    for (let attempt = 0; attempt < 6; attempt++) {
       applyBoardSizeFromCellSize(cellSize());
       const vh = document.documentElement.clientHeight;
       const scrollSlack = document.documentElement.scrollHeight - vh;
-      const boardSide = Math.min(
-        canvas.getBoundingClientRect().width,
-        canvas.getBoundingClientRect().height
-      );
-      if (boardSide < 520 - 0.5) continue;
-      if (
-        !best ||
-        scrollSlack < best.slack ||
-        (scrollSlack === best.slack && boardSide > best.side)
-      ) {
-        best = { extra, side: boardSide, slack: scrollSlack };
-      }
-      if (scrollSlack <= 0 && boardSide >= 520 - 0.5) break;
-    }
-    if (best) {
-      snakeLayoutPadExtra = best.extra;
-      applyBoardSizeFromCellSize(cellSize());
-      for (let bump = 2; bump <= 24; bump += 2) {
-        snakeLayoutPadExtra = best.extra + bump;
-        applyBoardSizeFromCellSize(cellSize());
-        const scrollSlack =
-          document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const boardSide = Math.min(
-          canvas.getBoundingClientRect().width,
-          canvas.getBoundingClientRect().height
-        );
-        if (boardSide < 520 - 0.5) {
-          snakeLayoutPadExtra = best.extra + bump - 2;
-          applyBoardSizeFromCellSize(cellSize());
-          break;
-        }
-        if (scrollSlack <= 0) break;
-      }
-    } else {
-      snakeLayoutPadExtra = 0;
-      applyBoardSizeFromCellSize(cellSize());
+      if (scrollSlack <= 2) break;
+      snakeLayoutPadExtra += Math.ceil(scrollSlack) + 2;
     }
   } else {
     snakeLayoutPadExtra = 0;
@@ -375,7 +365,7 @@ function resizeCanvas() {
   const stage = canvas.closest('.canvas-stage');
   if (stage) {
     const { coarse, landscapeSide } = playfieldLayout();
-    const tablet = coarse && window.innerWidth >= 481;
+    const tablet = isHandheldTabletLayout();
     const boardW = canvas.getBoundingClientRect().width;
     let dpadSize = Math.min(44, Math.max(38, Math.round(boardW * 0.11)));
     let fireSize = Math.min(52, Math.max(44, Math.round(boardW * 0.13)));
@@ -384,15 +374,16 @@ function resizeCanvas() {
       fireSize = Math.max(44, fireSize);
     }
     if (tablet) {
-      dpadSize = Math.min(72, Math.max(64, dpadSize));
-      fireSize = Math.min(72, Math.max(64, fireSize));
-    }
-    if (landscapeSide && tablet) {
-      dpadSize = Math.min(72, Math.max(66, dpadSize));
+      dpadSize = 76;
+      fireSize = 80;
     }
     stage.style.setProperty('--dpad-size', `${dpadSize}px`);
-    stage.style.setProperty('--dpad-gap', tablet ? '12px' : '3px');
+    stage.style.setProperty('--dpad-gap', tablet ? '14px' : '3px');
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
+  }
+
+  if (handheldSide) {
+    applyBoardSizeFromCellSize(cellSize());
   }
 
   draw();

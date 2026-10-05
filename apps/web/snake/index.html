@@ -118,22 +118,7 @@
 
       <div class="canvas-wrap game-controls-block">
         <div class="canvas-stage" aria-label="棋盘与触屏操作">
-          <div class="touch-rail touch-rail-left" aria-label="发射">
-            <button
-              type="button"
-              id="btn-fire"
-              class="fire-btn game-touch-btn"
-              aria-label="发射武器"
-            >
-              🔫 发射
-            </button>
-          </div>
-          <div class="canvas-board-wrap">
-            <canvas id="game-canvas" aria-label="贪吃蛇游戏区域"></canvas>
-            <div id="effect-bar" class="effect-bar" aria-label="当前道具效果"></div>
-            <div id="game-toast" class="game-toast" hidden></div>
-          </div>
-          <div class="touch-rail touch-rail-right" aria-label="方向控制">
+          <div class="touch-rail touch-rail-left" aria-label="方向控制">
             <div class="dpad-overlay">
               <button type="button" class="dpad-btn dpad-up" data-dir="up" aria-label="上">
                 ▲
@@ -163,6 +148,21 @@
                 ▼
               </button>
             </div>
+          </div>
+          <div class="canvas-board-wrap">
+            <canvas id="game-canvas" aria-label="贪吃蛇游戏区域"></canvas>
+            <div id="effect-bar" class="effect-bar" aria-label="当前道具效果"></div>
+            <div id="game-toast" class="game-toast" hidden></div>
+          </div>
+          <div class="touch-rail touch-rail-right" aria-label="发射">
+            <button
+              type="button"
+              id="btn-fire"
+              class="fire-btn game-touch-btn"
+              aria-label="发射武器"
+            >
+              🔫 发射
+            </button>
           </div>
         </div>
       </div>

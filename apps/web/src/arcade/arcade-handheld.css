@@ -1,0 +1,103 @@
+/**
+ * iPad 等平板 · 掌机三栏：左方向 · 中棋盘 · 右发射/动作
+ * 由 JS 在 html 上切换 .arcade-handheld-layout（宽度 ≥481 且触控）
+ */
+
+html.arcade-handheld-layout .canvas-stage {
+  --arcade-dpad-cell: 76px;
+  --arcade-dpad-gap: 14px;
+  --arcade-fire-size: 80px;
+  --dpad-size: var(--arcade-dpad-cell);
+  --dpad-gap: var(--arcade-dpad-gap);
+  --fire-btn-size: var(--arcade-fire-size);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  grid-template-areas: 'left board right';
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+}
+
+html.arcade-handheld-layout .canvas-board-wrap {
+  grid-area: board;
+  justify-self: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+html.arcade-handheld-layout .touch-rail-left {
+  grid-area: left;
+  justify-self: start;
+  align-self: center;
+  display: flex;
+  align-items: center;
+}
+
+html.arcade-handheld-layout .touch-rail-right {
+  grid-area: right;
+  justify-self: end;
+  align-self: center;
+  display: flex;
+  align-items: center;
+}
+
+html.arcade-handheld-layout .fire-btn {
+  width: var(--fire-btn-size);
+  height: var(--fire-btn-size);
+  min-width: var(--fire-btn-size);
+  min-height: var(--fire-btn-size);
+}
+
+html.arcade-handheld-layout.no-touch-controls .canvas-stage {
+  grid-template-columns: 1fr;
+  grid-template-areas: 'board';
+}
+
+/* 坦克：道具与开火在右侧 */
+html.arcade-handheld-layout .touch-side-right {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+  width: max-content;
+  max-width: 152px;
+  flex-shrink: 0;
+}
+
+html.arcade-handheld-layout .weapon-bar-host {
+  grid-area: unset;
+  width: 100%;
+}
+
+html.arcade-handheld-layout .touch-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+
+html.arcade-handheld-layout .weapon-row-primary {
+  grid-template-columns: repeat(2, 64px);
+}
+
+html.arcade-handheld-layout .weapon-row-mini {
+  grid-template-columns: repeat(2, 56px);
+}
+
+html.arcade-handheld-layout .forward-btn {
+  min-height: 64px;
+  font-size: 15px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.arcade-handheld-layout .touch-rail-left,
+  html.arcade-handheld-layout .touch-rail-right,
+  html.arcade-handheld-layout .touch-side-right {
+    display: flex !important;
+  }
+}

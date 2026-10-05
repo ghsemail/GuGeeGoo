@@ -1,3 +1,10 @@
+@import '../arcade/arcade-handheld.css';
+
+html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .screen-game,
+html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .canvas-wrap {
+  max-width: 100%;
+}
+
 .snake-page {
   min-height: 100vh;
   margin: 0;
@@ -804,10 +811,19 @@
     display: none !important;
   }
 
+  html.arcade-handheld-layout .touch-rail {
+    display: flex !important;
+  }
+
   .canvas-stage {
     grid-template-columns: 1fr;
     grid-template-areas: 'board';
     justify-items: center;
+  }
+
+  html.arcade-handheld-layout .canvas-stage {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'left board right';
   }
 }
 
