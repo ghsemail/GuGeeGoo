@@ -135,6 +135,7 @@
 
 | 日期 | 内容 |
 |------|------|
+| 2026-10-05 | 出待巩固 6 词拼写巩固练习（9 题，含答案） |
 | 2026-10-05 | 复习单词听写 17/20（10-05 表）；错 chocolate、that's enough、group；bottle 连读改 group、a few 漏读；chips 已掌握；whoa/metal/bottle 巩固中；待巩固 6 词，下次换表 |
 | 2026-10-05 | 新复习单词听写固定表（20 词：错题本拼错 15 词全部 + 未听写新词 5）；待听写 |
 | 2026-10-04 | 复习单词听写 16/20（新表）；stomach 已掌握；chips 升巩固中；soup/oil/change 首听已掌握；whoa（woah）不熟悉；chocolate（chotogh）、metal（matel）、bottle（botter）退回不熟悉；待巩固 5 词，下次换表 |
