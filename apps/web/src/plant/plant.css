@@ -550,26 +550,22 @@
 .plant-toast {
   position: fixed;
   left: 50%;
-  bottom: 12px;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  bottom: auto;
   transform: translateX(-50%);
   z-index: 50;
   margin: 0;
-  padding: 10px 16px;
-  font-size: 14px;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #1b5e20;
   background: #c8e6c9;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  max-width: min(92vw, 360px);
+  max-width: min(92vw, 340px);
   text-align: center;
   line-height: 1.35;
-}
-
-@media (min-width: 720px) and (max-width: 900px) {
-  .plant-toast {
-    bottom: 78px;
-  }
+  pointer-events: none;
 }
 
 .atlas-panel {

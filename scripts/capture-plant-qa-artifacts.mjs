@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * QA 截图：7 种 start + mature +  stressed 藓类 + 大灰藓/地钱近景
+ * QA 截图：7 种 mature + 3 地钱类 start + 金发藓/地钱/蛇苔/叉钱苔近景
  */
 import puppeteer from 'puppeteer';
 import { spawn } from 'node:child_process';
@@ -23,6 +23,14 @@ const SPECIES = [
   'hypnum',
   'polytrichum',
   'funaria',
+];
+
+const LIVERWORT_START = ['marchantia', 'conocephalum', 'riccia'];
+const CLOSEUPS = [
+  ['polytrichum', 100, 38],
+  ['marchantia', 100, 36],
+  ['conocephalum', 100, 36],
+  ['riccia', 100, 36],
 ];
 
 /** @type {import('node:child_process').ChildProcess | null} */
@@ -52,14 +60,13 @@ async function ensurePreview() {
 /**
  * @param {import('puppeteer').Page} page
  * @param {string} speciesId
- * @param {{ growth: number, water?: number, light?: number, tag: string }} opts
+ * @param {number} growth
  */
-async function setup(page, speciesId, opts) {
-  const { growth, water = 72, light = 70, tag } = opts;
+async function setup(page, speciesId, growth) {
   await page.goto(PLANT_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForSelector('.plant-3d-canvas', { timeout: 25000 });
   await page.evaluate(
-    (key, sid, g, w, l) => {
+    (key, sid, g) => {
       const now = Date.now();
       const mature = g >= 100;
       localStorage.setItem(
@@ -71,8 +78,8 @@ async function setup(page, speciesId, opts) {
             speciesId: sid,
             planted: true,
             status: mature ? 'mature' : 'growing',
-            water: w,
-            light: l,
+            water: 72,
+            light: 70,
             nutrient: 40,
             growth: g,
             stressSec: 0,
@@ -87,38 +94,12 @@ async function setup(page, speciesId, opts) {
     },
     SAVE_KEY,
     speciesId,
-    growth,
-    water,
-    light
+    growth
   );
   await sleep(700);
   await page.waitForFunction(() => globalThis.__PLANT3D_TEST__?.getState?.(), { timeout: 25000 });
   await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
   await sleep(350);
-  const file = path.join(OUT, `qa-v68-${tag}-${speciesId}.png`);
-  await page.screenshot({ path: file });
-  const stats = await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.());
-  const pixels =
-    speciesId !== 'marchantia' && speciesId !== 'conocephalum' && speciesId !== 'riccia' && growth >= 100
-      ? await page.evaluate(() =>
-          globalThis.__PLANT3D_TEST__?.sampleCanvasRegionMean?.({ nx: 0.5, ny: 0.52, w: 0.24, h: 0.3 })
-        )
-      : null;
-  console.log(JSON.stringify({ tag, speciesId, stats, pixels, file }));
-  return { stats, pixels, file };
-}
-
-async function closeup(page, speciesId, growth, tag) {
-  await setup(page, speciesId, { growth, tag: `${tag}-setup` });
-  await page.evaluate(() => {
-    const t = globalThis.__PLANT3D_TEST__;
-    if (t?.setPolarDeg) t.setPolarDeg(38);
-  });
-  await sleep(300);
-  const el = await page.$('.plant-3d-canvas');
-  const file = path.join(OUT, `qa-v68-closeup-${tag}-${speciesId}.png`);
-  if (el) await el.screenshot({ path: file });
-  console.log('closeup', file);
 }
 
 async function main() {
@@ -132,29 +113,41 @@ async function main() {
   const page = await browser.newPage();
   await page.setViewport({ width: 1194, height: 834, deviceScaleFactor: 1 });
 
-  const report = { species: {}, pixels: {}, stressed: null };
+  const report = { mature: {}, start: {}, closeup: {} };
   for (const id of SPECIES) {
-    report.species[id] = {
-      start: await setup(page, id, { growth: 8, tag: 'start' }),
-      mature: await setup(page, id, { growth: 100, tag: 'mature' }),
+    await setup(page, id, 100);
+    const file = path.join(OUT, `qa-v69-mature-${id}.png`);
+    await page.screenshot({ path: file });
+    report.mature[id] = {
+      stats: await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.()),
+      file,
     };
-    if (report.species[id].mature.pixels) {
-      report.pixels[id] = report.species[id].mature.pixels;
-    }
+    console.log('mature', id, report.mature[id].stats);
   }
-  report.stressed = await setup(page, 'hypnum', {
-    growth: 100,
-    water: 8,
-    light: 70,
-    tag: 'stressed-hypnum',
-  });
-  await closeup(page, 'hypnum', 100, 'hypnum');
-  await closeup(page, 'marchantia', 100, 'marchantia');
+  for (const id of LIVERWORT_START) {
+    await setup(page, id, 8);
+    const file = path.join(OUT, `qa-v69-start-${id}.png`);
+    await page.screenshot({ path: file });
+    report.start[id] = {
+      stats: await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getMeshStats?.()),
+      file,
+    };
+  }
+  for (const [id, growth, polar] of CLOSEUPS) {
+    await setup(page, id, growth);
+    await page.evaluate((deg) => globalThis.__PLANT3D_TEST__?.setPolarDeg?.(deg), polar);
+    await sleep(300);
+    const el = await page.$('.plant-3d-canvas');
+    const file = path.join(OUT, `qa-v69-closeup-${id}.png`);
+    if (el) await el.screenshot({ path: file });
+    report.closeup[id] = { file };
+    console.log('closeup', file);
+  }
 
+  fs.writeFileSync(path.join(OUT, 'qa-v69-report.json'), JSON.stringify(report, null, 2));
   await browser.close();
   if (previewProc) previewProc.kill();
-  fs.writeFileSync(path.join(OUT, 'qa-v68-report.json'), JSON.stringify(report, null, 2));
-  console.log('done', path.join(OUT, 'qa-v68-report.json'));
+  console.log('done', path.join(OUT, 'qa-v69-report.json'));
 }
 
 main().catch((e) => {

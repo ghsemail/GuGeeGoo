@@ -127,7 +127,8 @@ function buildHint(sp, problems, mature) {
     return '虽然养熟了，水还是不能空太久。真实的苔藓若整整一周不浇水，往往会枯；这里也偏干，浇一点吧。';
   }
   if (mature && problems.includes('养分偏低')) {
-    return '它不用很多肥，偶尔一点就够。真环境里一两个月完全没肥，苔类也会变差；可以补一点。';
+    const kind = sp.group === 'liverwort' ? '苔类' : '藓类';
+    return `它不用很多肥，偶尔一点就够。真环境里一两个月完全没肥，${kind}也会变差；可以补一点。`;
   }
   if (problems.includes('晒过头')) {
     if (sp.id === 'marchantia') return '地钱怕暴晒，挪到阴凉、有散射光的地方就好。';

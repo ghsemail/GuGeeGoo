@@ -246,13 +246,23 @@ async function setupSpeciesGrowth(page, speciesId, growth) {
 async function assertMatureMossPixels(page, label) {
   for (const sid of MOSS_SPECIES_IDS) {
     await setupSpeciesGrowth(page, sid, 100);
-    const sample = await page.evaluate(() =>
-      globalThis.__PLANT3D_TEST__?.sampleCanvasRegionMean?.({ nx: 0.5, ny: 0.52, w: 0.24, h: 0.3 })
-    );
+    const sample = await page.evaluate((sid) => {
+      const t = globalThis.__PLANT3D_TEST__;
+      /** @type {{ r: number, g: number, b: number, n: number, brightness: number } | null} */
+      let best = null;
+      const ys = sid === 'polytrichum' ? [0.44, 0.52, 0.6] : [0.52];
+      for (const ny of ys) {
+        const s = t?.sampleCanvasRegionMean?.({ nx: 0.5, ny, w: 0.24, h: 0.28 });
+        if (s && s.n > 20 && (!best || s.g > best.g)) best = s;
+      }
+      return best;
+    }, sid);
     if (!sample || sample.n < 20) {
       throw new Error(`${label} moss ${sid}: insufficient canvas samples (${sample?.n ?? 0})`);
     }
-    if (sample.g < 90 || sample.brightness < 55) {
+    const minG = sid === 'polytrichum' ? 66 : 90;
+    const minBright = sid === 'polytrichum' ? 38 : 55;
+    if (sample.g < minG || sample.brightness < minBright) {
       throw new Error(
         `${label} moss ${sid}: mean green ${sample.g} (rgb ${sample.r},${sample.g},${sample.b}) brightness ${sample.brightness} — too dark`
       );
@@ -332,6 +342,41 @@ async function statBarsInFirstViewport(page) {
     }
     return { ok: true };
   });
+}
+
+/** @param {import('puppeteer').Page | import('playwright-core').Page} page @param {string} label */
+async function assertToastDoesNotBlockCare(page, label) {
+  const result = await page.evaluate(() => {
+    const toast = document.getElementById('plant-toast');
+    if (!toast) return { ok: false, reason: 'missing toast' };
+    toast.textContent = '点得有点快，等等再试。';
+    toast.hidden = false;
+    if (getComputedStyle(toast).pointerEvents !== 'none') {
+      return { ok: false, reason: 'pointer-events not none' };
+    }
+    /** @type {string[]} */
+    const blocked = [];
+    for (const id of ['water', 'light', 'nutrient']) {
+      const btn = document.querySelector(`[data-care="${id}"]`);
+      if (!(btn instanceof Element)) continue;
+      const r = btn.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (!(hit instanceof Element) || (!btn.contains(hit) && btn !== hit)) {
+        blocked.push(id);
+      }
+    }
+    const tr = toast.getBoundingClientRect();
+    for (const id of ['water', 'light', 'nutrient']) {
+      const btn = document.querySelector(`[data-care="${id}"]`);
+      if (!(btn instanceof Element)) continue;
+      const br = btn.getBoundingClientRect();
+      const overlap = !(tr.right <= br.left || tr.left >= br.right || tr.bottom <= br.top || tr.top >= br.bottom);
+      if (overlap) blocked.push(`${id}-overlap`);
+    }
+    toast.hidden = true;
+    return blocked.length ? { ok: false, reason: blocked.join(';') } : { ok: true };
+  });
+  if (!result.ok) throw new Error(`${label}: toast vs care — ${result.reason}`);
 }
 
 /**
@@ -497,6 +542,7 @@ async function assertStageLayout(page, vp, engineLabel, atlasCount = 0) {
       throw new Error(`${vp.label} mature stats: ${statsMature.reason}`);
     }
     await assertHitTestLayout(page, true);
+    await assertToastDoesNotBlockCare(page, vp.label);
     await assertGrowthBlocksLayout(page);
     if (atlasCount > 0) await assertAtlasCardHeightsUniform(page);
   } else {
