@@ -167,6 +167,50 @@ async function runViewport(browser, width, height, isMobile) {
   return { ...data, okCanvas, controlsBelow, pass };
 }
 
+/** iPad 11 竖屏：即使 media 为 fine+hover，棋盘仍应接近满宽（勿锁 520×420） */
+async function runIpadFinePointerCase(browser) {
+  const page = await browser.newPage();
+  await page.setViewport({
+    width: 820,
+    height: 1180,
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 2,
+  });
+  await page.evaluateOnNewDocument(() => {
+    const real = window.matchMedia.bind(window);
+    window.matchMedia = (query) => {
+      if (query === '(pointer: fine)') {
+        return { matches: true, media: query, addListener() {}, removeListener() {} };
+      }
+      if (query === '(hover: hover)') {
+        return { matches: true, media: query, addListener() {}, removeListener() {} };
+      }
+      if (query === '(pointer: coarse)') {
+        return { matches: false, media: query, addListener() {}, removeListener() {} };
+      }
+      if (query === '(hover: none)') {
+        return { matches: false, media: query, addListener() {}, removeListener() {} };
+      }
+      return real(query);
+    };
+    Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 5 });
+  });
+  await page.goto(BASE, { waitUntil: 'networkidle0', timeout: 30000 });
+  await page.click('#btn-menu-play');
+  await page.waitForSelector('#screen-game:not([hidden])', { timeout: 8000 });
+  await new Promise((r) => setTimeout(r, 1200));
+  const data = await measureGame(page);
+  await page.close();
+  const pass =
+    data.canvas &&
+    data.canvas.w >= 650 &&
+    data.canvas.h >= 500 &&
+    data.dpadVisible &&
+    !data.pageErrors?.length;
+  return { ...data, pass, case: 'ipad820-fine-hover' };
+}
+
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
@@ -175,11 +219,12 @@ async function main() {
 
   const mobile = await runViewport(browser, 390, 844, true);
   const desktop = await runViewport(browser, 1280, 800, false);
+  const ipad = await runIpadFinePointerCase(browser);
   await browser.close();
 
-  console.log(JSON.stringify({ mobile, desktop }, null, 2));
+  console.log(JSON.stringify({ mobile, desktop, ipad }, null, 2));
 
-  if (!mobile.pass || !desktop.pass) {
+  if (!mobile.pass || !desktop.pass || !ipad.pass) {
     process.exit(1);
   }
 }

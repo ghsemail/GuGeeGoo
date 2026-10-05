@@ -204,12 +204,13 @@ function refreshStats() {
   refreshWeaponHint();
 }
 
+/** 触控 / 平板布局（勿把 iPad 当成桌面：iPadOS 常报告 pointer:fine + hover:hover） */
 function isTouchUi() {
-  if (window.matchMedia('(pointer: fine)').matches) return false;
-  return (
-    window.matchMedia('(pointer: coarse)').matches ||
-    window.matchMedia('(hover: none)').matches
-  );
+  if (window.matchMedia('(pointer: coarse)').matches) return true;
+  if (window.matchMedia('(hover: none)').matches) return true;
+  if (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024) return true;
+  if (window.matchMedia('(pointer: fine) and (hover: hover)').matches) return false;
+  return false;
 }
 
 function syncTouchControlsVisibility() {
