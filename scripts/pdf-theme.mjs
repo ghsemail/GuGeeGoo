@@ -5,18 +5,29 @@
 
 /** KaTeX layout tweaks for A4 worksheets (fonts loaded separately). */
 export const katexOverridesCss = `
-  .katex { font-size: 1.08em; }
+  .katex { font-size: 1.1em; }
   .katex-display {
     display: block;
-    margin: 0.35em 0 0.5em;
+    margin: 0.35em 0 0.55em;
     overflow-x: auto;
     overflow-y: hidden;
     text-align: left;
+    font-size: 1.1em;
   }
   p .katex-display { margin-left: 0; }
   .question-block .katex-display { max-width: 100%; }
-  table .katex { font-size: 1em; }
-  table td, table th { line-height: 1.5; }
+  table .katex { font-size: 1.1em; }
+  table td, table th {
+    line-height: 2;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  p:has(.katex:not(.katex-display)) {
+    line-height: 2.15;
+    margin-top: 0.45em;
+    margin-bottom: 0.45em;
+  }
+  li:has(.katex) { line-height: 2.1; }
 `;
 
 export const worksheetCss = `

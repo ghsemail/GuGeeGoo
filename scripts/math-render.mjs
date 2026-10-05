@@ -28,7 +28,8 @@ export function getKatexCss() {
 const MATH_PATTERN = /\$\$([\s\S]+?)\$\$|\$([^\$\n]+?)\$/g;
 
 function renderLatex(latex, displayMode) {
-  return katex.renderToString(latex, {
+  const tex = displayMode ? latex : `\\displaystyle ${latex}`;
+  return katex.renderToString(tex, {
     displayMode,
     throwOnError: false,
     strict: "ignore",
