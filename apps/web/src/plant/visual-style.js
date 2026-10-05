@@ -2,7 +2,7 @@
  * 养苔藓 — 统一视觉风格（3D + 2D 回退）
  *
  * 「不要太真实，也不要太卡通」：保留参考里的真实结构（叶状体、胞芽杯、孢蒴等），
- * 用光滑低/中多边形、略夸张比例、自然绿与柔和 PBR 光照；无贴图、无粗描边、无表情。
+ * 用低/中多边形 + 程序化顶点色与小叶实例；花盆仍无贴图；无粗描边、无表情。
  */
 
 /** @typedef {'happy'|'uneasy'|'stressed'|'withered'} PlantMood */
@@ -11,7 +11,7 @@ export const VISUAL_STYLE = {
   id: 'stylized-natural',
   labelZh: '柔和半写实',
   summary:
-    '真实苔藓结构 + 简化形体与软阴影：MeshStandardMaterial、半球光与轻 rim，略放大可读特征。',
+    '真实苔藓结构 + 绒面多层绿与小叶实例：MeshStandardMaterial 顶点色、半球光与轻 rim，略放大可读特征。',
 };
 
 /** @typedef {{ main: number, alt: number, rim: number, soil: number, pot: number, potRim: number }} Palette3d */

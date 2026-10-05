@@ -59,7 +59,7 @@ async function gotoPlant(page) {
     try {
       await page.goto(PLANT_URL, opts);
     } catch {
-      await page.goto(PLANT_URL, { waitUntil: 'networkidle', timeout: 60000 });
+      await page.goto(PLANT_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
     }
   }
 }
