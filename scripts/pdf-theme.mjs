@@ -3,6 +3,22 @@
  * 适用于英语 / 数学练习、小测、答案、备忘
  */
 
+/** KaTeX layout tweaks for A4 worksheets (fonts loaded separately). */
+export const katexOverridesCss = `
+  .katex { font-size: 1.08em; }
+  .katex-display {
+    display: block;
+    margin: 0.35em 0 0.5em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-align: left;
+  }
+  p .katex-display { margin-left: 0; }
+  .question-block .katex-display { max-width: 100%; }
+  table .katex { font-size: 1em; }
+  table td, table th { line-height: 1.5; }
+`;
+
 export const worksheetCss = `
   @page { size: A4; margin: 16mm 18mm; }
   body {

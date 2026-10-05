@@ -35,7 +35,9 @@ import {
   quizCss,
   answersCss,
   memoCss,
+  katexOverridesCss,
 } from "./pdf-theme.mjs";
+import { getKatexCss, renderMathInPlainText } from "./math-render.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -82,6 +84,18 @@ function blanksToUnderline(text) {
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 }
 
+function formatPlainSegment(text) {
+  return blanksToUnderline(escapeHtml(text));
+}
+
+function richTextFromMarkdownLine(line) {
+  return renderMathInPlainText(line, formatPlainSegment);
+}
+
+function wrapCss(baseCss) {
+  return `${getKatexCss()}\n${katexOverridesCss}\n${baseCss}`;
+}
+
 function parseTableRow(line) {
   return line
     .trim()
@@ -98,11 +112,11 @@ function isTableSeparator(line) {
 function mdTableToHtml(rows) {
   if (rows.length === 0) return "";
   const [header, ...dataRows] = rows;
-  const head = header.map((c) => `<th>${blanksToUnderline(escapeHtml(c))}</th>`).join("");
+  const head = header.map((c) => `<th>${richTextFromMarkdownLine(c)}</th>`).join("");
   const tbody = dataRows
     .map(
       (row) =>
-        `<tr>${row.map((c) => `<td>${blanksToUnderline(escapeHtml(c))}</td>`).join("")}</tr>`
+        `<tr>${row.map((c) => `<td>${richTextFromMarkdownLine(c)}</td>`).join("")}</tr>`
     )
     .join("\n");
   return `<table><thead><tr>${head}</tr></thead><tbody>${tbody}</tbody></table>`;
@@ -237,7 +251,7 @@ function mdToHtmlBody(md, baseDir, { wrapQuestions = false, englishCompact = fal
       continue;
     }
 
-    let processedLine = blanksToUnderline(escapeHtml(line));
+    let processedLine = richTextFromMarkdownLine(line);
     processedLine = processedLine.replace(/<!--.*?-->/g, "");
     body.push(`<p>${processedLine}</p>`);
     i++;
@@ -260,7 +274,7 @@ function mdToHtml(md, { title, meta, css, type, baseDir, englishCompact = false 
   
   return `<!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="UTF-8"><style>${css}</style></head>
+<head><meta charset="UTF-8"><style>${wrapCss(css)}</style></head>
 <body>
   <h1>${escapeHtml(title)}</h1>
   <div class="meta"><span class="meta-left">${escapeHtml(meta)}</span>${dateBlank}</div>
@@ -291,7 +305,7 @@ function mdMultiToHtml(files, css, baseMeta, type = "worksheet", englishCompact 
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="UTF-8"><style>${css}</style></head>
+<head><meta charset="UTF-8"><style>${wrapCss(css)}</style></head>
 <body>${sections.join("\n")}</body></html>`;
 }
 
