@@ -561,6 +561,15 @@
   background: #c8e6c9;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  max-width: min(92vw, 360px);
+  text-align: center;
+  line-height: 1.35;
+}
+
+@media (min-width: 720px) and (max-width: 900px) {
+  .plant-toast {
+    bottom: 78px;
+  }
 }
 
 .atlas-panel {
@@ -652,6 +661,7 @@
   margin: 0 0 14px;
   line-height: 1.5;
   color: var(--muted);
+  white-space: pre-line;
 }
 
 .overlay-btn {

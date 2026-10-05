@@ -326,7 +326,7 @@ function onCare(action) {
   }
   plantState = result.state;
   if (result.reason === 'mature-light') {
-    showToast('已经长熟了，阳光够用了；把精力放在浇水和偶尔施肥上吧。');
+    showToast('长熟了，阳光够了；多浇水、偶尔施肥就好。');
   }
   syncUi();
   playCareFx(action);
@@ -365,7 +365,7 @@ function showMatureOverlay() {
   if (!overlayEl || !plantState.speciesId) return;
   const sp = getSpeciesById(plantState.speciesId);
   overlayTitleEl.textContent = '养熟了';
-  overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经长熟，图鉴里也有了。\n${MATURE_CARE_MESSAGE}。`;
+  overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经养熟，图鉴里也有了。\n${MATURE_CARE_MESSAGE}`;
   overlayEl.hidden = false;
 }
 

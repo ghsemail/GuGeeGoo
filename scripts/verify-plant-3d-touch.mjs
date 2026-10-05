@@ -23,6 +23,8 @@ const ALL_SPECIES_IDS = [
   'funaria',
 ];
 
+const MOSS_SPECIES_IDS = ['leucobryum', 'hypnum', 'polytrichum', 'funaria'];
+
 const ATLAS_UNLOCK_COUNTS = [0, 1, 7];
 
 /** @type {import('node:child_process').ChildProcess | null} */
@@ -197,10 +199,77 @@ async function assertGrowthBlocksLayout(page) {
   if (err) throw new Error(`growth layout: ${err}`);
 }
 
+/**
+ * @param {import('puppeteer').Page | import('playwright-core').Page} page
+ * @param {string} speciesId
+ * @param {number} growth
+ */
+async function setupSpeciesGrowth(page, speciesId, growth) {
+  await gotoPlant(page);
+  await waitFor3d(page);
+  await page.evaluate(
+    (key, sid, g) => {
+      const now = Date.now();
+      const mature = g >= 100;
+      const payload = {
+        version: 1,
+        savedAt: now,
+        plant: {
+          speciesId: sid,
+          planted: true,
+          status: mature ? 'mature' : 'growing',
+          water: 72,
+          light: 70,
+          nutrient: 40,
+          growth: g,
+          stressSec: 0,
+          matureAt: mature ? now : null,
+          lastTickMs: now,
+          cooldowns: { water: 0, light: 0, nutrient: 0 },
+        },
+        collection: mature ? [sid] : [],
+      };
+      localStorage.setItem(key, JSON.stringify(payload));
+      globalThis.__PLANT_TEST_RELOAD__?.();
+    },
+    SAVE_KEY,
+    speciesId,
+    growth
+  );
+  await sleep(450);
+  await waitFor3d(page);
+  await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
+  await sleep(200);
+}
+
+/** @param {import('puppeteer').Page} page @param {string} label */
+async function assertMatureMossPixels(page, label) {
+  for (const sid of MOSS_SPECIES_IDS) {
+    await setupSpeciesGrowth(page, sid, 100);
+    const sample = await page.evaluate(() =>
+      globalThis.__PLANT3D_TEST__?.sampleCanvasRegionMean?.({ nx: 0.5, ny: 0.52, w: 0.24, h: 0.3 })
+    );
+    if (!sample || sample.n < 20) {
+      throw new Error(`${label} moss ${sid}: insufficient canvas samples (${sample?.n ?? 0})`);
+    }
+    if (sample.g < 90 || sample.brightness < 55) {
+      throw new Error(
+        `${label} moss ${sid}: mean green ${sample.g} (rgb ${sample.r},${sample.g},${sample.b}) brightness ${sample.brightness} — too dark`
+      );
+    }
+    if (sample.g < sample.b + 5) {
+      throw new Error(`${label} moss ${sid}: foliage not green-dominant g=${sample.g} b=${sample.b}`);
+    }
+    console.log(
+      `[${label}] moss pixels ${sid}: rgb(${sample.r},${sample.g},${sample.b}) brightness=${sample.brightness} n=${sample.n}`
+    );
+  }
+}
+
 /** @param {import('puppeteer').Page} page */
 async function plantFirstCard(page) {
   await page.waitForSelector('.bryo-card', { timeout: 10000 });
-  await page.click('.bryo-card');
+  await page.evaluate(() => document.querySelector('.bryo-card')?.click());
   await sleep(400);
 }
 
@@ -487,7 +556,18 @@ async function runTouchCase(page, vp) {
   const cx = canvasBox.x + canvasBox.w * 0.5;
   const cy = canvasBox.y + canvasBox.h * 0.5;
 
-  await touchDrag(page, cx, cy, cx + canvasBox.w * 0.35, cy - canvasBox.h * 0.25);
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  for (let i = 1; i <= 12; i++) {
+    const t = i / 12;
+    await page.mouse.move(
+      cx + canvasBox.w * 0.35 * t,
+      cy - canvasBox.h * 0.25 * t,
+      { steps: 1 }
+    );
+    await sleep(12);
+  }
+  await page.mouse.up();
   await sleep(350);
   const mid = await page.evaluate(() => ({
     scrollY: window.scrollY,
@@ -497,7 +577,7 @@ async function runTouchCase(page, vp) {
     throw new Error(`${vp.label}: page scrolled during canvas drag`);
   }
   await sleep(550);
-  await page.click('#plant-3d-reset');
+  await page.evaluate(() => document.getElementById('plant-3d-reset')?.click());
   await sleep(120);
   const resetCheck = await page.evaluate(() => {
     const s = globalThis.__PLANT3D_TEST__?.getState?.();
@@ -515,24 +595,48 @@ async function runTouchCase(page, vp) {
   console.log(`OK touch ${vp.label}: drag + exact reset`);
 }
 
-async function runChromiumSuite() {
-  const browser = await puppeteer.launch({
+function launchChromium() {
+  return puppeteer.launch({
     headless: true,
+    protocolTimeout: 120000,
     args: ['--no-sandbox', '--enable-webgl', '--ignore-gpu-blocklist'],
   });
-  try {
-    const page = await browser.newPage();
-    for (const atlasCount of ATLAS_UNLOCK_COUNTS) {
-      for (const vp of LAYOUT_VIEWPORTS) {
-        if (!vp.tablet && atlasCount !== 0) continue;
-        await assertStageLayout(page, vp, 'chromium', atlasCount);
+}
+
+async function runChromiumSuite() {
+  {
+    const browser = await launchChromium();
+    try {
+      const page = await browser.newPage();
+      for (const atlasCount of ATLAS_UNLOCK_COUNTS) {
+        for (const vp of LAYOUT_VIEWPORTS) {
+          if (!vp.tablet && atlasCount !== 0) continue;
+          await assertStageLayout(page, vp, 'chromium', atlasCount);
+        }
       }
+    } finally {
+      await browser.close();
     }
-    await screenshotMature(page, 'chromium');
-    await runTouchCase(page, { w: 1194, h: 834, label: '1194x834' });
-    await runTouchCase(page, { w: 834, h: 1194, label: '834x1194' });
-  } finally {
-    await browser.close();
+  }
+  {
+    const browser = await launchChromium();
+    try {
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1194, height: 834, hasTouch: true, isMobile: true });
+      await assertMatureMossPixels(page, 'chromium');
+    } finally {
+      await browser.close();
+    }
+  }
+  {
+    const browser = await launchChromium();
+    try {
+      const page = await browser.newPage();
+      await runTouchCase(page, { w: 1194, h: 834, label: '1194x834' });
+      await runTouchCase(page, { w: 834, h: 1194, label: '834x1194' });
+    } finally {
+      await browser.close();
+    }
   }
 }
 

@@ -27,10 +27,26 @@ export function mossFoliageColor(t, layer, palette, opts = {}) {
   h.s = sat;
   const lightMin = opts.lightMin ?? (opts.liverwort ? 0.42 : 0.38);
   h.l = Math.max(lightMin, 0.36 + t * 0.32 + (1 - layer) * 0.06);
-  if (t > 0.7) h.l += 0.12;
-  if (opts.liverwort) h.l += 0.06;
-  c.setHSL(h.h, h.s, Math.min(0.78, h.l));
+  if (t > 0.7) h.l += 0.14;
+  if (opts.liverwort) {
+    h.s = Math.min(0.82, h.s + 0.08);
+    h.l = Math.max(0.34, h.l - 0.04);
+  }
+  c.setHSL(h.h, h.s, Math.min(0.82, h.l));
   return c.getHex();
+}
+
+/**
+ * InstancedMesh 顶点色缺失时 WebGL 读成黑，会乘灭 instanceColor。
+ * @param {import('three').BufferGeometry} geo
+ * @param {typeof import('three')} THREE
+ */
+export function ensureWhiteVertexColors(geo, THREE) {
+  if (geo.getAttribute('color')) return;
+  const n = geo.attributes.position.count;
+  const colors = new Float32Array(n * 3);
+  colors.fill(1);
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 }
 
 /**
@@ -45,8 +61,8 @@ export function createMossFoliageMaterial(THREE, baseColor) {
     metalness: 0.04,
     vertexColors: true,
     side: THREE.DoubleSide,
-    emissive: new THREE.Color(0x1a3d1c),
-    emissiveIntensity: 0.55,
+    emissive: new THREE.Color(0x2a5a2e),
+    emissiveIntensity: 0.22,
   });
 }
 
@@ -61,8 +77,8 @@ export function createMossShellMaterial(THREE) {
     transparent: true,
     opacity: 0.72,
     depthWrite: false,
-    emissive: new THREE.Color(0x2d5a30),
-    emissiveIntensity: 0.45,
+    emissive: new THREE.Color(0x3d6a40),
+    emissiveIntensity: 0.18,
   });
 }
 
@@ -72,12 +88,12 @@ export function createMossShellMaterial(THREE) {
 export function createThallusMaterial(THREE) {
   return new THREE.MeshStandardMaterial({
     color: 0xffffff,
-    roughness: 0.62,
-    metalness: 0.06,
+    roughness: 0.48,
+    metalness: 0.1,
     vertexColors: true,
     side: THREE.DoubleSide,
-    emissive: new THREE.Color(0x234a28),
-    emissiveIntensity: 0.5,
+    emissive: new THREE.Color(0x1a4020),
+    emissiveIntensity: 0.28,
   });
 }
 

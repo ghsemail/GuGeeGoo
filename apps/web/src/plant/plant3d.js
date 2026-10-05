@@ -209,7 +209,7 @@ class Plant3dView {
     const mature = growth >= 100;
     const sig = `${sp?.id ?? ''}|${Math.floor(growth)}|${mood}`;
     if (sig === this._sig) {
-      this.applyMoodTransform(mood);
+      this.applyMoodTransform(mood, sp?.group);
       return;
     }
     this._sig = sig;
@@ -219,11 +219,11 @@ class Plant3dView {
     const stage = stageIndexFromGrowth(growth);
     const t = growth / 100;
     if (sp.group === 'liverwort') {
-      this._meshStats = buildLiverwort(this.THREE, this.plantGroup, sp.id, stage, t, palette);
+      this._meshStats = buildLiverwort(this.THREE, this.plantGroup, sp.id, stage, t, palette, mood);
     } else {
-      this._meshStats = buildMossCushion(this.THREE, this.plantGroup, sp.id, stage, t, palette);
+      this._meshStats = buildMossCushion(this.THREE, this.plantGroup, sp.id, stage, t, palette, mood);
     }
-    this.applyMoodTransform(mood);
+    this.applyMoodTransform(mood, sp.group);
   }
 
   resetView() {
@@ -245,13 +245,11 @@ class Plant3dView {
     }
   }
 
-  /** @param {PlantMood} mood */
-  applyMoodTransform(mood) {
+  /** @param {PlantMood} mood @param {'liverwort'|'moss'|undefined} group */
+  applyMoodTransform(mood, group) {
     if (!this.plantGroup) return;
-    const droop =
-      mood === 'withered' ? 0.55 : mood === 'stressed' ? 0.25 : mood === 'uneasy' ? 0.12 : 0;
-    this.plantGroup.rotation.x = -droop;
-    this.plantGroup.scale.setScalar(mood === 'withered' ? 0.85 : 1);
+    this.plantGroup.rotation.x = group === 'liverwort' && mood === 'withered' ? -0.08 : 0;
+    this.plantGroup.scale.setScalar(mood === 'withered' ? 0.92 : 1);
   }
 
   /** @param {ReturnType<palette3d>} pal */
@@ -379,6 +377,49 @@ function installPlant3dTestHook(view) {
       const px = new Uint8Array(4);
       gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
       return { r: px[0], g: px[1], b: px[2], a: px[3] };
+    },
+    /** @param {{ nx?: number, ny?: number, w?: number, h?: number }} [opts] */
+    sampleCanvasRegionMean(opts = {}) {
+      const canvas = view.canvas;
+      const renderer = view.renderer;
+      if (!canvas || !renderer) return null;
+      renderer.render(view.scene, view.camera);
+      const gl = renderer.getContext();
+      const nx = opts.nx ?? 0.5;
+      const ny = opts.ny ?? 0.55;
+      const rw = opts.w ?? 0.22;
+      const rh = opts.h ?? 0.28;
+      const x0 = Math.floor(canvas.width * (nx - rw / 2));
+      const y0 = Math.floor(canvas.height * (1 - ny - rh / 2));
+      const w = Math.max(4, Math.floor(canvas.width * rw));
+      const h = Math.max(4, Math.floor(canvas.height * rh));
+      const buf = new Uint8Array(w * h * 4);
+      gl.readPixels(x0, y0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      let sr = 0;
+      let sg = 0;
+      let sb = 0;
+      let n = 0;
+      for (let i = 0; i < buf.length; i += 4) {
+        const r = buf[i];
+        const g = buf[i + 1];
+        const b = buf[i + 2];
+        if (g < 25 && r < 25) continue;
+        sr += r;
+        sg += g;
+        sb += b;
+        n += 1;
+      }
+      if (!n) return { r: 0, g: 0, b: 0, n: 0, brightness: 0 };
+      const mr = sr / n;
+      const mg = sg / n;
+      const mb = sb / n;
+      return {
+        r: Math.round(mr),
+        g: Math.round(mg),
+        b: Math.round(mb),
+        n,
+        brightness: Math.round((mr + mg + mb) / 3),
+      };
     },
   };
 }

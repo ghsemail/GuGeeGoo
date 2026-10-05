@@ -18,6 +18,15 @@ export const VISUAL_STYLE = {
 
 /** @param {PlantMood} mood @param {boolean} mature @returns {Palette3d} */
 export function palette3d(mood, mature) {
+  if (mature && mood === 'withered') {
+    return { main: 0x8d6e63, alt: 0xa1887f, rim: 0x5d4037, soil: 0x4a372f, pot: 0x8a7268, potRim: 0x9e8778 };
+  }
+  if (mature && mood === 'stressed') {
+    return { main: 0xc4a028, alt: 0xdcc850, rim: 0x9a7a10, soil: 0x4e342e, pot: 0x9a7b6a, potRim: 0xb89585 };
+  }
+  if (mature && mood === 'uneasy') {
+    return { main: 0x5c9a48, alt: 0x8bc56a, rim: 0x3d7a32, soil: 0x4e342e, pot: 0x9a7b6a, potRim: 0xb89585 };
+  }
   if (mature) {
     return { main: 0x388e3c, alt: 0x66bb6a, rim: 0x2e7d32, soil: 0x4e342e, pot: 0x9a7b6a, potRim: 0xb89585 };
   }

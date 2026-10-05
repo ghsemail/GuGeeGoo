@@ -9,6 +9,8 @@ import {
   tallyPlantMesh,
 } from './plant-3d-materials.js';
 
+/** @typedef {'happy'|'uneasy'|'stressed'|'withered'} PlantMood */
+
 /**
  * @param {typeof import('three')} THREE
  * @param {number} length
@@ -17,8 +19,8 @@ import {
  * @param {ReturnType<import('./visual-style.js').palette3d>} palette
  */
 function createThallusRibbonGeometry(THREE, length, width, kind, palette) {
-  const lengthSeg = Math.max(10, Math.floor(length * 36));
-  const widthSeg = kind === 'riccia' ? 8 : 10;
+  const lengthSeg = Math.max(10, Math.floor(length * 32));
+  const widthSeg = kind === 'riccia' ? 7 : 9;
   const geo = new THREE.BufferGeometry();
   const verts = [];
   const colors = [];
@@ -30,28 +32,30 @@ function createThallusRibbonGeometry(THREE, length, width, kind, palette) {
     for (let i = 0; i <= lengthSeg; i++) {
       const u = i / lengthSeg;
       const along = (u - 0.5) * length;
-      const curl =
-        edgeWave * (0.018 + (kind === 'riccia' ? 0.012 : 0.008)) * Math.sin(u * 6.28);
-      const waveMargin = Math.sin(u * 8 + v * 4) * 0.014 * edgeWave;
+      const curl = edgeWave * (kind === 'riccia' ? 0.008 : 0.006) * Math.sin(u * 4.5);
+      const waveMargin = Math.sin(u * 5 + v * 2.5) * 0.006 * edgeWave;
       const halfW = width * 0.5 * edgeWave + waveMargin;
       const px = along;
       const pz = (v - 0.5) * 2 * halfW;
-      const pore = (Math.sin(u * 18) * Math.sin(v * 14) + 1) * 0.5;
-      const midrib = 1 - Math.abs(v - 0.5) * 1.4;
-      const py = curl + pore * 0.005 * midrib + midrib * 0.004;
+      const midrib = 1 - Math.abs(v - 0.5) * 1.35;
+      const py = curl + midrib * 0.003;
       verts.push(px, py, pz);
       const layer = Math.abs(v - 0.5) * 2;
       const hex = mossFoliageColor(
-        0.55 + (1 - layer) * 0.15,
-        layer * 0.35,
+        0.5 + (1 - layer) * 0.22,
+        layer * 0.28,
         palette,
-        { liverwort: true, satBoost: 0.15, lightMin: 0.45 }
+        { liverwort: true, satBoost: 0.2, lightMin: 0.38 }
       );
-      const r = ((hex >> 16) & 255) / 255;
-      const g = ((hex >> 8) & 255) / 255;
-      const b = (hex & 255) / 255;
-      const midDark = 1 - Math.abs(v - 0.5) * 0.35;
-      colors.push(r * midDark, g * midDark, b * midDark);
+      let r = ((hex >> 16) & 255) / 255;
+      let g = ((hex >> 8) & 255) / 255;
+      let b = (hex & 255) / 255;
+      const marginLift = 0.88 + edgeWave * 0.18;
+      const midDark = 0.72 + midrib * 0.28;
+      r *= midDark * marginLift;
+      g *= midDark * marginLift;
+      b *= midDark * marginLift;
+      colors.push(r, g, b);
     }
   }
 
@@ -97,11 +101,12 @@ function addLobeThallus(THREE, root, mat, x, z, rx, rz, palette) {
       const rad = rx * (0.4 + u * 0.6);
       const px = x + Math.cos(ang) * rad;
       const pz = z + Math.sin(ang) * rad * (rz / rx);
-      const py = 0.016 + Math.sin(u * 7) * 0.006;
+      const py = 0.014 + Math.sin(u * 5) * 0.004;
       verts.push(px, py, pz);
-      const hex = mossFoliageColor(0.6, v * 0.3, palette, {
+      const hex = mossFoliageColor(0.58, v * 0.25, palette, {
         liverwort: true,
-        lightMin: 0.46,
+        lightMin: 0.4,
+        satBoost: 0.18,
       });
       colors.push(
         ((hex >> 16) & 255) / 255,
@@ -147,19 +152,62 @@ function placeRibbon(THREE, root, mat, x, z, length, width, rotY, kind, palette)
 /**
  * @param {typeof import('three')} THREE
  * @param {import('three').Group} root
+ * @param {number} scale
+ * @param {import('three').Material} mat
+ * @param {import('three').Material} matAlt
+ */
+function addMarchantiaArchegoniophore(THREE, root, scale, mat, matAlt, palette) {
+  const stalk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.01, 0.013, 0.13 * scale, 8),
+    createPlantAccentMaterial(THREE, palette.rim, { roughness: 0.58 })
+  );
+  stalk.position.set(0, 0.07 * scale, 0);
+  root.add(stalk);
+  const disc = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.07 * scale, 0.062 * scale, 0.012, 12),
+    createPlantAccentMaterial(THREE, palette.main, { roughness: 0.52 })
+  );
+  disc.position.set(0, 0.138 * scale, 0);
+  root.add(disc);
+  for (let f = 0; f < 8; f++) {
+    const a = (f / 8) * Math.PI * 2;
+    const lobeGeo = new THREE.PlaneGeometry(0.032 * scale, 0.018 * scale, 1, 1);
+    const verts = lobeGeo.attributes.position.count;
+    const cols = new Float32Array(verts * 3);
+    const hex = mossFoliageColor(0.72, 0.2, palette, { liverwort: true, satBoost: 0.16 });
+    const cr = ((hex >> 16) & 255) / 255;
+    const cg = ((hex >> 8) & 255) / 255;
+    const cb = (hex & 255) / 255;
+    for (let i = 0; i < verts; i++) {
+      cols[i * 3] = cr;
+      cols[i * 3 + 1] = cg;
+      cols[i * 3 + 2] = cb;
+    }
+    lobeGeo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    const lobe = new THREE.Mesh(lobeGeo, matAlt);
+    lobe.position.set(Math.cos(a) * 0.072 * scale, 0.144 * scale, Math.sin(a) * 0.058 * scale);
+    lobe.rotation.set(-0.62, a, 0.06);
+    root.add(lobe);
+  }
+}
+
+/**
+ * @param {typeof import('three')} THREE
+ * @param {import('three').Group} root
  * @param {string} id
  * @param {number} stage
  * @param {number} t
  * @param {ReturnType<import('./visual-style.js').palette3d>} palette
+ * @param {PlantMood} [_mood]
  */
-export function buildLiverwort(THREE, root, id, stage, t, palette) {
+export function buildLiverwort(THREE, root, id, stage, t, palette, _mood = 'happy') {
   bindPlantThree(THREE);
   const kind =
     id === 'riccia' ? 'riccia' : id === 'conocephalum' ? 'conocephalum' : 'marchantia';
 
   const mat = createThallusMaterial(THREE);
   const matAlt = createThallusMaterial(THREE);
-  const matRim = createPlantAccentMaterial(THREE, palette.rim, { roughness: 0.68 });
+  const matRim = createPlantAccentMaterial(THREE, palette.rim, { roughness: 0.55 });
 
   const scale = (0.42 + t * 0.52) * 1.08;
 
@@ -182,12 +230,13 @@ export function buildLiverwort(THREE, root, id, stage, t, palette) {
   const widthMain =
     id === 'riccia' ? 0.11 : id === 'conocephalum' ? 0.19 : 0.17;
   const lenBase = (0.44 + stage * 0.06) * scale;
+  const hub = id === 'marchantia' && stage >= 4 ? 0.06 : 0.02;
 
   for (let i = 0; i < branches; i++) {
     const ang = (i / branches) * Math.PI * 2 + 0.25;
     const len = Math.min(lenBase, potRadius * 1.15);
-    const ox = Math.cos(ang) * 0.02;
-    const oz = Math.sin(ang) * 0.02;
+    const ox = Math.cos(ang) * hub;
+    const oz = Math.sin(ang) * hub;
     placeRibbon(
       THREE,
       root,
@@ -206,8 +255,8 @@ export function buildLiverwort(THREE, root, id, stage, t, palette) {
         THREE,
         root,
         matAlt,
-        ox + Math.cos(ang) * len * 0.35,
-        oz + Math.sin(ang) * len * 0.35,
+        ox + Math.cos(ang) * len * 0.38,
+        oz + Math.sin(ang) * len * 0.38,
         len * 0.72,
         widthMain * 0.88,
         forkAng,
@@ -255,34 +304,15 @@ export function buildLiverwort(THREE, root, id, stage, t, palette) {
   }
 
   if (stage >= 4) {
-    const stalk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.01, 0.013, 0.13 * scale, 8),
-      matRim
-    );
-    stalk.position.set(0, 0.07 * scale, 0);
-    root.add(stalk);
     if (id === 'marchantia') {
-      const palm = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.065 * scale, 0.055 * scale, 0.016, 10),
-        mat
-      );
-      palm.position.set(0, 0.135 * scale, 0);
-      root.add(palm);
-      for (let f = 0; f < 7; f++) {
-        const fingerGeo = createThallusRibbonGeometry(
-          THREE,
-          0.052 * scale,
-          0.022,
-          'marchantia',
-          palette
-        );
-        const finger = new THREE.Mesh(fingerGeo, matAlt);
-        const a = (f / 7) * Math.PI * 2;
-        finger.position.set(Math.cos(a) * 0.072 * scale, 0.142 * scale, Math.sin(a) * 0.058 * scale);
-        finger.rotation.set(0.32, a, 0.12);
-        root.add(finger);
-      }
+      addMarchantiaArchegoniophore(THREE, root, scale, mat, matAlt, palette);
     } else if (id === 'conocephalum') {
+      const stalk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.01, 0.013, 0.13 * scale, 8),
+        matRim
+      );
+      stalk.position.set(0, 0.07 * scale, 0);
+      root.add(stalk);
       const cone = new THREE.Mesh(
         new THREE.ConeGeometry(0.065 * scale, 0.1 * scale, 10),
         mat
