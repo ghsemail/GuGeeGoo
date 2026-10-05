@@ -24,6 +24,7 @@ const ALL_SPECIES_IDS = [
 ];
 
 const MOSS_SPECIES_IDS = ['leucobryum', 'hypnum', 'polytrichum', 'funaria'];
+const LIVERWORT_SPECIES_IDS = ['marchantia', 'conocephalum', 'riccia'];
 
 const ATLAS_UNLOCK_COUNTS = [0, 1, 7];
 
@@ -240,6 +241,77 @@ async function setupSpeciesGrowth(page, speciesId, growth) {
   await waitFor3d(page);
   await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
   await sleep(200);
+}
+
+/** @param {import('puppeteer').Page} page @param {string} label */
+/** @param {import('puppeteer').Page} page @param {string} label */
+async function assertLiverwortGeometryAndMood(page, label) {
+  for (const sid of LIVERWORT_SPECIES_IDS) {
+    await setupSpeciesGrowth(page, sid, 100);
+    const soil = await page.evaluate(() =>
+      globalThis.__PLANT3D_TEST__?.assertLiverwortInSoilDisc?.()
+    );
+    if (!soil?.ok) {
+      throw new Error(
+        `${label} liverwort ${sid}: thallus outside soil disc (violations=${soil?.violations}, worstR=${soil?.worstR?.toFixed?.(4)}, max=${soil?.maxR})`
+      );
+    }
+    const cov = await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getPlantFootprintPct?.());
+    if (!cov || cov.pct < 25) {
+      throw new Error(`${label} liverwort ${sid}: footprint ${cov?.pct ?? 0}% < 25%`);
+    }
+    console.log(
+      `[${label}] liverwort ${sid}: soil ok worstR=${soil.worstR.toFixed(4)} footprint=${cov.pct.toFixed(1)}%`
+    );
+  }
+
+  await page.evaluate(
+    (key, sid) => {
+      const now = Date.now();
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          version: 1,
+          savedAt: now,
+          plant: {
+            speciesId: sid,
+            planted: true,
+            status: 'withered',
+            water: 4,
+            light: 70,
+            nutrient: 3,
+            growth: 100,
+            stressSec: 999,
+            matureAt: now - 86400000,
+            lastTickMs: now,
+            cooldowns: { water: 0, light: 0, nutrient: 0 },
+          },
+          collection: [sid],
+        })
+      );
+      globalThis.__PLANT_TEST_RELOAD__?.();
+    },
+    SAVE_KEY,
+    'marchantia'
+  );
+  await sleep(450);
+  await waitFor3d(page);
+  await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
+  await sleep(200);
+  const witheredPx = await page.evaluate(() =>
+    globalThis.__PLANT3D_TEST__?.sampleCanvasRegionMean?.({ nx: 0.5, ny: 0.52, w: 0.28, h: 0.32 })
+  );
+  if (!witheredPx || witheredPx.n < 20) {
+    throw new Error(`${label} liverwort withered: insufficient canvas samples`);
+  }
+  if (witheredPx.g > witheredPx.r + 8 && witheredPx.g > 72) {
+    throw new Error(
+      `${label} liverwort withered marchantia still green-dominant rgb(${witheredPx.r},${witheredPx.g},${witheredPx.b})`
+    );
+  }
+  console.log(
+    `[${label}] liverwort withered pixels: rgb(${witheredPx.r},${witheredPx.g},${witheredPx.b}) n=${witheredPx.n}`
+  );
 }
 
 /** @param {import('puppeteer').Page} page @param {string} label */
@@ -670,6 +742,7 @@ async function runChromiumSuite() {
       const page = await browser.newPage();
       await page.setViewport({ width: 1194, height: 834, hasTouch: true, isMobile: true });
       await assertMatureMossPixels(page, 'chromium');
+      await assertLiverwortGeometryAndMood(page, 'chromium');
     } finally {
       await browser.close();
     }

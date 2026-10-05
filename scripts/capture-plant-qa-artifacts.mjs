@@ -130,7 +130,58 @@ async function main() {
       const cov = await page.evaluate(() => globalThis.__PLANT3D_TEST__?.getPlantFootprintPct?.());
       report.coverage[id] = cov;
       console.log('coverage', id, cov);
+      await page.evaluate(() => globalThis.__PLANT3D_TEST__?.setPolarDeg?.(88));
+      await sleep(300);
+      const top = path.join(OUT, `qa-liverwort-topdown-${id}.png`);
+      const el = await page.$('.plant-3d-canvas');
+      if (el) await el.screenshot({ path: top });
+      await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
+      await sleep(250);
     }
+  }
+
+  for (const id of LIVERWORTS) {
+    await page.goto(PLANT_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForSelector('.plant-3d-canvas', { timeout: 25000 });
+    await page.evaluate(
+      (key, sid) => {
+        const now = Date.now();
+        localStorage.setItem(
+          key,
+          JSON.stringify({
+            version: 1,
+            savedAt: now,
+            plant: {
+              speciesId: sid,
+              planted: true,
+              status: 'withered',
+              water: 4,
+              light: 70,
+              nutrient: 3,
+              growth: 100,
+              stressSec: 999,
+              matureAt: now - 86400000,
+              lastTickMs: now,
+              cooldowns: { water: 0, light: 0, nutrient: 0 },
+            },
+            collection: [sid],
+          })
+        );
+        globalThis.__PLANT_TEST_RELOAD__?.();
+      },
+      SAVE_KEY,
+      id
+    );
+    await sleep(700);
+    await page.evaluate(() => globalThis.__PLANT3D_TEST__?.resetView?.());
+    await sleep(350);
+    const wfile = path.join(OUT, `qa-liverwort-withered-${id}.png`);
+    await page.screenshot({ path: wfile });
+    const px = await page.evaluate(() =>
+      globalThis.__PLANT3D_TEST__?.sampleCanvasRegionMean?.({ nx: 0.5, ny: 0.52, w: 0.28, h: 0.32 })
+    );
+    report.pixels[`${id}-withered`] = px;
+    console.log('withered', id, px);
   }
 
   fs.writeFileSync(path.join(OUT, 'qa-v70-report.json'), JSON.stringify(report, null, 2));

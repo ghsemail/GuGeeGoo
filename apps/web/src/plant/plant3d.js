@@ -8,7 +8,11 @@ import {
   createStylizedMaterial,
   palette3d,
 } from './visual-style.js';
-import { buildLiverwort } from './plant-3d-liverwort.js';
+import {
+  assertLiverwortThalliInsideSoil,
+  buildLiverwort,
+  LIVERWORT_SOIL_MAX_R,
+} from './plant-3d-liverwort.js';
 import { buildMossCushion } from './plant-3d-moss.js';
 import { tallyPlantMesh } from './plant-3d-materials.js';
 
@@ -365,6 +369,10 @@ function installPlant3dTestHook(view) {
     getMeshStats() {
       if (!view.plantGroup || !view.THREE) return view._meshStats;
       return tallyPlantMesh(view.plantGroup, view.THREE);
+    },
+    assertLiverwortInSoilDisc() {
+      if (!view.plantGroup || !view.THREE) return { ok: false, reason: 'no plant' };
+      return assertLiverwortThalliInsideSoil(view.plantGroup, view.THREE, LIVERWORT_SOIL_MAX_R);
     },
     getPlantFootprintPct() {
       const THREE = view.THREE;

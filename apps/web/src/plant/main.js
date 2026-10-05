@@ -268,7 +268,7 @@ function updateMood(sp) {
       { mature: true }
     );
     moodHintEl.textContent = care.ok
-      ? `${MATURE_CARE_MESSAGE}（已收入图鉴）`
+      ? `${MATURE_CARE_MESSAGE.replace(/。$/, '')}（已收入图鉴）。`
       : care.hint;
     return;
   }
