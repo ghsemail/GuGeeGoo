@@ -117,30 +117,32 @@ export function assessCare(stats, sp, opts = {}) {
 /** @param {import('./species.js').BryophyteSpecies} sp @param {string[]} problems @param {boolean} mature */
 function buildHint(sp, problems, mature) {
   if (mature && (problems.includes('太干了') || problems.includes('有点干'))) {
-    return '长大啦，记得每天浇点水～';
+    return '虽然长熟了，水还是不能空太久。真苔藓若整整一周不浇水，往往会枯；这里也偏干，浇一点吧。';
   }
   if (mature && problems.includes('养分偏低')) {
-    return '长大啦，偶尔施一点肥就够用～';
+    return '它不用很多肥，偶尔一点就够。真环境里一两个月完全没肥，苔藓也会变差；可以补一点。';
   }
   if (problems.includes('晒过头')) {
-    if (sp.id === 'marchantia') return '地钱怕暴晒，给它一点阴凉吧～';
-    if (sp.id === 'polytrichum') return '金发藓虽耐光，也别烈日直晒哦。';
-    return `${sp.nameZh}不喜欢暴晒，少晒一会儿吧。`;
+    if (sp.id === 'marchantia') return '地钱怕暴晒，挪到阴凉、有散射光的地方就好。';
+    if (sp.id === 'polytrichum') return '金发藓比较耐光，但烈日直晒太久也会伤；先少晒一会儿。';
+    return `${sp.nameZh}经不起暴晒，移到柔和一点的光线下吧。`;
   }
   if (problems.includes('太干了') || problems.includes('有点干')) {
-    if (sp.id === 'riccia') return '叉钱苔很爱水，记得多喷一点～';
-    return `${sp.nameZh}有点渴了，浇点水吧。`;
+    if (sp.id === 'riccia') {
+      return '叉钱苔特别爱湿。真植物若整整一周几乎没水，很容易枯；多浇一点、喷一点雾吧。';
+    }
+    return `水有点低了。真苔藓若整整一周不浇水，往往会枯萎；给${sp.nameZh}补一点水吧。`;
   }
   if (problems.includes('肥太多')) {
-    return '苔藓几乎不用肥，施太多会伤根（假根）哦。';
+    return '苔藓吃得很少，肥太多反而伤假根；这次先别施，让土透透气。';
   }
   if (problems.includes('太湿了')) {
-    return '土太涝了，先别浇啦，让它透透气。';
+    return '土太涝了，先别浇，让表面透一透气。';
   }
   if (problems.includes('光太少')) {
-    return '稍微亮一点散射光，它会更有精神。';
+    return '光偏暗。真苔藓若长期晒不到够用的阳光，一周左右也会撑不住；挪到亮一点、别暴晒的地方。';
   }
-  return '照顾一下水分、阳光和养分吧。';
+  return '看看水、光、肥哪一条不太对，帮它调整一下。';
 }
 
 /** @param {number} growth @returns {number} 0～4 */

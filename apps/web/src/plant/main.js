@@ -152,7 +152,7 @@ function startPlant(speciesId) {
   plantState = plantSpecies(speciesId);
   syncUi();
   persistSave();
-  showToast(`🌱 种下了${getSpeciesById(speciesId)?.nameZh ?? '苔藓'}！`);
+  showToast(`种下了${getSpeciesById(speciesId)?.nameZh ?? '苔藓'}。`);
 }
 
 function syncUi() {
@@ -165,7 +165,7 @@ function syncUi() {
   if (potHabitEl) {
     potHabitEl.textContent = sp
       ? sp.habit
-      : '先挑一种苔藓，点卡片就能种下';
+      : '先挑一种苔藓，点上面的卡片就能种下。';
   }
   if (soilPlaceholder) {
     soilPlaceholder.hidden = !!plantState.planted;
@@ -223,7 +223,7 @@ function updateGrowthUi(sp) {
     plantState.status === 'mature'
       ? `阶段：${STAGE_NAMES[4]} · 100%`
       : plantState.status === 'withered'
-        ? '已枯萎 — 挑别的苔藓或重新开始'
+        ? '已枯萎，可以换一株，或点「重新开始」'
         : `阶段：${STAGE_NAMES[idx]} · 本阶段 ${bar}%`;
 
   progressFillEl.style.width = `${growthShown}%`;
@@ -268,12 +268,13 @@ function updateMood(sp) {
       { mature: true }
     );
     moodHintEl.textContent = care.ok
-      ? `🎉 ${MATURE_CARE_MESSAGE}（已收入图鉴）`
+      ? `${MATURE_CARE_MESSAGE}（已收入图鉴）`
       : care.hint;
     return;
   }
   if (plantState.status === 'withered') {
-    moodHintEl.textContent = '太久没照顾好…可以点「重新开始」再试一次。';
+    moodHintEl.textContent =
+      '它枯萎了，多半是很久没顾上水、光或肥。点「重新开始」可以再试一次。';
     return;
   }
   const care = assessCare(
@@ -285,7 +286,7 @@ function updateMood(sp) {
     sp
   );
   moodHintEl.textContent = care.ok
-    ? '状态不错，继续慢慢长～'
+    ? '现在照顾得还行，照这样下去会慢慢长大。'
     : care.hint;
 }
 
@@ -293,7 +294,7 @@ function renderAtlas() {
   if (!atlasListEl) return;
   atlasListEl.innerHTML = '';
   if (collection.length === 0) {
-    atlasListEl.innerHTML = '<li class="atlas-empty">还没有养熟的，加油！</li>';
+    atlasListEl.innerHTML = '<li class="atlas-empty">图鉴里还没有长熟的种类，继续照顾就会解锁。</li>';
     return;
   }
   for (const id of collection) {
@@ -320,12 +321,12 @@ function showToast(msg) {
 function onCare(action) {
   const result = applyCareAction(plantState, action, Date.now());
   if (!result.ok) {
-    if (result.reason === 'cooldown') showToast('稍等一下再点～');
+    if (result.reason === 'cooldown') showToast('点得有点快，等等再试。');
     return;
   }
   plantState = result.state;
   if (result.reason === 'mature-light') {
-    showToast('它长大啦，阳光够用了，记得浇水和施肥～');
+    showToast('已经长熟了，阳光够用了；把精力放在浇水和偶尔施肥上吧。');
   }
   syncUi();
   playCareFx(action);
@@ -363,8 +364,8 @@ function gameTick() {
 function showMatureOverlay() {
   if (!overlayEl || !plantState.speciesId) return;
   const sp = getSpeciesById(plantState.speciesId);
-  overlayTitleEl.textContent = '🎉 养熟啦！';
-  overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经成熟，图鉴里解锁了！\n${MATURE_CARE_MESSAGE}。`;
+  overlayTitleEl.textContent = '养熟了';
+  overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经长熟，图鉴里也有了。\n${MATURE_CARE_MESSAGE}。`;
   overlayEl.hidden = false;
 }
 
@@ -391,19 +392,19 @@ function loadFromStorage() {
 
 function onManualSave() {
   persistSave();
-  showToast('✅ 已保存');
+  showToast('进度已保存。');
 }
 
 function onManualLoad() {
   const data = readSave();
   if (!data) {
-    showToast('还没有存档哦');
+    showToast('还没有存档。');
     return;
   }
   plantState = applyOfflineDrain(data.plant, Date.now(), OFFLINE_DRAIN_CAP_MS);
   collection = data.collection;
   syncUi();
-  showToast('📂 已读取');
+  showToast('已读取存档。');
 }
 
 function restartPlant() {
@@ -413,7 +414,7 @@ function restartPlant() {
   hideOverlay();
   syncUi();
   persistSave();
-  showToast('🌱 重新开始');
+  showToast('重新种了一株。');
 }
 
 function rotateFact() {

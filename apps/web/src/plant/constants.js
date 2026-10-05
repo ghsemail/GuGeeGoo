@@ -37,7 +37,7 @@ export const MATURE_DRAIN_PER_SEC = {
 export const MATURE_LIGHT_DISPLAY = 70;
 
 /** 成熟后给玩家看的说明 */
-export const MATURE_CARE_MESSAGE = '长大啦！以后每天记得浇水、施肥就好';
+export const MATURE_CARE_MESSAGE = '长熟了，隔几天浇浇水，偶尔补一点肥就好';
 
 /** 点一次按钮加多少 */
 export const ACTION_BOOST = {
