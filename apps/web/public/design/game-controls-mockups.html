@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>网页游戏 · 界面与操控统一设计稿（预览）</title>
+    <style>
+      :root {
+        /* 提案：全站触控 token（确认后写入 arcade-shell.css） */
+        --ctrl-min: 44px;
+        --ctrl-phone: 52px;
+        --ctrl-tablet: 76px;
+        --ctrl-fire-phone: 56px;
+        --ctrl-fire-tablet: 80px;
+        --ctrl-gap-phone: 8px;
+        --ctrl-gap-tablet: 14px;
+        --board-min-vh-phone: 42;
+        --board-min-vh-tablet: 52;
+        --page-pad: 12px;
+        --radius: 14px;
+        --ink: #263238;
+        --muted: #607d8b;
+        --board: #37474f;
+        --board-inner: #455a64;
+        --ctrl: #81c784;
+        --ctrl-pressed: #2e7d32;
+        --fire: #ef5350;
+        --hud: rgba(255, 255, 255, 0.85);
+        --frame-border: #90a4ae;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px 16px 48px;
+        font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+        background: #eceff1;
+        color: var(--ink);
+        line-height: 1.45;
+      }
+
+      h1 {
+        font-size: 1.35rem;
+        margin: 0 0 8px;
+      }
+
+      .lead {
+        max-width: 920px;
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .token-table {
+        width: 100%;
+        max-width: 720px;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-bottom: 28px;
+        background: #fff;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+
+      .token-table th,
+      .token-table td {
+        border: 1px solid #cfd8dc;
+        padding: 8px 10px;
+        text-align: left;
+      }
+
+      .token-table th {
+        background: #fafafa;
+      }
+
+      section.game-block {
+        margin-bottom: 40px;
+      }
+
+      section.game-block h2 {
+        font-size: 1.1rem;
+        margin: 0 0 6px;
+      }
+
+      section.game-block p.note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0 0 14px;
+        max-width: 900px;
+      }
+
+      .frames {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-start;
+      }
+
+      .device {
+        background: #fff;
+        border-radius: 18px;
+        padding: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .device-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 8px;
+        text-align: center;
+      }
+
+      .device.phone {
+        width: 390px;
+      }
+
+      .device.tablet {
+        width: 820px;
+      }
+
+      .screen {
+        border: 2px solid var(--frame-border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(165deg, #e1f5fe, #fff9c4);
+        display: flex;
+        flex-direction: column;
+        min-height: 520px;
+      }
+
+      .device.phone .screen {
+        min-height: 680px;
+      }
+
+      .device.tablet .screen {
+        min-height: 720px;
+      }
+
+      .hdr {
+        flex-shrink: 0;
+        padding: 8px var(--page-pad);
+        text-align: center;
+        font-size: 11px;
+        border-bottom: 1px dashed #b0bec5;
+      }
+
+      .hdr strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .hud {
+        flex-shrink: 0;
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        padding: 6px var(--page-pad);
+      }
+
+      .hud span {
+        background: var(--hud);
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .play {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        padding: 0 var(--page-pad) var(--page-pad);
+      }
+
+      .board {
+        flex: 1;
+        min-height: 0;
+        background: var(--board);
+        border-radius: var(--radius);
+        margin: 6px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #eceff1;
+        font-size: 12px;
+        font-weight: 600;
+        position: relative;
+        box-shadow: inset 0 0 0 3px var(--board-inner);
+      }
+
+      .dim {
+        position: absolute;
+        font-size: 10px;
+        background: rgba(255, 235, 59, 0.95);
+        color: #33691e;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+      }
+
+      .dim-tr {
+        top: 6px;
+        right: 6px;
+      }
+
+      .dim-br {
+        bottom: 6px;
+        left: 6px;
+      }
+
+      /* D-pad */
+      .controls-row {
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--ctrl-gap-phone);
+        padding-top: 4px;
+      }
+
+      .device.tablet .controls-row {
+        gap: var(--ctrl-gap-tablet);
+      }
+
+      .dpad {
+        display: grid;
+        grid-template-columns: repeat(3, var(--ctrl-phone));
+        grid-template-rows: repeat(3, var(--ctrl-phone));
+        gap: var(--ctrl-gap-phone);
+      }
+
+      .device.tablet .dpad {
+        grid-template-columns: repeat(3, var(--ctrl-tablet));
+        grid-template-rows: repeat(3, var(--ctrl-tablet));
+        gap: var(--ctrl-gap-tablet);
+      }
+
+      .dpad i {
+        display: block;
+        border-radius: 10px;
+        background: var(--ctrl);
+        box-shadow: 0 2px 0 #558b2f;
+      }
+
+      .dpad i:nth-child(1) {
+        grid-column: 2;
+      }
+      .dpad i:nth-child(2) {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      .dpad i:nth-child(3) {
+        grid-column: 3;
+        grid-row: 2;
+      }
+      .dpad i:nth-child(4) {
+        grid-column: 2;
+        grid-row: 3;
+      }
+
+      .fire {
+        width: var(--ctrl-fire-phone);
+        height: var(--ctrl-fire-phone);
+        border-radius: 12px;
+        background: var(--fire);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 3px 0 #c62828;
+      }
+
+      .device.tablet .fire {
+        width: var(--ctrl-fire-tablet);
+        height: var(--ctrl-fire-tablet);
+        font-size: 13px;
+      }
+
+      .toolbar {
+        flex-shrink: 0;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        padding: 6px;
+        font-size: 10px;
+      }
+
+      .toolbar b {
+        background: #fff;
+        padding: 6px 14px;
+        border-radius: 999px;
+      }
+
+      /* Landscape tablet layout */
+      .play.landscape {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .play.landscape .board {
+        flex: 1;
+        margin: 6px 0;
+      }
+
+      .play.landscape .side {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .play.landscape .controls-row {
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+      }
+
+      /* Breakout drag zone */
+      .drag-zone {
+        flex-shrink: 0;
+        height: 56px;
+        background: rgba(38, 50, 56, 0.12);
+        border-radius: var(--radius);
+        border: 2px dashed #78909c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .device.tablet .drag-zone {
+        height: 72px;
+        font-size: 12px;
+      }
+
+      /* Whack - full board */
+      .board.whack {
+        aspect-ratio: 1;
+        max-height: 100%;
+        width: auto;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Tank extras */
+      .item-col {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .item-col b {
+        font-size: 9px;
+        background: #fff9c4;
+        padding: 8px 6px;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 44px;
+      }
+
+      .device.tablet .item-col b {
+        min-width: 56px;
+        font-size: 10px;
+        padding: 10px 8px;
+      }
+
+      .legend {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 8px;
+        max-width: 390px;
+      }
+
+      .badge {
+        display: inline-block;
+        background: #c8e6c9;
+        color: #1b5e20;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-left: 6px;
+      }
+
+      .badge.new {
+        background: #ffe082;
+        color: #e65100;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>网页游戏 · 界面与操控统一设计稿</h1>
+    <p class="lead">
+      仅供确认，尚未改代码。左栏为 <strong>手机竖屏 390×844</strong>，右栏为
+      <strong>iPad 11 竖屏 820×1180</strong>。黄色标签为建议尺寸。确认后统一写入
+      <code>arcade-shell.css</code> + 各游戏 JS 布局。
+    </p>
+
+    <table class="token-table">
+      <thead>
+        <tr>
+          <th>设计 token</th>
+          <th>手机</th>
+          <th>平板（含 iPad 11）</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>十字方向键单格 <code>--arcade-dpad-cell</code></td>
+          <td>52px</td>
+          <td>76px</td>
+          <td>≥44px 可点；平板加大，减少误触</td>
+        </tr>
+        <tr>
+          <td>键间距 <code>--arcade-dpad-gap</code></td>
+          <td>8px</td>
+          <td>14px</td>
+          <td>与 snake/tank 现有平板 12px 对齐并略增</td>
+        </tr>
+        <tr>
+          <td>发射 / 主动作 <code>--arcade-fire-size</code></td>
+          <td>56px</td>
+          <td>80px</td>
+          <td>贪吃蛇发射、坦克开火</td>
+        </tr>
+        <tr>
+          <td>棋盘最小高度</td>
+          <td>≥42vh</td>
+          <td>≥52vh</td>
+          <td>优先保证 playable 区域，HUD/键位挤压缩小</td>
+        </tr>
+        <tr>
+          <td>触控判定</td>
+          <td colspan="2">共用 <code>isTouchUi()</code>（含 iPad fine pointer）</td>
+          <td>避免 iPad 被锁 520×420</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- SNAKE -->
+    <section class="game-block" id="snake">
+      <h2>🐍 贪吃蛇 <span class="badge">已有十字键</span></h2>
+      <p class="note">
+        竖屏：<strong>棋盘 flex 撑满</strong> → 下方一行「十字键左 + 发射右」，与现有结构一致但统一尺寸 token。
+        横屏（平板）：<strong>左十字 · 中棋盘 · 右发射</strong>（与现 CSS landscape 一致）。
+      </p>
+      <div class="frames">
+        <div class="device phone">
+          <div class="device-label">手机 · 竖屏 · 提案</div>
+          <div class="screen">
+            <div class="hdr"><strong>贪吃蛇</strong>HUD 单行紧凑</div>
+            <div class="hud"><span>关</span><span>分</span><span>命</span></div>
+            <div class="play">
+              <div class="board">
+                棋盘 ≥42vh
+                <span class="dim dim-tr">宽 ≈ 100%−24px</span>
+              </div>
+              <div class="controls-row">
+                <div class="dpad" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i>
+                </div>
+                <div class="fire">发射</div>
+              </div>
+              <span class="dim dim-br">十字 52×52 · 间距 8</span>
+            </div>
+            <div class="toolbar"><b>暂停</b><b>退出</b></div>
+          </div>
+        </div>
+        <div class="device tablet">
+          <div class="device-label">iPad 11 · 竖屏 · 提案</div>
+          <div class="screen">
+            <div class="hdr"><strong>贪吃蛇</strong>标题缩小 / 副标题可隐藏</div>
+            <div class="hud"><span>关</span><span>分</span><span>命</span><span>弹</span></div>
+            <div class="play">
+              <div class="board">
+                棋盘 ≥52vh（约 613px 量级）
+                <span class="dim dim-tr">目标宽 ~788px</span>
+              </div>
+              <div class="controls-row">
+                <div class="dpad"><i></i><i></i><i></i><i></i></div>
+                <div class="fire">发射</div>
+              </div>
+              <span class="dim dim-br">十字 76×76 · 发射 80 · 间距 14</span>
+            </div>
+            <div class="toolbar"><b>暂停</b><b>退出</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TANK -->
+    <section class="game-block" id="tank">
+      <h2>🛡️ 坦克大战 <span class="badge">已有十字键 + 道具</span></h2>
+      <p class="note">
+        竖屏：左列「十字键 + 前进键」，右列「开火 + 道具竖排」；棋盘居中最大。
+        横屏：十字键贴左缘，棋盘居中，右侧开火与 3 个主道具（与现 layout 同构，仅统一尺寸）。
+      </p>
+      <div class="frames">
+        <div class="device phone">
+          <div class="device-label">手机 · 竖屏</div>
+          <div class="screen">
+            <div class="hdr"><strong>坦克大战</strong></div>
+            <div class="hud"><span>关</span><span>分</span><span>命</span></div>
+            <div class="play">
+              <div class="board">战场 canvas</div>
+              <div class="controls-row">
+                <div class="item-col">
+                  <div class="dpad"><i></i><i></i><i></i><i></i></div>
+                  <b>前进</b>
+                </div>
+                <div class="item-col" style="align-items: flex-end">
+                  <div class="fire">开火</div>
+                  <b>道具1</b><b>道具2</b>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="device tablet">
+          <div class="device-label">iPad · 横屏示意</div>
+          <div class="screen" style="min-height: 480px">
+            <div class="hdr"><strong>坦克 · 横屏</strong></div>
+            <div class="play landscape" style="min-height: 380px">
+              <div class="side">
+                <div class="dpad"><i></i><i></i><i></i><i></i></div>
+                <b style="display: block; margin-top: 8px; font-size: 10px">前进</b>
+              </div>
+              <div class="board">棋盘 max(宽,高)</div>
+              <div class="side">
+                <div class="fire">开火</div>
+                <div class="item-col" style="margin-top: 10px">
+                  <b>雷</b><b>盾</b><b>速</b>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2048 -->
+    <section class="game-block" id="game-2048">
+      <h2>🔢 2048 <span class="badge new">新增十字键（可选）</span></h2>
+      <p class="note">
+        保留<strong>滑动</strong>；平板增加与 snake 同款的<strong>下方十字键</strong>（方便不习惯滑动的操作）。
+        棋盘仍为正方形 flex 居中，键位不挡棋盘。
+      </p>
+      <div class="frames">
+        <div class="device phone">
+          <div class="device-label">手机</div>
+          <div class="screen">
+            <div class="hdr"><strong>2048</strong></div>
+            <div class="hud"><span>分</span><span>最高</span></div>
+            <div class="play">
+              <div class="board" style="aspect-ratio: 1; flex: 0 1 auto; max-width: 100%">
+                4×4 棋盘
+              </div>
+              <div class="controls-row" style="justify-content: center">
+                <div class="dpad"><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="toolbar"><b>撤销</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="device tablet">
+          <div class="device-label">iPad 11</div>
+          <div class="screen">
+            <div class="hdr"><strong>2048</strong></div>
+            <div class="hud"><span>分</span><span>最高</span></div>
+            <div class="play">
+              <div class="board" style="aspect-ratio: 1; flex: 1; max-width: min(100%, 560px); margin: auto">
+                棋盘尽量大（min(宽, 剩余高)）
+              </div>
+              <div class="controls-row" style="justify-content: center">
+                <div class="dpad"><i></i><i></i><i></i><i></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BREAKOUT -->
+    <section class="game-block" id="breakout">
+      <h2>🧱 打砖块 <span class="badge new">加宽拖动手势区</span></h2>
+      <p class="note">
+        保留画布内拖动；<strong>棋盘下方增加全宽手势条</strong>（仅移动挡板，不挡球）。
+        可选：手势条两侧「← →」52/76px 点按微调（与十字键同尺寸）。
+      </p>
+      <div class="frames">
+        <div class="device phone">
+          <div class="device-label">手机</div>
+          <div class="screen">
+            <div class="hdr"><strong>打砖块</strong></div>
+            <div class="play">
+              <div class="board" style="aspect-ratio: 4/3">4:3 canvas</div>
+              <div class="drag-zone">全宽拖动区 · 高 56px · 「在任意位置左右滑」</div>
+            </div>
+          </div>
+        </div>
+        <div class="device tablet">
+          <div class="device-label">iPad</div>
+          <div class="screen">
+            <div class="hdr"><strong>打砖块</strong></div>
+            <div class="play">
+              <div class="board" style="aspect-ratio: 4/3; flex: 1">棋盘 ≥50vh</div>
+              <div class="drag-zone">拖动区 72px + 可选 ← 76px · 区域 · → 76px</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHACK -->
+    <section class="game-block" id="whack">
+      <h2>🔨 打地鼠 <span class="badge">点按棋盘</span></h2>
+      <p class="note">
+        无方向键；<strong>正方形棋盘尽量占满</strong>（与 arcade-shell 一致），HUD/工具栏压缩。洞格热区随 canvas 缩放，无需额外键位。
+      </p>
+      <div class="frames">
+        <div class="device phone">
+          <div class="device-label">手机</div>
+          <div class="screen">
+            <div class="hdr"><strong>打地鼠</strong></div>
+            <div class="hud"><span>时间</span><span>分</span></div>
+            <div class="play">
+              <div class="board whack">3×3 → 4×4 洞阵</div>
+            </div>
+          </div>
+        </div>
+        <div class="device tablet">
+          <div class="device-label">iPad</div>
+          <div class="screen">
+            <div class="hdr"><strong>打地鼠</strong></div>
+            <div class="play">
+              <div class="board whack" style="min-height: 480px">正方形 max side</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLANT note -->
+    <section class="game-block" id="plant">
+      <h2>🌱 养电子植物 <span class="badge">非街机</span></h2>
+      <p class="note">
+        不算传统「方向操控」游戏：3D 旋转靠拖花盆、照顾按钮已有 44px+。
+        本次统一规范<strong>不强制改 plant</strong>，除非你希望「浇水/光照/施肥」也改成与 <code>--arcade-fire-size</code> 同大的三颗横排大钮（平板 80px 高）。
+      </p>
+    </section>
+
+    <p class="lead" style="margin-top: 32px">
+      <strong>请你确认：</strong>① token 表 52/76 是否合适；② 2048 是否要十字键；③ 打砖块是否要左右箭头；④ 横屏是否全部采用「左键 · 中盘 · 右动作」。
+      确认后我再按此一次性改代码并跑 layout 脚本。
+    </p>
+  </body>
+</html>
