@@ -392,7 +392,7 @@ function installPlant3dTestHook(view) {
       const dx = maxX - minX;
       const dz = maxZ - minZ;
       const diam = (dx + dz) * 0.5;
-      const pct = Math.min(100, (diam / 0.84) ** 2 * 68);
+      const pct = Math.min(100, (diam / 0.84) ** 2 * 100);
       return { pct, diam, dx, dz };
     },
     sampleCanvasPixel(nx = 0.5, ny = 0.82) {

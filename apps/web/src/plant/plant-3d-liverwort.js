@@ -175,8 +175,8 @@ function addLobe(
   const mat = getThallusMaterial(THREE, kind);
   const geo = buildLobeGeometry(THREE, kind, length, halfW, forkTip);
   const mesh = new THREE.Mesh(geo, mat);
-  const reach = length * 0.52;
-  mesh.position.set(ox + Math.cos(rotY) * reach * 0.38, yLift, oz + Math.sin(rotY) * reach * 0.38);
+  const reach = length * 0.48;
+  mesh.position.set(ox + Math.cos(rotY) * reach * 0.22, yLift, oz + Math.sin(rotY) * reach * 0.22);
   mesh.rotation.y = rotY;
   root.add(mesh);
 }
@@ -252,9 +252,9 @@ export function buildLiverwort(THREE, root, id, stage, t, palette, _mood = 'happ
 
   const lobes = id === 'riccia' ? 6 : id === 'conocephalum' ? 5 : 4;
   const len =
-    id === 'riccia' ? 0.42 * spread : id === 'conocephalum' ? 0.58 * spread : 0.55 * spread;
+    id === 'riccia' ? 0.3 * spread : id === 'conocephalum' ? 0.4 * spread : 0.38 * spread;
   const halfW =
-    id === 'riccia' ? 0.048 * spread : id === 'conocephalum' ? 0.095 * spread : 0.088 * spread;
+    id === 'riccia' ? 0.042 * spread : id === 'conocephalum' ? 0.078 * spread : 0.072 * spread;
   const fork = stage >= 2;
 
   for (let i = 0; i < lobes; i++) {
