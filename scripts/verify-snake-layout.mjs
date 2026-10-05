@@ -219,6 +219,34 @@ async function runIpadFinePointerCase(browser) {
   return { ...data, pass, case: 'ipad820-fine-hover' };
 }
 
+/** iPad 横屏 1180×820 · 掌机三栏 */
+async function runIpadLandscapeCase(browser) {
+  const page = await browser.newPage();
+  await page.setViewport({
+    width: 1180,
+    height: 820,
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 2,
+  });
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 5 });
+  });
+  await page.goto(BASE, { waitUntil: 'networkidle0', timeout: 30000 });
+  await page.click('#btn-menu-play');
+  await page.waitForSelector('#screen-game:not([hidden])', { timeout: 8000 });
+  await new Promise((r) => setTimeout(r, 1200));
+  const data = await measureGame(page);
+  await page.close();
+  const pass =
+    data.canvas &&
+    data.canvas.w >= 520 &&
+    data.canvas.h >= 400 &&
+    data.sideHandheldLayout &&
+    !data.pageErrors?.length;
+  return { ...data, pass, case: 'ipad1180-landscape' };
+}
+
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,
@@ -228,11 +256,12 @@ async function main() {
   const mobile = await runViewport(browser, 390, 844, true);
   const desktop = await runViewport(browser, 1280, 800, false);
   const ipad = await runIpadFinePointerCase(browser);
+  const ipadLandscape = await runIpadLandscapeCase(browser);
   await browser.close();
 
-  console.log(JSON.stringify({ mobile, desktop, ipad }, null, 2));
+  console.log(JSON.stringify({ mobile, desktop, ipad, ipadLandscape }, null, 2));
 
-  if (!mobile.pass || !desktop.pass || !ipad.pass) {
+  if (!mobile.pass || !desktop.pass || !ipad.pass || !ipadLandscape.pass) {
     process.exit(1);
   }
 }

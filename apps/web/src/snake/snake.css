@@ -1,8 +1,10 @@
 @import '../arcade/arcade-handheld.css';
 
 html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .screen-game,
-html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .canvas-wrap {
-  max-width: 100%;
+html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .canvas-wrap,
+html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .screen {
+  max-width: none;
+  width: 100%;
 }
 
 .snake-page {
@@ -828,7 +830,15 @@ html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .canvas-
 }
 
 @media (min-width: 960px) and (hover: hover) and (pointer: fine) {
-  .snake-page {
+  html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+  }
+
+  html:not(.arcade-handheld-layout) .snake-page {
     display: grid;
     grid-template-columns: 1fr 280px;
     grid-template-rows: auto auto auto 1fr;
@@ -838,34 +848,34 @@ html.arcade-handheld-layout .snake-page:has(#screen-game:not([hidden])) .canvas-
     align-items: start;
   }
 
-  .snake-header {
+  html:not(.arcade-handheld-layout) .snake-header {
     grid-column: 1 / -1;
   }
 
-  .stats-bar-global {
+  html:not(.arcade-handheld-layout) .stats-bar-global {
     grid-column: 1 / -1;
   }
 
-  .screen-menu,
-  .screen-levels,
-  .screen-shop,
-  .screen-weapons,
-  .screen-game .stats-bar-game,
-  .screen-game .hint,
-  .screen-game .canvas-wrap,
-  .screen-game .toolbar-game {
+  html:not(.arcade-handheld-layout) .screen-menu,
+  html:not(.arcade-handheld-layout) .screen-levels,
+  html:not(.arcade-handheld-layout) .screen-shop,
+  html:not(.arcade-handheld-layout) .screen-weapons,
+  html:not(.arcade-handheld-layout) .screen-game .stats-bar-game,
+  html:not(.arcade-handheld-layout) .screen-game .hint,
+  html:not(.arcade-handheld-layout) .screen-game .canvas-wrap,
+  html:not(.arcade-handheld-layout) .screen-game .toolbar-game {
     grid-column: 1;
   }
 
-  .screen-menu,
-  .screen-levels,
-  .screen-shop,
-  .screen-weapons,
-  .screen-game {
+  html:not(.arcade-handheld-layout) .screen-menu,
+  html:not(.arcade-handheld-layout) .screen-levels,
+  html:not(.arcade-handheld-layout) .screen-shop,
+  html:not(.arcade-handheld-layout) .screen-weapons,
+  html:not(.arcade-handheld-layout) .screen-game {
     grid-row: 3;
   }
 
-  .side-panel {
+  html:not(.arcade-handheld-layout) .side-panel {
     grid-column: 2;
     grid-row: 2 / span 4;
     align-self: start;

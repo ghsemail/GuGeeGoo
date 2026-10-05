@@ -217,6 +217,13 @@ function isHandheldTabletLayout() {
   return isTouchUi() && window.innerWidth >= 481;
 }
 
+function isHandheldLandscape() {
+  return (
+    isHandheldTabletLayout() &&
+    window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches
+  );
+}
+
 function syncTouchControlsVisibility() {
   document.documentElement.classList.toggle('no-touch-controls', !isTouchUi());
   document.documentElement.classList.toggle(
@@ -251,23 +258,25 @@ function measureSnakeStageBelowBoard() {
 function playfieldLayout() {
   const coarse = isTouchUi();
   const handheldSide = isHandheldTabletLayout();
-  const landscapeSide =
-    handheldSide &&
-    window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches;
+  const landscapeSide = isHandheldLandscape();
   const tablet = handheldSide;
   let padW = 32;
   let padH = 320;
   let railW = 0;
+  const screen = document.querySelector('#screen-game:not([hidden])');
   if (handheldSide) {
-    const screen = document.querySelector('#screen-game:not([hidden])');
     const stage = screen?.querySelector('.canvas-stage');
     const wrap = screen?.querySelector('.canvas-wrap');
     const toolbar = screen?.querySelector('.toolbar-game');
-    const top = wrap?.getBoundingClientRect().top ?? 0;
     const toolbarH = toolbar
       ? toolbar.getBoundingClientRect().height + 8
       : 44;
-    padH = Math.ceil(top + toolbarH + 12) + snakeLayoutPadExtra;
+    if (landscapeSide) {
+      padH = Math.ceil(toolbarH + 96) + snakeLayoutPadExtra;
+    } else {
+      const top = wrap?.getBoundingClientRect().top ?? 0;
+      padH = Math.ceil(top + toolbarH + 12) + snakeLayoutPadExtra;
+    }
     if (stage) {
       const leftW =
         stage.querySelector('.touch-rail-left')?.getBoundingClientRect().width ?? 0;
@@ -288,9 +297,15 @@ function playfieldLayout() {
       maxW = Math.max(120, stage.clientWidth - railW);
     }
   }
-  const maxH = handheldSide ? availH : Math.min(availH, 420);
+  let maxH = handheldSide ? availH : Math.min(availH, 420);
+  if (handheldSide && landscapeSide) {
+    const wrap = screen?.querySelector('.canvas-wrap');
+    if (wrap && wrap.clientHeight > 64) {
+      maxH = Math.min(maxH, wrap.clientHeight - 4);
+    }
+  }
   const minDisplayH = landscapeSide
-    ? Math.floor(window.innerHeight * 0.6)
+    ? Math.floor(maxH * 0.9)
     : handheldSide
       ? Math.floor(window.innerHeight * 0.48)
       : 0;
@@ -384,6 +399,9 @@ function resizeCanvas() {
 
   if (handheldSide) {
     applyBoardSizeFromCellSize(cellSize());
+    if (landscapeSide) {
+      applyBoardSizeFromCellSize(cellSize());
+    }
   }
 
   draw();
@@ -849,6 +867,12 @@ async function init() {
 
   bindControls();
   syncTouchControlsVisibility();
+  window.addEventListener('orientationchange', () => {
+    syncTouchControlsVisibility();
+    if (currentScreen === 'game') {
+      requestAnimationFrame(() => resizeCanvas());
+    }
+  });
   window.addEventListener('resize', () => {
     syncTouchControlsVisibility();
     if (currentScreen === 'game') resizeCanvas();

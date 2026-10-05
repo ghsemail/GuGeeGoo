@@ -263,7 +263,7 @@ function gameChromeHeight() {
 
 function isLandscapeTouchTablet() {
   return (
-    isTouchUi() &&
+    isLayoutTablet() &&
     window.matchMedia('(orientation: landscape) and (min-width: 700px)').matches
   );
 }
@@ -390,8 +390,14 @@ function resizeStage() {
         vp.clientWidth - leftW - rightW - pagePad * 2 - 24
       );
       maxH = vp.clientHeight - gameChromeHeight();
+      if (landscapeSide) {
+        const wrap = document.querySelector('.screen-game .canvas-wrap');
+        if (wrap?.clientHeight > 64) {
+          maxH = Math.min(maxH, wrap.clientHeight - 4);
+        }
+      }
       minDisplaySide = Math.floor(
-        Math.min(maxW, maxH, vp.clientHeight * (landscapeSide ? 0.76 : 0.68))
+        Math.min(maxW, maxH, (landscapeSide ? maxH : vp.clientHeight) * 0.9)
       );
     } else if (landscapeSide) {
       const { leftW, rightW } = measureStageSideWidths(stage);
@@ -621,6 +627,10 @@ function bindUi() {
 
   window.addEventListener('resize', () => {
     if (game) resizeStage();
+  });
+  window.addEventListener('orientationchange', () => {
+    syncTouchControlsVisibility();
+    if (game) requestAnimationFrame(() => resizeStage());
   });
   window.visualViewport?.addEventListener('resize', () => {
     if (game) resizeStage();
