@@ -57,7 +57,7 @@ npx wrangler pages functions build apps/web/functions --project-directory apps/w
 | GitHub Actions | push `main`（需仓库 Secret `CLOUDFLARE_API_TOKEN`） |
 | 本地 | `npm run deploy:pages`（根目录 `.env`，见 `infra/cloudflare/env.example`） |
 
-`wrangler pages deploy` 会上传 `apps/web/dist`，并自动带上同级的 `apps/web/functions/`。
+`npm run deploy:pages` / `wrangler pages deploy dist`（在 `apps/web` 下）会上传 `dist/`，并自动带上同级的 `functions/`。
 
 Wrangler、KV 绑定与免费额度见 [`../../infra/cloudflare/pages.md`](../../infra/cloudflare/pages.md)。
 

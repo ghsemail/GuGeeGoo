@@ -105,7 +105,7 @@ npm run deploy:pages
 ```
 
 等价于：加载根目录 `.env` → `npm run web:build` →  
-`wrangler pages deploy apps/web/dist --project-name=gugeegoo --config infra/cloudflare/wrangler.toml`。
+在 `apps/web` 目录执行：`wrangler pages deploy dist --project-name=gugeegoo --branch=main`（或根目录 `npm run deploy:pages`）。
 
 仅构建、不上传：
 
