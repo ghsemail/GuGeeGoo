@@ -258,7 +258,23 @@ function updateBullets(state, dt) {
     }
 
     const mapHit = bulletHitsMap(b, map);
-    if (mapHit === 'hit' || mapHit === 'steel') {
+    if (mapHit === 'brick') {
+      playSfx('brick');
+      b.alive = false;
+      continue;
+    }
+    if (mapHit === 'base') {
+      playSfx('explosion');
+      b.alive = false;
+      continue;
+    }
+    if (mapHit === 'steel-break') {
+      playSfx('brick');
+      b.alive = false;
+      continue;
+    }
+    if (mapHit === 'steel') {
+      playSfx('hit');
       b.alive = false;
       continue;
     }

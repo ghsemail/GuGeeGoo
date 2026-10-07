@@ -95,9 +95,7 @@
   min-height: 0;
   min-width: 0;
   width: 100%;
-  max-width: min(720px, 100%);
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 100%;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 8px;
@@ -635,8 +633,8 @@
 
 .plant-fact {
   flex-shrink: 0;
-  margin: 4px auto 0;
-  max-width: min(720px, 100%);
+  margin: 4px 0 0;
+  max-width: 100%;
   width: 100%;
   padding: 6px 10px;
   font-size: 12px;

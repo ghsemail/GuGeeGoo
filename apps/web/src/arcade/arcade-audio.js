@@ -187,7 +187,8 @@ export function playSfx(id) {
       tone(c, 'sawtooth', 70, t0, 0.3, v * 0.55);
       break;
     case 'brick':
-      tone(c, 'triangle', 320 + Math.random() * 80, t0, 0.07, v * 0.4);
+      tone(c, 'triangle', 280 + Math.random() * 90, t0, 0.09, v * 0.48);
+      noiseBurst(c, t0 + 0.01, v * 0.18, 0.04);
       break;
     case 'paddle':
       tone(c, 'sine', 260, t0, 0.05, v * 0.35);
