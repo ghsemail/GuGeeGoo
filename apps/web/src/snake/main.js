@@ -255,6 +255,23 @@ function measureSnakeStageBelowBoard() {
   return Math.max(0, below);
 }
 
+function finishPlayfieldFromZone(maxW, maxH, ctx) {
+  const minDisplayH = ctx.handheldSide
+    ? ctx.landscapeSide
+      ? Math.floor(maxH * 0.9)
+      : Math.floor(window.innerHeight * 0.52)
+    : Math.floor(Math.min(maxW, maxH) * 0.98);
+  return {
+    maxW,
+    maxH,
+    minDisplayH,
+    coarse: ctx.coarse,
+    landscapeSide: ctx.landscapeSide,
+    tablet: ctx.tablet,
+    handheldSide: ctx.handheldSide,
+  };
+}
+
 function playfieldLayout() {
   const coarse = isTouchUi();
   const handheldSide = isHandheldTabletLayout();
@@ -288,29 +305,28 @@ function playfieldLayout() {
     }
     padW = railW + 24;
   } else {
-    padW = 48;
-    const header = document.querySelector('.snake-header');
-    let chromeH =
-      (header?.getBoundingClientRect().height ?? 72) + 32 + snakeLayoutPadExtra;
-    if (screen) {
-      const stats = screen.querySelector('.stats-bar-game');
-      const hint = screen.querySelector('.hint');
-      const toolbar = screen.querySelector('.toolbar-game');
-      chromeH +=
-        (stats?.getBoundingClientRect().height ?? 52) +
-        8 +
-        (hint?.getBoundingClientRect().height ?? 28) +
-        8 +
-        (toolbar?.getBoundingClientRect().height ?? 52) +
-        24;
-    } else {
-      chromeH += 160;
+    padW = 8;
+    padH = 8;
+    const wrap = screen?.querySelector('.canvas-wrap');
+    if (wrap) {
+      void wrap.offsetHeight;
+      const z = wrap.getBoundingClientRect();
+      return finishPlayfieldFromZone(
+        Math.max(120, z.width - padW),
+        Math.max(120, z.height - padH),
+        { coarse, handheldSide, landscapeSide, tablet }
+      );
     }
-    padH = Math.ceil(chromeH);
+    padW = 48;
+    padH = Math.ceil(
+      (document.querySelector('.snake-header')?.getBoundingClientRect().height ?? 72) +
+        200 +
+        snakeLayoutPadExtra
+    );
   }
   const availW = window.innerWidth - padW;
   const availH = window.innerHeight - padH;
-  let maxW = handheldSide ? availW : Math.min(availW, 920);
+  let maxW = handheldSide ? availW : Math.min(availW, 720);
   if (handheldSide) {
     const stage = document.querySelector('#screen-game:not([hidden]) .canvas-stage');
     if (stage?.clientWidth > 0 && railW > 0) {
@@ -324,20 +340,12 @@ function playfieldLayout() {
       maxH = Math.min(maxH, wrap.clientHeight - 4);
     }
   }
-  const minDisplayH = landscapeSide
-    ? Math.floor(maxH * 0.9)
-    : handheldSide
-      ? Math.floor(window.innerHeight * 0.52)
-      : Math.floor(maxH * 0.88);
-  return {
-    maxW,
-    maxH,
-    minDisplayH,
+  return finishPlayfieldFromZone(maxW, maxH, {
     coarse,
+    handheldSide,
     landscapeSide,
     tablet,
-    handheldSide,
-  };
+  });
 }
 
 /** 等比缩放 canvas 显示尺寸，避免 CSS 只压宽度 */

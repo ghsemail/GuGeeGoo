@@ -396,7 +396,59 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 }
 
 .tank-page.tank-in-game {
-  padding: 8px 8px 0;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px 12px;
+}
+
+.tank-page.tank-in-game .screen-game:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  max-width: min(100%, 720px);
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tank-page.tank-in-game .hud-bar,
+.tank-page.tank-in-game .hud-armory,
+.tank-page.tank-in-game .hint {
+  flex-shrink: 0;
+}
+
+.tank-page.tank-in-game .toolbar {
+  flex-shrink: 0;
+}
+
+.tank-page.tank-in-game .canvas-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  max-width: 100%;
+  margin-bottom: 0;
+}
+
+.tank-page.tank-in-game .weapon-bar-host {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.canvas-play-zone {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tank-page.tank-in-game .canvas-stage {
+  width: 100%;
+  max-height: 100%;
 }
 
 @media (pointer: coarse) and (min-width: 481px) {
@@ -445,23 +497,6 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
   }
 }
 
-.tank-page.tank-in-game .screen-game {
-  max-width: min(960px, 100%);
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.tank-page.tank-in-game .hud-bar,
-.tank-page.tank-in-game .hud-armory,
-.tank-page.tank-in-game .hint,
-.tank-page.tank-in-game .toolbar {
-  width: 100%;
-  max-width: min(960px, 100%);
-}
 
 .canvas-stage {
   position: relative;
