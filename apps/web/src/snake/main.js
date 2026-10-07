@@ -287,17 +287,37 @@ function playfieldLayout() {
       railW = 320;
     }
     padW = railW + 24;
+  } else {
+    padW = 48;
+    const header = document.querySelector('.snake-header');
+    let chromeH =
+      (header?.getBoundingClientRect().height ?? 72) + 32 + snakeLayoutPadExtra;
+    if (screen) {
+      const stats = screen.querySelector('.stats-bar-game');
+      const hint = screen.querySelector('.hint');
+      const toolbar = screen.querySelector('.toolbar-game');
+      chromeH +=
+        (stats?.getBoundingClientRect().height ?? 52) +
+        8 +
+        (hint?.getBoundingClientRect().height ?? 28) +
+        8 +
+        (toolbar?.getBoundingClientRect().height ?? 52) +
+        24;
+    } else {
+      chromeH += 160;
+    }
+    padH = Math.ceil(chromeH);
   }
   const availW = window.innerWidth - padW;
   const availH = window.innerHeight - padH;
-  let maxW = handheldSide ? availW : Math.min(availW, 520);
+  let maxW = handheldSide ? availW : Math.min(availW, 920);
   if (handheldSide) {
     const stage = document.querySelector('#screen-game:not([hidden]) .canvas-stage');
     if (stage?.clientWidth > 0 && railW > 0) {
       maxW = Math.max(120, stage.clientWidth - railW);
     }
   }
-  let maxH = handheldSide ? availH : Math.min(availH, 420);
+  let maxH = handheldSide ? availH : Math.max(280, availH);
   if (handheldSide && landscapeSide) {
     const wrap = screen?.querySelector('.canvas-wrap');
     if (wrap && wrap.clientHeight > 64) {
@@ -307,8 +327,8 @@ function playfieldLayout() {
   const minDisplayH = landscapeSide
     ? Math.floor(maxH * 0.9)
     : handheldSide
-      ? Math.floor(window.innerHeight * 0.48)
-      : 0;
+      ? Math.floor(window.innerHeight * 0.52)
+      : Math.floor(maxH * 0.88);
   return {
     maxW,
     maxH,
@@ -333,7 +353,7 @@ function applyCanvasDisplaySize(canvasEl, intrinsicW, intrinsicH, maxW, maxH) {
 function cellSize() {
   const lv = state.level;
   const { maxW, maxH, minDisplayH, landscapeSide, tablet } = playfieldLayout();
-  const csCap = landscapeSide ? 96 : tablet ? 96 : 28;
+  const csCap = landscapeSide ? 96 : tablet ? 96 : 40;
   let cs = Math.floor(Math.min(maxW / lv.cols, maxH / lv.rows, csCap));
   if (minDisplayH > 0) {
     const csForMin = Math.floor(minDisplayH / lv.rows);
