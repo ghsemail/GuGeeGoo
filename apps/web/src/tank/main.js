@@ -158,8 +158,16 @@ function isTouchUi() {
 
 /** Same tablet layout + sizing as coarse pointer (incl. fine + touch). */
 function isLayoutTablet() {
+  const vp = layoutViewport();
+  if (
+    window.matchMedia('(pointer: fine)').matches &&
+    window.matchMedia('(hover: hover)').matches &&
+    vp.clientWidth >= 960
+  ) {
+    return false;
+  }
   if (isCoarsePointerMedia()) {
-    return isTouchUi() && layoutViewport().clientWidth >= 481;
+    return isTouchUi() && vp.clientWidth >= 481;
   }
   return isTabletViewport() && navigator.maxTouchPoints > 0;
 }
@@ -242,6 +250,11 @@ function gameChromeHeight() {
       if (r.height > 0) h += r.height;
     }
   }
+  const weaponBar = document.querySelector('.screen-game .weapon-bar-host');
+  if (weaponBar && !weaponBar.closest('[hidden]')) {
+    const wr = weaponBar.getBoundingClientRect();
+    if (wr.height > 0) h += wr.height + 8;
+  }
   const hud = document.querySelector('.screen-game .hud-bar');
   if (hud && !hud.closest('[hidden]')) {
     const r = hud.getBoundingClientRect();
@@ -297,7 +310,7 @@ function measureStageSideWidths(stage) {
 
 function shouldAllowCanvasUpscale() {
   if (isTouchTablet()) return true;
-  if (!isTouchUi()) return false;
+  if (!isTouchUi()) return true;
   return layoutViewport().clientWidth >= 520;
 }
 
@@ -344,7 +357,14 @@ function fitSquareCanvasDisplay(logicalW, logicalH, sized, capSide = 0) {
   let side = Math.min(sized.dw, sized.dh);
   if (capSide > 0) side = Math.min(side, capSide);
   const handheld = isTouchTablet() && document.documentElement.classList.contains('arcade-handheld-layout');
-  if (!handheld && (!isLandscapeTouchTablet() || !isTouchTablet())) {
+  const desktopFit =
+    !isTouchUi() &&
+    !document.documentElement.classList.contains('arcade-handheld-layout');
+  if (
+    !handheld &&
+    !desktopFit &&
+    (!isLandscapeTouchTablet() || !isTouchTablet())
+  ) {
     const boardWrap = canvas.closest('.canvas-board-wrap');
     const capW = boardWrap?.clientWidth ?? sized.dw;
     if (capW > 0) side = Math.min(side, capW);
@@ -365,7 +385,7 @@ function resizeStage() {
   const tablet = isTouchTablet();
   const pagePad = tablet ? 8 : 16;
   const vp = layoutViewport();
-  const allowUpscale = shouldAllowCanvasUpscale();
+  let allowUpscale = shouldAllowCanvasUpscale();
   let minDisplaySide = 0;
 
   if (stage) {
@@ -408,19 +428,26 @@ function resizeStage() {
       maxH = vp.clientHeight - gameChromeHeight();
       minDisplaySide = Math.floor(Math.min(maxW, maxH, vp.clientWidth * 0.9));
     } else {
-      const weapons = stage.querySelector('.weapon-bar-host');
       const leftCol = stage.querySelector('.touch-right-col, .touch-left-col');
       const dpadRail = stage.querySelector('.touch-rail-left');
       const reserve =
-        (weapons?.getBoundingClientRect().height ?? 0) +
         Math.max(
           leftCol?.getBoundingClientRect().height ?? 0,
           dpadRail?.getBoundingClientRect().height ?? 0
-        ) +
-        20;
+        ) + 20;
       maxH = Math.max(120, vp.clientHeight - gameChromeHeight() - reserve);
       maxW = vp.clientWidth - pagePad * 2;
     }
+  }
+
+  if (
+    !document.documentElement.classList.contains('arcade-handheld-layout') &&
+    vp.clientWidth >= 720
+  ) {
+    maxW = Math.min(vp.clientWidth - pagePad * 2, 920);
+    maxH = Math.max(280, vp.clientHeight - gameChromeHeight());
+    minDisplaySide = Math.floor(Math.min(maxW, maxH) * 0.88);
+    allowUpscale = true;
   }
 
   let budgetW = Math.max(64, maxW);

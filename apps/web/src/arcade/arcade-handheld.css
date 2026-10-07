@@ -56,7 +56,20 @@ html.arcade-handheld-layout.no-touch-controls .canvas-stage {
   grid-template-areas: 'board';
 }
 
-/* 坦克：道具与开火在右侧 */
+/* 坦克：道具在棋盘上方 · 右侧仅开火/前进 */
+html.arcade-handheld-layout body.tank-page .canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+html.arcade-handheld-layout body.tank-page .weapon-bar-host {
+  width: 100%;
+  max-width: min(960px, 100%);
+}
+
 html.arcade-handheld-layout .touch-side-right {
   grid-area: right;
   display: flex;
@@ -65,13 +78,8 @@ html.arcade-handheld-layout .touch-side-right {
   justify-content: center;
   gap: 10px;
   width: max-content;
-  max-width: 152px;
+  max-width: 96px;
   flex-shrink: 0;
-}
-
-html.arcade-handheld-layout .weapon-bar-host {
-  grid-area: unset;
-  width: 100%;
 }
 
 html.arcade-handheld-layout .touch-right-col {
@@ -79,14 +87,6 @@ html.arcade-handheld-layout .touch-right-col {
   flex-direction: column;
   gap: 12px;
   align-items: stretch;
-}
-
-html.arcade-handheld-layout .weapon-row-primary {
-  grid-template-columns: repeat(2, 64px);
-}
-
-html.arcade-handheld-layout .weapon-row-mini {
-  grid-template-columns: repeat(2, 56px);
 }
 
 html.arcade-handheld-layout .forward-btn {

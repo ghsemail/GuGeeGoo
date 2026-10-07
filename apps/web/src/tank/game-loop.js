@@ -12,6 +12,7 @@ import {
   BOSS_MINE_DAMAGE,
   PLAYER_FREEZE_SEC,
 } from './constants.js';
+import { pushExplosion } from './explosion-fx.js';
 import { getLevel } from './levels.js';
 import { createMapFromLevel, explodeArea, isBlockingTile, tileAt } from './map.js';
 import {
@@ -124,11 +125,7 @@ function detonateMissile(state, b, isPlayerMissile) {
       }
     }
   }
-  state.explosions.push({
-    x: b.x,
-    y: b.y,
-    ttl: 0.35,
-  });
+  pushExplosion(state, b.x, b.y, { ttl: 0.42, scale: 1.15 });
   b.alive = false;
 }
 
@@ -267,7 +264,9 @@ function updateBullets(state, dt) {
       for (const e of enemies) {
         if (e.hp <= 0) continue;
         if (bulletHitsTank(b, e)) {
+          e.hitFlashTtl = 0.12;
           if (e.hp > 0) tryDropPickupFromEnemy(state, e);
+          pushExplosion(state, e.x, e.y, { ttl: 0.5 });
           e.hp = 0;
           b.alive = false;
           state.score += SCORE_ENEMY_NORMAL;
@@ -370,6 +369,9 @@ function stepGame(state, dt, input) {
   if (state.phase !== 'playing') return;
   movePlayer(state, dt, input);
   for (const e of state.enemies) {
+    if (e.hitFlashTtl > 0) {
+      e.hitFlashTtl = Math.max(0, e.hitFlashTtl - dt);
+    }
     if (!isEnemyFrozen(e, state.time)) {
       updateEnemyAI(e, dt, state);
     }

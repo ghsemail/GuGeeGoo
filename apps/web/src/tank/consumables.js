@@ -17,6 +17,7 @@ import { getShopItem, SHOP_ITEMS } from './items.js';
 import { createPlayerMine, tankHitsMine } from './mines.js';
 import { hurtPlayer } from './player-life.js';
 import { tryDropPickupFromEnemy } from './pickups.js';
+import { pushExplosion } from './explosion-fx.js';
 
 function detonateAt(state, cx, cy, radius = 1) {
   const ts = state.map.tileSize;
@@ -31,6 +32,7 @@ function detonateAt(state, cx, cy, radius = 1) {
       if (e.hp > 0) tryDropPickupFromEnemy(state, e);
       e.hp = 0;
       state.score += SCORE_ENEMY_NORMAL + SCORE_MISSILE_KILL_BONUS;
+      pushExplosion(state, e.x, e.y, { ttl: 0.48 });
     }
   }
   if (state.boss) {
@@ -40,7 +42,7 @@ function detonateAt(state, cx, cy, radius = 1) {
       damageBoss(state.boss, BOSS_MINE_DAMAGE, state);
     }
   }
-  state.explosions.push({ x: cx, y: cy, ttl: 0.35 });
+  pushExplosion(state, cx, cy, { ttl: 0.42, scale: 1.1 });
 }
 
 function useMissile(state) {
@@ -147,7 +149,7 @@ export function updateMines(state) {
       !isPlayerShielded(player, state.time)
     ) {
       m.alive = false;
-      state.explosions.push({ x: m.x, y: m.y, ttl: 0.4 });
+      pushExplosion(state, m.x, m.y, { ttl: 0.45, scale: 1.05 });
       hurtPlayer(state);
     }
   }

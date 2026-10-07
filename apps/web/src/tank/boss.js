@@ -146,11 +146,15 @@ export function onBossDefeated(state) {
   state.score += bonus;
   state.bossRewardFlash = 1.8;
   state.bossRewardText = `+${bonus} BOSS 奖励！`;
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
+    const ttl = 0.55 + Math.random() * 0.35;
     state.explosions.push({
-      x: state.boss.x + (Math.random() - 0.5) * 40,
-      y: state.boss.y + (Math.random() - 0.5) * 40,
-      ttl: 0.5 + Math.random() * 0.3,
+      x: state.boss.x + (Math.random() - 0.5) * 56,
+      y: state.boss.y + (Math.random() - 0.5) * 56,
+      ttl,
+      maxTtl: ttl,
+      kind: 'tank',
+      scale: 1.35,
     });
   }
   state.boss = null;

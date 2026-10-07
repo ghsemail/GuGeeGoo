@@ -60,6 +60,9 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 .screen-menu {
   text-align: center;
   padding: 8px 0 24px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .menu-welcome {
@@ -74,7 +77,7 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 }
 
 .wallet-line strong {
-  color: #ffd166;
+  color: #e65100;
 }
 
 .screen-shop .shop-balance {
@@ -98,7 +101,9 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
   align-items: center;
   padding: 12px;
   border-radius: 14px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(38, 50, 56, 0.08);
+  color: #263238;
 }
 
 .shop-item-emoji {
@@ -117,7 +122,7 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 
 .shop-item-price {
   font-size: 13px;
-  color: #ffd166;
+  color: #e65100;
   margin-top: 4px;
 }
 
@@ -138,13 +143,18 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 }
 
 .btn-shop {
-  background: rgba(255, 214, 102, 0.35);
+  background: #ffca28;
+  color: #4e342e;
+  border: 1px solid rgba(245, 124, 0, 0.25);
 }
 
 .menu-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 .menu-hint {
@@ -186,8 +196,9 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 }
 
 .btn-ghost {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.75);
+  border: 2px solid rgba(38, 50, 56, 0.18);
+  color: #37474f;
 }
 
 .btn-sm {
@@ -360,7 +371,13 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 
 .canvas-wrap {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: min(960px, 100%);
+  margin: 0 auto;
+  gap: 10px;
 }
 
 .game-controls-block {
@@ -429,9 +446,21 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 }
 
 .tank-page.tank-in-game .screen-game {
-  max-width: none;
+  max-width: min(960px, 100%);
   width: 100%;
-  margin: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tank-page.tank-in-game .hud-bar,
+.tank-page.tank-in-game .hud-armory,
+.tank-page.tank-in-game .hint,
+.tank-page.tank-in-game .toolbar {
+  width: 100%;
+  max-width: min(960px, 100%);
 }
 
 .canvas-stage {
@@ -448,16 +477,15 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
   grid-template-rows: auto auto;
   grid-template-areas:
     'board board'
-    'weapons weapons'
     'left right';
   gap: 12px;
   align-items: end;
 }
 
 .weapon-bar-host {
-  grid-area: weapons;
   width: 100%;
-  justify-self: stretch;
+  max-width: min(960px, 100%);
+  flex-shrink: 0;
 }
 
 .weapon-bar-host-inner,
@@ -565,10 +593,6 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
     display: contents;
   }
 
-  .weapon-bar-host {
-    grid-area: weapons;
-  }
-
   html:not(.arcade-handheld-layout) .touch-rail-left {
     grid-area: left;
   }
@@ -581,7 +605,6 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
       'board board'
-      'weapons weapons'
       'left right';
     gap: 10px;
   }
@@ -772,11 +795,6 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
     align-self: center;
   }
 
-  .weapon-bar-host {
-    grid-area: unset;
-    width: 100%;
-  }
-
   .touch-right-col {
     grid-area: unset;
   }
@@ -786,26 +804,8 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
     max-width: none;
   }
 
-  .weapon-row-primary {
-    grid-template-columns: repeat(2, 64px);
-  }
-
-  .weapon-row-mini {
-    grid-template-columns: repeat(2, 56px);
-  }
-
-  .weapon-btn-primary {
-    min-width: 64px;
-    width: 64px;
-    max-width: 64px;
-    min-height: 64px;
-  }
-
-  .weapon-btn-mini {
-    min-width: 56px;
-    width: 56px;
-    max-width: 56px;
-    min-height: 56px;
+  .touch-side-right {
+    max-width: 96px;
   }
 }
 
@@ -853,30 +853,8 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
 }
 
 @media (orientation: landscape) and (min-width: 700px) and (pointer: coarse) {
-  .weapon-row-primary {
-    grid-template-columns: repeat(2, 64px);
-  }
-
-  .weapon-row-mini {
-    grid-template-columns: repeat(2, 56px);
-  }
-
-  .weapon-btn-primary {
-    min-width: 64px;
-    width: 64px;
-    max-width: 64px;
-    min-height: 64px;
-  }
-
-  .weapon-btn-mini {
-    min-width: 56px;
-    width: 56px;
-    max-width: 56px;
-    min-height: 56px;
-  }
-
   .touch-side-right {
-    max-width: 140px;
+    max-width: 96px;
   }
 }
 
@@ -1013,10 +991,6 @@ html.tank-coarse-tablet-layout .forward-btn {
     display: contents;
   }
 
-  html.tank-coarse-tablet-layout:not(.arcade-handheld-layout) .weapon-bar-host {
-    grid-area: weapons;
-  }
-
   html.tank-coarse-tablet-layout:not(.arcade-handheld-layout) .touch-rail-left {
     grid-area: left;
   }
@@ -1027,18 +1001,13 @@ html.tank-coarse-tablet-layout .forward-btn {
 
   html.tank-coarse-tablet-layout .canvas-stage {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: minmax(0, auto) 0px minmax(0, auto);
+    grid-template-rows: auto auto;
     grid-template-areas:
       'board board'
-      'weapons weapons'
       'left right';
     gap: 10px;
     align-items: end;
     justify-items: stretch;
-  }
-
-  html.tank-coarse-tablet-layout .weapon-bar-host {
-    align-self: start;
   }
 }
 
@@ -1074,13 +1043,12 @@ html.tank-coarse-tablet-layout .forward-btn {
     align-self: center;
   }
 
-  html.tank-coarse-tablet-layout .weapon-bar-host {
-    grid-area: unset;
-    width: 100%;
-  }
-
   html.tank-coarse-tablet-layout .touch-right-col {
     grid-area: unset;
+  }
+
+  html.tank-coarse-tablet-layout .touch-side-right {
+    max-width: 96px;
   }
 
   html.tank-coarse-tablet-layout .canvas-board-wrap {

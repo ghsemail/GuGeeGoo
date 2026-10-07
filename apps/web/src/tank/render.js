@@ -17,6 +17,7 @@ import {
   drawMissile,
   drawFreezeBullet,
 } from './render-fx.js';
+import { drawExplosions } from './explosion-fx.js';
 
 export function computeCanvasSize(map) {
   return {
@@ -103,8 +104,18 @@ export function drawFrame(ctx, state) {
 
   for (const e of enemies) {
     const frozen = isEnemyFrozen(e, state.time);
+    const hitFlash = (e.hitFlashTtl || 0) > 0;
     if (frozen) ctx.globalAlpha = 0.55;
-    drawDetailedTank(ctx, e, ENEMY_PALETTE, scroll, frozen);
+    drawDetailedTank(ctx, e, ENEMY_PALETTE, scroll, frozen || hitFlash);
+    if (hitFlash && !frozen) {
+      ctx.save();
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle = '#FFEB3B';
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.size * 0.85, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
     if (frozen) ctx.globalAlpha = 1;
   }
 
@@ -166,12 +177,7 @@ export function drawFrame(ctx, state) {
     ctx.fill();
   }
 
-  for (const ex of state.explosions || []) {
-    ctx.fillStyle = 'rgba(255, 118, 117, 0.45)';
-    ctx.beginPath();
-    ctx.arc(ex.x, ex.y, map.tileSize * 0.9, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  drawExplosions(ctx, state.explosions, ts, state.time);
 
   if (state.boss && state.boss.hp > 0) {
     drawTopBossBar(ctx, state, w);
