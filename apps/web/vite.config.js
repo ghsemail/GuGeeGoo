@@ -4,7 +4,25 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/** 便于核对线上是否已发布最新构建（查看网页源代码中的 build 注释） */
+function injectBuildMeta() {
+  const sha =
+    process.env.GITHUB_SHA?.slice(0, 7) ||
+    process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
+    'local';
+  return {
+    name: 'inject-build-meta',
+    transformIndexHtml(html) {
+      return html.replace(
+        '</head>',
+        `  <!-- build ${sha} -->\n</head>`,
+      );
+    },
+  };
+}
+
 export default defineConfig({
+  plugins: [injectBuildMeta()],
   root: __dirname,
   publicDir: 'public',
   build: {
