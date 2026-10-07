@@ -3,6 +3,11 @@
  */
 import './snake.css';
 import {
+  initArcadeAudio,
+  mountSfxToggle,
+  playSfx,
+} from '../arcade/arcade-audio.js';
+import {
   createLevelState,
   tick,
   setDirectionFromKey,
@@ -611,6 +616,7 @@ function fireWeapon() {
   if (!gameSessionActive || state.gameOver || state.levelComplete) return;
   const r = tryFireWeapon(state);
   if (r.ok) {
+    playSfx('shoot');
     const kind = state.weaponRuntime?.kind;
     if (kind === 'air_strike') showGameToast('✈️ 飞机出动！');
     else if (kind === 'tank_buddy') showGameToast('🚜 小坦克来帮忙！');
@@ -637,6 +643,7 @@ function loop(now) {
       lastTick = now;
       const result = tick(state, now);
       refreshStats();
+      if (result.ateFood) playSfx('eat');
       if (result.shieldUsed) {
         showGameToast('🫧 护盾生效！');
         refreshEffectBar();
@@ -652,6 +659,7 @@ function loop(now) {
 }
 
 function onGameOver() {
+  playSfx('lose');
   recordLevelResult(getLevel(state.levelIndex).id, {
     cleared: false,
     score: state.score,
@@ -681,6 +689,7 @@ function onGameOver() {
 }
 
 function onLevelComplete() {
+  playSfx('win');
   const lvId = getLevel(state.levelIndex).id;
   recordLevelResult(lvId, { cleared: true, score: state.score });
   saveProgressIfNeeded();
@@ -909,4 +918,6 @@ async function init() {
   showScreen('menu');
 }
 
+initArcadeAudio();
+mountSfxToggle();
 init();

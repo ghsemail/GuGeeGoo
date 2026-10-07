@@ -1,3 +1,4 @@
+import { playSfx } from '../arcade/arcade-audio.js';
 import { BRICK_ROWS, COLS, LEVELS } from './levels.js';
 
 export const CANVAS_W = 560;
@@ -114,6 +115,7 @@ export function tickBreakout(state, dt) {
         b.hp -= 1;
         state.score += 10 * b.max;
         ball.vy *= -1;
+        playSfx(b.hp <= 0 ? 'brick' : 'hit');
         if (b.hp <= 0 && Math.random() < 0.22) {
           /** @type {PowerKind} */
           const kind =
@@ -152,6 +154,7 @@ export function tickBreakout(state, dt) {
   if (state.bricks.length === 0) {
     state.won = true;
     state.running = false;
+    playSfx('win');
   }
 
   const alive = [];
@@ -164,6 +167,7 @@ export function tickBreakout(state, dt) {
     if (state.lives <= 0) {
       state.lost = true;
       state.running = false;
+      playSfx('lose');
     } else {
       const nb = makeBall(state.paddleX, CANVAS_H - 60, 3.5, -4);
       nb.stuck = true;

@@ -37,6 +37,22 @@ html.arcade-handheld-layout .tank-page.tank-in-game .canvas-wrap {
   font-size: 15px;
 }
 
+.sfx-toggle {
+  position: absolute;
+  right: 0;
+  top: 4px;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
 .tank-header h1 {
   margin: 0;
   font-size: clamp(26px, 5vw, 36px);

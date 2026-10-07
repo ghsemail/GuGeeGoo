@@ -3,6 +3,7 @@ import { CANVAS_H, CANVAS_W, createBreakoutState, launchBall, tickBreakout } fro
 import { LEVELS } from './levels.js';
 import { drawBreakout } from './render.js';
 import { getBestScore, getLifetimeEarned, recordRunScore } from './storage.js';
+import { initArcadeAudio, mountSfxToggle } from '../arcade/arcade-audio.js';
 
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('game-canvas'));
 const ctx = canvas.getContext('2d');
@@ -241,3 +242,6 @@ renderLevelGrid();
 window.addEventListener('resize', fitCanvas);
 refreshMenuStats();
 showScreen('menu');
+
+initArcadeAudio();
+mountSfxToggle();

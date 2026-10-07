@@ -3,6 +3,11 @@
  */
 import './plant.css';
 import {
+  initArcadeAudio,
+  mountSfxToggle,
+  playSfx,
+} from '../arcade/arcade-audio.js';
+import {
   AUTO_SAVE_MS,
   MATURE_CARE_MESSAGE,
   OFFLINE_DRAIN_CAP_MS,
@@ -379,6 +384,9 @@ function playCareFx(action) {
   potSceneEl.classList.remove('fx-water', 'fx-sun', 'fx-nutrient');
   void potSceneEl.offsetWidth;
   potSceneEl.classList.add(CARE_FX_CLASS[action]);
+  if (action === 'water') playSfx('plant-water');
+  else if (action === 'nutrient') playSfx('plant-feed');
+  else playSfx('plant-sun');
   spawnCareParticles(action);
   pulseStatRow(action);
   plant3dView?.playCarePulse?.(action);
@@ -411,6 +419,7 @@ function gameTick() {
 
 function showMatureOverlay() {
   if (!overlayEl || !plantState.speciesId) return;
+  playSfx('win');
   const sp = getSpeciesById(plantState.speciesId);
   overlayTitleEl.textContent = '养熟了';
   overlayMsgEl.textContent = `${sp?.nameZh ?? '苔藓'}已经养熟，图鉴里也有了。\n${MATURE_CARE_MESSAGE}`;
@@ -513,6 +522,8 @@ async function initPlant3d() {
   }
 }
 
+initArcadeAudio();
+mountSfxToggle(document.querySelector('.plant-header'));
 loadFromStorage();
 renderBryophytePicker();
 bindUi();

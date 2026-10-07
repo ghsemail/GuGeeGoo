@@ -12,6 +12,7 @@ import {
   BOSS_MINE_DAMAGE,
   PLAYER_FREEZE_SEC,
 } from './constants.js';
+import { playSfx } from '../arcade/arcade-audio.js';
 import { pushExplosion } from './explosion-fx.js';
 import { getLevel } from './levels.js';
 import { createMapFromLevel, explodeArea, isBlockingTile, tileAt } from './map.js';
@@ -126,6 +127,7 @@ function detonateMissile(state, b, isPlayerMissile) {
     }
   }
   pushExplosion(state, b.x, b.y, { ttl: 0.42, scale: 1.15 });
+  playSfx('explosion');
   b.alive = false;
 }
 
@@ -188,6 +190,7 @@ function movePlayer(state, dt, input) {
         damage: pierce ? 2 : 1,
       })
     );
+    playSfx('shoot');
   }
 }
 
@@ -267,6 +270,7 @@ function updateBullets(state, dt) {
           e.hitFlashTtl = 0.12;
           if (e.hp > 0) tryDropPickupFromEnemy(state, e);
           pushExplosion(state, e.x, e.y, { ttl: 0.5 });
+          playSfx('explosion');
           e.hp = 0;
           b.alive = false;
           state.score += SCORE_ENEMY_NORMAL;

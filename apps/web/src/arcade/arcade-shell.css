@@ -35,6 +35,29 @@ html:has(.arcade-page) {
   flex-shrink: 0;
 }
 
+.sfx-toggle {
+  position: absolute;
+  right: 0;
+  top: 2px;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  touch-action: manipulation;
+}
+
+.sfx-toggle:focus-visible {
+  outline: 2px solid #0277bd;
+  outline-offset: 2px;
+}
+
 .back-link {
   position: absolute;
   left: 0;

@@ -3,6 +3,11 @@
  */
 import './tank.css';
 import { displayBoundsInZone } from '../arcade/fit-canvas-zone.js';
+import {
+  initArcadeAudio,
+  mountSfxToggle,
+  playSfx,
+} from '../arcade/arcade-audio.js';
 import { LEVELS } from './levels.js';
 import {
   createGameState,
@@ -470,6 +475,7 @@ function exitToMenu() {
 }
 
 function onWin() {
+  playSfx('win');
   bankSessionScore();
   saveBestScore(game.score);
   const bossLine = game.lastBossBonus
@@ -493,6 +499,7 @@ function onWin() {
 }
 
 function onLose() {
+  playSfx('lose');
   bankSessionScore();
   saveBestScore(game.score);
   showOverlay(
@@ -629,4 +636,6 @@ function init() {
   window.addEventListener('resize', syncTouchControlsVisibility);
 }
 
+initArcadeAudio();
+mountSfxToggle();
 init();
