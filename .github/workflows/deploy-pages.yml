@@ -88,7 +88,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '3'
-          command: pages deploy apps/web/dist --project-name=gugeegoo --config infra/cloudflare/wrangler.toml
+          workingDirectory: apps/web
+          command: pages deploy dist --project-name=gugeegoo --branch=main
 
       - name: 部署到 Cloudflare Pages（PR 预览）
         if: github.event_name == 'pull_request'
@@ -98,4 +99,5 @@ jobs:
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '3'
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy apps/web/dist --project-name=gugeegoo --config infra/cloudflare/wrangler.toml --branch=${{ github.head_ref }}
+          command: pages deploy dist --project-name=gugeegoo --branch=${{ github.head_ref }}
+          workingDirectory: apps/web
