@@ -45,6 +45,7 @@ const overlayTitleEl = document.getElementById('overlay-title');
 const overlayMsgEl = document.getElementById('overlay-msg');
 const atlasListEl = document.getElementById('atlas-list');
 const potSceneEl = document.querySelector('.pot-scene');
+const careFxLayerEl = document.getElementById('care-fx-layer');
 const plant3dResetBtn = document.getElementById('plant-3d-reset');
 
 const statFills = {
@@ -333,14 +334,61 @@ function onCare(action) {
   persistSave();
 }
 
+const CARE_FX_CLASS = {
+  water: 'fx-water',
+  light: 'fx-sun',
+  nutrient: 'fx-nutrient',
+};
+
+/** @param {'water'|'light'|'nutrient'} action */
+function pulseStatRow(action) {
+  const idx = { water: 0, light: 1, nutrient: 2 }[action];
+  const row = document.querySelectorAll('.stat-row')[idx];
+  if (!row) return;
+  row.classList.remove('stat-row--pulse');
+  void row.offsetWidth;
+  row.classList.add('stat-row--pulse');
+  window.setTimeout(() => row.classList.remove('stat-row--pulse'), 700);
+}
+
+/** @param {'water'|'light'|'nutrient'} action */
+function spawnCareParticles(action) {
+  if (!careFxLayerEl) return;
+  careFxLayerEl.innerHTML = '';
+  const count = action === 'water' ? 10 : action === 'nutrient' ? 12 : 6;
+  const primary = action === 'water' ? '💧' : action === 'nutrient' ? '✨' : '☀️';
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('span');
+    p.className = `care-particle care-particle--${action}`;
+    p.textContent =
+      action === 'nutrient' && i % 4 === 0 ? '🌱' : primary;
+    p.style.left = `${8 + Math.random() * 84}%`;
+    p.style.setProperty('--drift', `${(Math.random() - 0.5) * 36}px`);
+    p.style.animationDelay = `${Math.random() * 0.28}s`;
+    p.style.animationDuration = `${0.55 + Math.random() * 0.45}s`;
+    careFxLayerEl.appendChild(p);
+  }
+  window.setTimeout(() => {
+    if (careFxLayerEl) careFxLayerEl.innerHTML = '';
+  }, 1300);
+}
+
 /** @param {'water'|'light'|'nutrient'} action */
 function playCareFx(action) {
   if (!potSceneEl) return;
   potSceneEl.classList.remove('fx-water', 'fx-sun', 'fx-nutrient');
   void potSceneEl.offsetWidth;
-  if (action === 'water') potSceneEl.classList.add('fx-water');
-  if (action === 'light') potSceneEl.classList.add('fx-sun');
-  if (action === 'nutrient') potSceneEl.classList.add('fx-nutrient');
+  potSceneEl.classList.add(CARE_FX_CLASS[action]);
+  spawnCareParticles(action);
+  pulseStatRow(action);
+  plant3dView?.playCarePulse?.(action);
+  const btn = document.querySelector(`[data-care="${action}"]`);
+  if (btn) {
+    btn.classList.remove('care-btn--pulse');
+    void btn.offsetWidth;
+    btn.classList.add('care-btn--pulse');
+    window.setTimeout(() => btn.classList.remove('care-btn--pulse'), 450);
+  }
 }
 
 function gameTick() {
