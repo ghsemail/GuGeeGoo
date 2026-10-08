@@ -3,6 +3,11 @@
  */
 import './snake.css';
 import {
+  initArcadeAudio,
+  mountSfxToggle,
+  playSfx,
+} from '../arcade/arcade-audio.js';
+import {
   createLevelState,
   tick,
   setDirectionFromKey,
@@ -255,6 +260,23 @@ function measureSnakeStageBelowBoard() {
   return Math.max(0, below);
 }
 
+function finishPlayfieldFromZone(maxW, maxH, ctx) {
+  const minDisplayH = ctx.handheldSide
+    ? ctx.landscapeSide
+      ? Math.floor(maxH * 0.9)
+      : Math.floor(window.innerHeight * 0.52)
+    : Math.floor(Math.min(maxW, maxH) * 0.98);
+  return {
+    maxW,
+    maxH,
+    minDisplayH,
+    coarse: ctx.coarse,
+    landscapeSide: ctx.landscapeSide,
+    tablet: ctx.tablet,
+    handheldSide: ctx.handheldSide,
+  };
+}
+
 function playfieldLayout() {
   const coarse = isTouchUi();
   const handheldSide = isHandheldTabletLayout();
@@ -287,37 +309,48 @@ function playfieldLayout() {
       railW = 320;
     }
     padW = railW + 24;
+  } else {
+    padW = 8;
+    padH = 8;
+    const wrap = screen?.querySelector('.canvas-wrap');
+    if (wrap) {
+      void wrap.offsetHeight;
+      const z = wrap.getBoundingClientRect();
+      return finishPlayfieldFromZone(
+        Math.max(120, z.width - padW),
+        Math.max(120, z.height - padH),
+        { coarse, handheldSide, landscapeSide, tablet }
+      );
+    }
+    padW = 48;
+    padH = Math.ceil(
+      (document.querySelector('.snake-header')?.getBoundingClientRect().height ?? 72) +
+        200 +
+        snakeLayoutPadExtra
+    );
   }
   const availW = window.innerWidth - padW;
   const availH = window.innerHeight - padH;
-  let maxW = handheldSide ? availW : Math.min(availW, 520);
+  let maxW = handheldSide ? availW : Math.min(availW, 720);
   if (handheldSide) {
     const stage = document.querySelector('#screen-game:not([hidden]) .canvas-stage');
     if (stage?.clientWidth > 0 && railW > 0) {
       maxW = Math.max(120, stage.clientWidth - railW);
     }
   }
-  let maxH = handheldSide ? availH : Math.min(availH, 420);
+  let maxH = handheldSide ? availH : Math.max(280, availH);
   if (handheldSide && landscapeSide) {
     const wrap = screen?.querySelector('.canvas-wrap');
     if (wrap && wrap.clientHeight > 64) {
       maxH = Math.min(maxH, wrap.clientHeight - 4);
     }
   }
-  const minDisplayH = landscapeSide
-    ? Math.floor(maxH * 0.9)
-    : handheldSide
-      ? Math.floor(window.innerHeight * 0.48)
-      : 0;
-  return {
-    maxW,
-    maxH,
-    minDisplayH,
+  return finishPlayfieldFromZone(maxW, maxH, {
     coarse,
+    handheldSide,
     landscapeSide,
     tablet,
-    handheldSide,
-  };
+  });
 }
 
 /** 等比缩放 canvas 显示尺寸，避免 CSS 只压宽度 */
@@ -333,7 +366,7 @@ function applyCanvasDisplaySize(canvasEl, intrinsicW, intrinsicH, maxW, maxH) {
 function cellSize() {
   const lv = state.level;
   const { maxW, maxH, minDisplayH, landscapeSide, tablet } = playfieldLayout();
-  const csCap = landscapeSide ? 96 : tablet ? 96 : 28;
+  const csCap = landscapeSide ? 96 : tablet ? 96 : 40;
   let cs = Math.floor(Math.min(maxW / lv.cols, maxH / lv.rows, csCap));
   if (minDisplayH > 0) {
     const csForMin = Math.floor(minDisplayH / lv.rows);
@@ -583,6 +616,7 @@ function fireWeapon() {
   if (!gameSessionActive || state.gameOver || state.levelComplete) return;
   const r = tryFireWeapon(state);
   if (r.ok) {
+    playSfx('shoot');
     const kind = state.weaponRuntime?.kind;
     if (kind === 'air_strike') showGameToast('✈️ 飞机出动！');
     else if (kind === 'tank_buddy') showGameToast('🚜 小坦克来帮忙！');
@@ -609,6 +643,7 @@ function loop(now) {
       lastTick = now;
       const result = tick(state, now);
       refreshStats();
+      if (result.ateFood) playSfx('eat');
       if (result.shieldUsed) {
         showGameToast('🫧 护盾生效！');
         refreshEffectBar();
@@ -624,6 +659,7 @@ function loop(now) {
 }
 
 function onGameOver() {
+  playSfx('lose');
   recordLevelResult(getLevel(state.levelIndex).id, {
     cleared: false,
     score: state.score,
@@ -653,6 +689,7 @@ function onGameOver() {
 }
 
 function onLevelComplete() {
+  playSfx('win');
   const lvId = getLevel(state.levelIndex).id;
   recordLevelResult(lvId, { cleared: true, score: state.score });
   saveProgressIfNeeded();
@@ -881,4 +918,6 @@ async function init() {
   showScreen('menu');
 }
 
+initArcadeAudio();
+mountSfxToggle();
 init();

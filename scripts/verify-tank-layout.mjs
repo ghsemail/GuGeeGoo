@@ -77,7 +77,18 @@ async function runViewport(browser, width, height, isMobile) {
       );
     const forwardApartFromDpad =
       !forwardBox || !dpadBox || !rectsOverlap(forwardBox, dpadBox);
-    const hudMissiles = document.getElementById('hud-missiles')?.textContent;
+    const weaponHost = document.getElementById('weapon-bar-host');
+    const weaponHostBox = weaponHost?.getBoundingClientRect();
+    const weaponBarOk = !!(
+      weaponHost &&
+      weaponHost.querySelector('.weapon-btn') &&
+      weaponHostBox &&
+      weaponHostBox.height > 20
+    );
+    const weaponsAboveCanvas =
+      weaponBarOk &&
+      canvasBox &&
+      weaponHostBox.bottom <= canvasBox.top + 12;
     const controlsOnCanvas =
       canvasBox &&
       fireBox &&
@@ -102,7 +113,8 @@ async function runViewport(browser, width, height, isMobile) {
       controlsClearOfCanvas,
       controlsOnCanvas,
       narrow: window.innerWidth < 520,
-      hudMissiles,
+      weaponBarOk,
+      weaponsAboveCanvas,
       forwardVisible: !!(forwardBox && forwardBox.width > 20),
       forwardApartFromDpad,
     };
@@ -135,7 +147,8 @@ async function runViewport(browser, width, height, isMobile) {
     shopOk &&
     okCanvas &&
     okControls &&
-    data.hudMissiles != null &&
+    data.weaponBarOk &&
+    data.weaponsAboveCanvas &&
     errors.length === 0;
 
   return { ...data, okCanvas, pass };

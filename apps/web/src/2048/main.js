@@ -9,6 +9,11 @@ import {
 } from './game.js';
 import { tileColor, tileTextColor } from './tile-colors.js';
 import { getBestScore, getLifetimeEarned, recordRunScore } from './storage.js';
+import {
+  initArcadeAudio,
+  mountSfxToggle,
+  playSfx,
+} from '../arcade/arcade-audio.js';
 
 const board = document.getElementById('game-board');
 const screenMenu = document.getElementById('screen-menu');
@@ -112,6 +117,7 @@ function renderBoard(animateNew) {
 function checkEnd() {
   if (!state.continueAfterWin && maxTile(state.grid) >= 2048 && !state.won) {
     state.won = true;
+    playSfx('win');
     showOverlay('🎉 2048！', '太厉害了！要继续冲更高数字吗？', [
       {
         label: '继续玩',
@@ -137,6 +143,7 @@ function checkEnd() {
 function finishRun() {
   const rec = recordRunScore(state.score);
   refreshMenuStats();
+  if (!state.won) playSfx('lose');
   showOverlay('游戏结束', `得分 ${state.score}\n最高 ${rec.best} · 累计 ${rec.lifetime}`, [
     {
       label: '新游戏',
@@ -181,6 +188,9 @@ function applyMove(dir) {
     return;
   }
   state.score += scoreGain;
+  if (scoreGain > 0) {
+    playSfx(scoreGain >= 8 ? 'merge-big' : 'merge');
+  }
   const spawned = spawnTile(state.grid);
   renderBoard(!!spawned);
   if (state.score > getBestScore()) {
@@ -282,3 +292,6 @@ buildBoardDom();
 bindSwipe();
 refreshMenuStats();
 showScreen('menu');
+
+initArcadeAudio();
+mountSfxToggle();

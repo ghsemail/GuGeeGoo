@@ -7,6 +7,11 @@ import {
 } from './game.js';
 import { drawWhack } from './render.js';
 import { getBestScore, getLifetimeEarned, recordRunScore } from './storage.js';
+import {
+  initArcadeAudio,
+  mountSfxToggle,
+  playSfx,
+} from '../arcade/arcade-audio.js';
 
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('game-canvas'));
 const ctx = canvas.getContext('2d');
@@ -64,6 +69,7 @@ function endRun() {
   const rec = recordRunScore(state.score);
   refreshMenuStats();
   const won = state.timeLeft <= 0 && state.lives > 0;
+  playSfx(won ? 'win' : 'lose');
   showOverlay(
     won ? '⏱️ 时间到！' : state.lives <= 0 ? '💔 没生命了' : '游戏结束',
     `本局得分 ${state.score} 分\n累计 ${rec.lifetime} · 最高 ${rec.best}`,
@@ -154,7 +160,13 @@ function onTap(e) {
   const { x, y } = pointerToCanvas(e);
   const idx = holeIndexFromPoint(state.gridSize, x, y, canvas.width, canvas.height);
   if (idx < 0) return;
+  const kind = state.holes[idx]?.kind;
   const res = whackHole(state, idx);
+  if (res.ok) {
+    if (kind === 'bomb') playSfx('whack-bomb');
+    else if (kind === 'golden') playSfx('whack-gold');
+    else playSfx('whack');
+  }
   if (res.message) {
     toast = res.message;
     toastTimer = 0.8;
@@ -184,5 +196,8 @@ document.getElementById('btn-exit').addEventListener('click', () => {
 });
 
 window.addEventListener('resize', fitCanvas);
+
+initArcadeAudio();
+mountSfxToggle();
 refreshMenuStats();
 showScreen('menu');

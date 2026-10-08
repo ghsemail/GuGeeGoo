@@ -12,6 +12,7 @@
 
 | 批改 | 成绩 | 备注 |
 |------|------|------|
+| 第2单元巩固练习（24 题） | **19/24** | Part A 12/12；错 Q14 live、Q15 关灯、Q16/Q21 take off、Q17 places |
 | 第1单元巩固练习（26 题） | **23/26** | Part A 单词 15/15；错 Q17 too many（WP-008）、Q24 slowly 家长判定计错（WP-009）、Q26 Candy 先错后自改仍计错（WP-010） |
 | Day 1（10 题） | **10/10** | 祈使句 Q2 句首大写 Try 家长确认算对 |
 | Day 2（9 题） | **7/9** | 选词 Q2、Q3 错 |
@@ -45,8 +46,8 @@
 | WP-008 | too much / too many（不可数 vs 可数复数） | 0/2 |
 | WP-009 | 副词修饰动词（slow / slowly） | 0/2 |
 | WP-010 | candy 拼写 / 句首大写 | 0/2 |
-| WP-005 | Unit 2 选词语境（places / useful / food waste 等） | 1/2 |
-| WP-006 | 动词短语写完整（take off / turn into） | 1/2 |
+| WP-005 | Unit 2 选词语境（places / useful / food waste 等） | 0/2 |
+| WP-006 | 动词短语写完整（take off / turn into） | 0/2 |
 | WP-007 | live a green life | 0/2 |
 
 ---

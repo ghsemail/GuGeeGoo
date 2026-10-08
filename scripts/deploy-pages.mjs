@@ -45,10 +45,10 @@ async function loadRootEnv() {
   }
 }
 
-function run(cmd, args, env = process.env) {
+function run(cmd, args, env = process.env, cwd = ROOT) {
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
-      cwd: ROOT,
+      cwd,
       env,
       stdio: 'inherit',
       shell: process.platform === 'win32',
@@ -86,19 +86,25 @@ async function main() {
     process.exit(1);
   }
 
+  if (!process.env.CLOUDFLARE_ACCOUNT_ID) {
+    try {
+      const toml = await fs.readFile(WRANGLER_CONFIG, 'utf8');
+      const m = toml.match(/^account_id\s*=\s*"([^"]+)"/m);
+      if (m) process.env.CLOUDFLARE_ACCOUNT_ID = m[1];
+    } catch {
+      /* wrangler.toml 可选 */
+    }
+  }
+
   const wranglerArgs = [
     'pages',
     'deploy',
-    'apps/web/dist',
+    'dist',
     '--project-name',
     PROJECT_NAME,
-    '--config',
-    WRANGLER_CONFIG,
+    '--branch',
+    'main',
   ];
-
-  if (process.env.CLOUDFLARE_ACCOUNT_ID) {
-    wranglerArgs.push('--account-id', process.env.CLOUDFLARE_ACCOUNT_ID);
-  }
 
   console.log(`[deploy:pages] 上传到 Cloudflare Pages「${PROJECT_NAME}」…`);
   const wranglerBin = path.join(
@@ -107,7 +113,11 @@ async function main() {
     '.bin',
     process.platform === 'win32' ? 'wrangler.cmd' : 'wrangler'
   );
-  await run(wranglerBin, wranglerArgs);
+  const webDir = path.join(ROOT, 'apps/web');
+  await run(wranglerBin, wranglerArgs, {
+    ...process.env,
+    CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
+  }, webDir);
   console.log('[deploy:pages] 完成 → https://gugeegoo.pages.dev');
 }
 

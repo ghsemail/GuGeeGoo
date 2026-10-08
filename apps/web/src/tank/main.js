@@ -2,6 +2,12 @@
  * 坦克大战入口：切屏、积分入账、商店与对局
  */
 import './tank.css';
+import { displayBoundsInZone } from '../arcade/fit-canvas-zone.js';
+import {
+  initArcadeAudio,
+  mountSfxToggle,
+  playSfx,
+} from '../arcade/arcade-audio.js';
 import { LEVELS } from './levels.js';
 import {
   createGameState,
@@ -158,8 +164,16 @@ function isTouchUi() {
 
 /** Same tablet layout + sizing as coarse pointer (incl. fine + touch). */
 function isLayoutTablet() {
+  const vp = layoutViewport();
+  if (
+    window.matchMedia('(pointer: fine)').matches &&
+    window.matchMedia('(hover: hover)').matches &&
+    vp.clientWidth >= 960
+  ) {
+    return false;
+  }
   if (isCoarsePointerMedia()) {
-    return isTouchUi() && layoutViewport().clientWidth >= 481;
+    return isTouchUi() && vp.clientWidth >= 481;
   }
   return isTabletViewport() && navigator.maxTouchPoints > 0;
 }
@@ -242,6 +256,11 @@ function gameChromeHeight() {
       if (r.height > 0) h += r.height;
     }
   }
+  const weaponBar = document.querySelector('.screen-game .weapon-bar-host');
+  if (weaponBar && !weaponBar.closest('[hidden]')) {
+    const wr = weaponBar.getBoundingClientRect();
+    if (wr.height > 0) h += wr.height + 8;
+  }
   const hud = document.querySelector('.screen-game .hud-bar');
   if (hud && !hud.closest('[hidden]')) {
     const r = hud.getBoundingClientRect();
@@ -297,7 +316,7 @@ function measureStageSideWidths(stage) {
 
 function shouldAllowCanvasUpscale() {
   if (isTouchTablet()) return true;
-  if (!isTouchUi()) return false;
+  if (!isTouchUi()) return true;
   return layoutViewport().clientWidth >= 520;
 }
 
@@ -339,12 +358,39 @@ function applyCanvasBackingStore(logicalW, logicalH, displayScale) {
   game.renderDpr = renderDpr;
 }
 
+function measureTankPlayZone() {
+  const playZone = document.querySelector('.screen-game .canvas-play-zone');
+  const stage = canvas.closest('.canvas-stage');
+  const box = playZone || stage;
+  if (!box) return null;
+  void box.offsetHeight;
+  const base = box.getBoundingClientRect();
+  const handheldSide =
+    document.documentElement.classList.contains('arcade-handheld-layout') &&
+    isLayoutTablet();
+  if (handheldSide && stage) {
+    const { leftW, rightW } = measureStageSideWidths(stage);
+    return {
+      width: Math.max(64, base.width - leftW - rightW - 12),
+      height: Math.max(64, base.height - 4),
+    };
+  }
+  return { width: base.width, height: base.height };
+}
+
 function fitSquareCanvasDisplay(logicalW, logicalH, sized, capSide = 0) {
   void canvas.offsetWidth;
   let side = Math.min(sized.dw, sized.dh);
   if (capSide > 0) side = Math.min(side, capSide);
   const handheld = isTouchTablet() && document.documentElement.classList.contains('arcade-handheld-layout');
-  if (!handheld && (!isLandscapeTouchTablet() || !isTouchTablet())) {
+  const desktopFit =
+    !isTouchUi() &&
+    !document.documentElement.classList.contains('arcade-handheld-layout');
+  if (
+    !handheld &&
+    !desktopFit &&
+    (!isLandscapeTouchTablet() || !isTouchTablet())
+  ) {
     const boardWrap = canvas.closest('.canvas-board-wrap');
     const capW = boardWrap?.clientWidth ?? sized.dw;
     if (capW > 0) side = Math.min(side, capW);
@@ -361,12 +407,7 @@ function resizeStage() {
   if (!game) return;
   const { width, height } = computeCanvasSize(game.map);
   const stage = canvas.closest('.canvas-stage');
-  const landscapeSide = isLandscapeTouchTablet();
-  const tablet = isTouchTablet();
-  const pagePad = tablet ? 8 : 16;
-  const vp = layoutViewport();
-  const allowUpscale = shouldAllowCanvasUpscale();
-  let minDisplaySide = 0;
+  let allowUpscale = shouldAllowCanvasUpscale();
 
   if (stage) {
     const { dpadSize, fireSize, dpadGap } = touchControlMetrics(width);
@@ -375,88 +416,35 @@ function resizeStage() {
     stage.style.setProperty('--fire-btn-size', `${fireSize}px`);
   }
 
-  let maxW = vp.clientWidth - pagePad * 2;
-  let maxH = vp.clientHeight - gameChromeHeight();
+  refreshWeaponBar(el.weaponBarHost);
+  canvas.style.width = '1px';
+  canvas.style.height = '1px';
+  void (stage?.offsetWidth ?? canvas.offsetWidth);
 
-  if (isTouchUi() && stage) {
-    refreshWeaponBar(el.weaponBarHost);
-    canvas.style.width = '1px';
-    canvas.style.height = '1px';
-    void stage.offsetWidth;
-    if ((landscapeSide || tablet) && document.documentElement.classList.contains('arcade-handheld-layout')) {
-      const { leftW, rightW } = measureStageSideWidths(stage);
-      maxW = Math.max(
-        64,
-        vp.clientWidth - leftW - rightW - pagePad * 2 - 24
-      );
-      maxH = vp.clientHeight - gameChromeHeight();
-      if (landscapeSide) {
-        const wrap = document.querySelector('.screen-game .canvas-wrap');
-        if (wrap?.clientHeight > 64) {
-          maxH = Math.min(maxH, wrap.clientHeight - 4);
-        }
-      }
-      minDisplaySide = Math.floor(
-        Math.min(maxW, maxH, (landscapeSide ? maxH : vp.clientHeight) * 0.9)
-      );
-    } else if (landscapeSide) {
-      const { leftW, rightW } = measureStageSideWidths(stage);
-      maxW = vp.clientWidth - leftW - rightW - 28 - pagePad * 2;
-      maxH = vp.clientHeight - gameChromeHeight();
-    } else if (tablet) {
-      maxW = vp.clientWidth - pagePad * 2;
-      maxH = vp.clientHeight - gameChromeHeight();
-      minDisplaySide = Math.floor(Math.min(maxW, maxH, vp.clientWidth * 0.9));
-    } else {
-      const weapons = stage.querySelector('.weapon-bar-host');
-      const leftCol = stage.querySelector('.touch-right-col, .touch-left-col');
-      const dpadRail = stage.querySelector('.touch-rail-left');
-      const reserve =
-        (weapons?.getBoundingClientRect().height ?? 0) +
-        Math.max(
-          leftCol?.getBoundingClientRect().height ?? 0,
-          dpadRail?.getBoundingClientRect().height ?? 0
-        ) +
-        20;
-      maxH = Math.max(120, vp.clientHeight - gameChromeHeight() - reserve);
-      maxW = vp.clientWidth - pagePad * 2;
-    }
+  const zone = measureTankPlayZone();
+  let budgetW = 320;
+  let budgetH = 320;
+  let minDisplaySide = 0;
+
+  if (zone && zone.width >= 16 && zone.height >= 16) {
+    const bounds = displayBoundsInZone(zone, width, height, { square: true });
+    budgetW = bounds.maxW;
+    budgetH = bounds.maxH;
+    minDisplaySide = Math.floor(Math.min(budgetW, budgetH));
+    allowUpscale = true;
+  } else {
+    const vp = layoutViewport();
+    budgetW = Math.min(vp.clientWidth - 32, 720);
+    budgetH = Math.max(280, vp.clientHeight - gameChromeHeight());
+    allowUpscale = shouldAllowCanvasUpscale();
   }
 
-  let budgetW = Math.max(64, maxW);
-  let budgetH = Math.max(64, maxH);
   let sized = applyCanvasDisplaySize(canvas, width, height, budgetW, budgetH, {
     allowUpscale,
     minDisplaySide,
     minDisplayH: 0,
   });
-
-  for (let pass = 0; pass < 8; pass++) {
-    sized = fitSquareCanvasDisplay(width, height, sized, budgetW);
-    applyCanvasBackingStore(width, height, sized.scale);
-    canvas.dataset.displayW = String(sized.dw);
-    canvas.dataset.displayH = String(sized.dh);
-    void canvas.offsetHeight;
-
-    const wrap = document.querySelector('.screen-game .canvas-wrap');
-    const toolbar = document.querySelector('.screen-game .toolbar');
-    let bottom = wrap?.getBoundingClientRect().bottom ?? 0;
-    if (toolbar) {
-      bottom = Math.max(bottom, toolbar.getBoundingClientRect().bottom);
-    }
-    const scrollSlack =
-      document.documentElement.scrollHeight - vp.clientHeight;
-    const overflowY = Math.max(bottom - vp.clientHeight + 2, scrollSlack - 2);
-    if (overflowY <= 0) break;
-    budgetH = Math.max(64, budgetH - overflowY);
-    sized = applyCanvasDisplaySize(canvas, width, height, budgetW, budgetH, {
-      allowUpscale,
-      minDisplaySide: 0,
-      minDisplayH: 0,
-    });
-  }
-
-  sized = fitSquareCanvasDisplay(width, height, sized, budgetW);
+  sized = fitSquareCanvasDisplay(width, height, sized, 0);
   applyCanvasBackingStore(width, height, sized.scale);
   canvas.dataset.displayW = String(sized.dw);
   canvas.dataset.displayH = String(sized.dh);
@@ -487,6 +475,7 @@ function exitToMenu() {
 }
 
 function onWin() {
+  playSfx('win');
   bankSessionScore();
   saveBestScore(game.score);
   const bossLine = game.lastBossBonus
@@ -510,6 +499,7 @@ function onWin() {
 }
 
 function onLose() {
+  playSfx('lose');
   bankSessionScore();
   saveBestScore(game.score);
   showOverlay(
@@ -646,4 +636,6 @@ function init() {
   window.addEventListener('resize', syncTouchControlsVisibility);
 }
 
+initArcadeAudio();
+mountSfxToggle();
 init();

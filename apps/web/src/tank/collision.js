@@ -66,14 +66,15 @@ function bulletTile(bullet, map) {
 
 /**
  * 子弹 vs 地图
- * @returns {'hit'|'none'|'steel'}
+ * @returns {'brick'|'base'|'steel'|'steel-break'|'none'}
  */
 export function bulletHitsMap(bullet, map) {
   const { tx, ty } = bulletTile(bullet, map);
   const result = damageTileAt(map, tx, ty);
-  if (result === 'brick' || result === 'base') return 'hit';
+  if (result === 'brick') return 'brick';
+  if (result === 'base') return 'base';
   if (result === 'steel') {
-    if (bullet.pierceSteel && breakSteelAt(map, tx, ty)) return 'hit';
+    if (bullet.pierceSteel && breakSteelAt(map, tx, ty)) return 'steel-break';
     return 'steel';
   }
   if (result === 'oob') return 'steel';

@@ -304,7 +304,7 @@ export function tick(state, now) {
 
   pullFoodWithMagnet(state);
 
-  return { moved: true };
+  return { moved: true, ateFood: willGrow };
 }
 
 export function getEffectiveSpeedMs(state) {

@@ -6,6 +6,7 @@ import { tileAt, isBlockingTile } from './map.js';
 import { tankBodyClearAt } from './collision.js';
 import { tanksOverlap } from './collision.js';
 import { addInventoryItem, getItemCount } from './storage.js';
+import { playSfx } from '../arcade/arcade-audio.js';
 import { getShopItem } from './items.js';
 
 export const PICKUP_ITEM_IDS = ['item_missile', 'item_mine', 'item_freeze'];
@@ -85,6 +86,7 @@ function collectPickup(state, p) {
   addInventoryItem(p.itemId, 1);
   const after = getItemCount(p.itemId);
   if (after > before) {
+    playSfx('pickup');
     pushFloatText(state, p.x, p.y - 8, `+1 ${pickupLabel(p.itemId)}`);
   } else {
     pushFloatText(state, p.x, p.y - 8, '武器库已满');

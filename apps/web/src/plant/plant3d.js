@@ -75,6 +75,7 @@ class Plant3dView {
     this._defaultCameraPos = null;
     /** @type {import('three').Vector3 | null} */
     this._defaultTarget = null;
+    this._carePulseActive = false;
     this._lastTapMs = 0;
     /** @type {{ x: number, y: number } | null} */
     this._tapStart = null;
@@ -253,7 +254,35 @@ class Plant3dView {
   applyMoodTransform(mood, group) {
     if (!this.plantGroup) return;
     this.plantGroup.rotation.x = group === 'liverwort' && mood === 'withered' ? -0.08 : 0;
-    this.plantGroup.scale.setScalar(mood === 'withered' ? 0.92 : 1);
+    if (!this._carePulseActive) {
+      this.plantGroup.scale.setScalar(mood === 'withered' ? 0.92 : 1);
+    }
+  }
+
+  /** @param {'water'|'light'|'nutrient'} action */
+  playCarePulse(action) {
+    if (!this.plantGroup) return;
+    this._carePulseActive = true;
+    const base = this.plantGroup.scale.x;
+    const lift = action === 'nutrient' ? 0.12 : action === 'water' ? 0.1 : 0.07;
+    const t0 = performance.now();
+    const dur = 560;
+    const step = () => {
+      const t = (performance.now() - t0) / dur;
+      if (t >= 1) {
+        this.plantGroup.scale.setScalar(base);
+        this._carePulseActive = false;
+        return;
+      }
+      const wobble =
+        action === 'nutrient'
+          ? Math.sin(t * Math.PI * 2) * 0.04 * (1 - t)
+          : 0;
+      const s = base * (1 + lift * Math.sin(t * Math.PI) + wobble);
+      this.plantGroup.scale.setScalar(s);
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
 
   /** @param {ReturnType<palette3d>} pal */

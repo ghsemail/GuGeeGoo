@@ -1,9 +1,11 @@
 /**
  * 玩家受伤与重生（地雷、炮弹等共用）
  */
+import { playSfx } from '../arcade/arcade-audio.js';
 import { placeTankAtCell } from './entities.js';
 
 export function hurtPlayer(state) {
+  playSfx('hit');
   state.lives -= 1;
   state.player.invuln = 2;
   if (state.lives <= 0) {

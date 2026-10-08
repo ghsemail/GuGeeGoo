@@ -55,6 +55,7 @@ export function createEnemy(spawn, index = 0) {
     fireCooldownMax: ENEMY_FIRE_COOLDOWN,
     turnTimer: 1,
     moving: true,
+    hitFlashTtl: 0,
   };
 }
 
