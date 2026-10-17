@@ -10,18 +10,19 @@
 
 同步来源：
 - 练习 / 备忘 / 学习档案：`npm run stage:deploy` → `deploy/staging/`，再 `npm run sync:cos`
-- 批改拍照：`npm run sync:cos:photos`（固定清单 → `private/photos/{学科}/{课程或来源}/{作业名}/<原文件名>`）
+- 批改拍照：`npm run sync:cos:photos`（固定清单 → `private/photos/…`）
 
-## private/photos/ 命名（粗粒度：一作业一目录）
+## private/photos/ · 数学 · 学而思五年级秋（仅两大类）
 
 ```
-private/photos/数学/学而思五年级秋/第1周-每日三题/lesson01-day1-graded.jpg
-private/photos/数学/学而思五年级秋/第1周-每日三题/lesson01-yuanti-p1.jpg
-private/photos/数学/学而思五年级秋/第1讲-学有所得/lesson01-学有所得.jpg
-private/photos/数学/日记月累/第1讲-日积月累/lecture01-p1.jpg
+private/photos/数学/学而思五年级秋/每日三题/第1周/lesson01-day1-graded.jpg
+private/photos/数学/学而思五年级秋/每日三题/第1周/lesson01-yuanti-p1.jpg
+private/photos/数学/学而思五年级秋/日积月累/第1讲/lecture01-p1.jpg
 private/photos/数学/学校学习/第三单元综合素养评价/第三单元综合素养评价-第1-2页.jpg
-private/photos/英语/Unit1-听写/xxx.jpg   # 以后：单元-练习名，不再加深
 ```
+
+- **学有所得讲义截图不进 COS**：留在仓库 `学科学习/…/课程资料/第N讲/第N讲讲义截图.*`
+- 英语以后：`private/photos/英语/<单元-练习名>/<filename>`（本次不迁）
 
 仓库内引用写法：`cos://gugeegoo-1256042904/<key>`（密钥不入库；读文件需 CAM / 预签名）。
 

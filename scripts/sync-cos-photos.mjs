@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * 将家长批改/作业拍照上传到 COS private/photos/（photos-only，粗粒度作业目录）。
+ * 将家长批改/作业拍照上传到 COS private/photos/（photos-only）。
+ * 学而思五年级秋仅两大类：每日三题 / 日积月累（不含学有所得讲义图）。
  * 密钥仅来自环境变量：TENCENT_SECRET_ID / TENCENT_SECRET_KEY / COS_BUCKET / COS_REGION
  *
  * 用法:
  *   npm run sync:cos:photos -- --dry-run
  *   npm run sync:cos:photos
  *   npm run sync:cos:photos -- --report /tmp/report.json
- *   npm run sync:cos:photos -- --remap-from-fine   # 旧细粒度 key → 新粗粒度（copy+校验+删旧）
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -17,7 +17,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
 const dryRun = process.argv.includes('--dry-run');
-const remapFromFine = process.argv.includes('--remap-from-fine');
 const reportIdx = process.argv.indexOf('--report');
 const reportPath =
   reportIdx >= 0 && process.argv[reportIdx + 1]
@@ -37,83 +36,63 @@ function requireEnv(name) {
 }
 
 /**
- * Coarse layout:
- * private/photos/{学科}/{课程或来源}/{作业名}/<原文件名>
- * @returns {{ local: string, key: string, oldKey?: string }[]}
+ * Layout:
+ *   private/photos/数学/学而思五年级秋/每日三题/第N周/<filename>
+ *   private/photos/数学/学而思五年级秋/日积月累/第N讲/<filename>
+ *   private/photos/数学/学校学习/<试卷名>/<filename>
+ * @returns {{ local: string, key: string }[]}
  */
 function buildManifest() {
-  /** @type {{ local: string, key: string, oldKey?: string }[]} */
+  /** @type {{ local: string, key: string }[]} */
   const items = [];
 
   const weeks = [
     {
       n: 1,
-      graded: [
+      files: [
         'lesson01-day1-graded.jpg',
         'lesson01-day2-graded.jpg',
         'lesson01-day3-graded.jpg',
         'lesson01-day4-graded.jpg',
+        'lesson01-yuanti-p1.jpg',
+        'lesson01-yuanti-p2.jpg',
+        'lesson01-yuanti-p3.jpg',
       ],
-      yuanti: ['lesson01-yuanti-p1.jpg', 'lesson01-yuanti-p2.jpg', 'lesson01-yuanti-p3.jpg'],
-      xueyousuode: 'lesson01-学有所得.jpg',
     },
     {
       n: 2,
-      graded: [
+      files: [
         'lesson02-day1-graded.jpg',
         'lesson02-day2-graded.jpg',
         'lesson02-day3-graded.jpg',
         'lesson02-day4-graded.jpg',
       ],
-      yuanti: [],
-      xueyousuode: 'lesson02-学有所得.png',
     },
     {
       n: 3,
-      graded: [
+      files: [
         'lesson03-day1-graded.jpg',
         'lesson03-day2-graded.jpg',
         'lesson03-day3-graded.jpg',
         'lesson03-day4-graded.jpg',
       ],
-      yuanti: [],
-      xueyousuode: null,
     },
     {
       n: 4,
-      graded: [
+      files: [
         'lesson04-day1-graded.jpg',
         'lesson04-day2-graded.jpg',
         'lesson04-day3-graded.jpg',
         'lesson04-day4-graded.jpg',
       ],
-      yuanti: [],
-      xueyousuode: null,
     },
   ];
-
   for (const w of weeks) {
-    const folder = `第${w.n}周-每日三题`;
-    for (const name of [...w.graded, ...w.yuanti]) {
-      const local = `assets/images/数学/学而思五年级秋/${name}`;
-      const key = `private/photos/数学/学而思五年级秋/${folder}/${name}`;
-      let oldKey;
-      const ym = name.match(/^(lesson\d+-yuanti)-(p\d+)(\.[^.]+)$/);
-      if (ym) {
-        oldKey = `private/photos/数学/学而思五年级秋/${ym[1]}/${ym[2]}${ym[3]}`;
-      } else {
-        const stem = name.replace(/\.[^.]+$/, '');
-        oldKey = `private/photos/数学/学而思五年级秋/${stem}/${name}`;
-      }
-      items.push({ local, key, oldKey });
-    }
-    if (w.xueyousuode) {
-      const name = w.xueyousuode;
-      const local = `assets/images/数学/学而思五年级秋/${name}`;
-      const key = `private/photos/数学/学而思五年级秋/第${w.n}讲-学有所得/${name}`;
-      const stem = name.replace(/\.[^.]+$/, '');
-      const oldKey = `private/photos/数学/学而思五年级秋/${stem}/${name}`;
-      items.push({ local, key, oldKey });
+    for (const name of w.files) {
+      items.push({
+        local: `assets/images/数学/学而思五年级秋/${name}`,
+        key: `private/photos/数学/学而思五年级秋/每日三题/第${w.n}周/${name}`,
+      });
     }
   }
 
@@ -135,23 +114,20 @@ function buildManifest() {
     },
   ];
   for (const lec of lectures) {
-    const folder = `第${lec.n}讲-日积月累`;
     for (const name of lec.files) {
-      const local = `assets/images/数学/日记月累/${name}`;
-      const key = `private/photos/数学/日记月累/${folder}/${name}`;
-      const m = name.match(/^(lecture\d+)-(p\d+)(\.[^.]+)$/);
-      const oldKey = `private/photos/数学/日记月累/${m[1]}/${m[2]}${m[3]}`;
-      items.push({ local, key, oldKey });
+      items.push({
+        // historical local path (may already be deleted from repo; key is source of truth)
+        local: `assets/images/数学/日记月累/${name}`,
+        key: `private/photos/数学/学而思五年级秋/日积月累/第${lec.n}讲/${name}`,
+      });
     }
   }
 
   for (const name of ['第三单元综合素养评价-第1-2页.jpg', '第三单元综合素养评价-第3-4页.jpg']) {
-    const local = `学科学习/数学/五年级/学校学习/images/${name}`;
-    const key = `private/photos/数学/学校学习/第三单元综合素养评价/${name}`;
-    // old fine layout shortened the filename after the first dash
-    const short = name.replace(/^第三单元综合素养评价-/, '');
-    const oldKey = `private/photos/数学/学校学习/第三单元综合素养评价/${short}`;
-    items.push({ local, key, oldKey });
+    items.push({
+      local: `学科学习/数学/五年级/学校学习/images/${name}`,
+      key: `private/photos/数学/学校学习/第三单元综合素养评价/${name}`,
+    });
   }
 
   return items;
@@ -179,18 +155,6 @@ function sliceUploadFile(cos, params) {
   });
 }
 
-function copyObject(cos, params) {
-  return new Promise((resolve, reject) => {
-    cos.putObjectCopy(params, (err, data) => (err ? reject(err) : resolve(data)));
-  });
-}
-
-function deleteObject(cos, params) {
-  return new Promise((resolve, reject) => {
-    cos.deleteObject(params, (err, data) => (err ? reject(err) : resolve(data)));
-  });
-}
-
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -203,18 +167,14 @@ function errMsg(err) {
   return parts.join(' | ').slice(0, 200);
 }
 
-async function remoteSize(cos, Bucket, Region, key) {
+async function remoteSizeOk(cos, Bucket, Region, key, size) {
   try {
     const head = await headObject(cos, { Bucket, Region, Key: key });
-    return Number(head.headers?.['content-length'] ?? head.ContentLength ?? 0);
+    const remoteSize = Number(head.headers?.['content-length'] ?? head.ContentLength ?? 0);
+    return remoteSize === size;
   } catch {
-    return null;
+    return false;
   }
-}
-
-async function remoteSizeOk(cos, Bucket, Region, key, size) {
-  const s = await remoteSize(cos, Bucket, Region, key);
-  return s === size;
 }
 
 async function uploadOne(cos, Bucket, Region, abs, key, size) {
@@ -242,88 +202,20 @@ async function uploadOne(cos, Bucket, Region, abs, key, size) {
       return { skipped: false };
     } catch (err) {
       lastErr = err;
-      const wait = Math.min(30_000, 1500 * 2 ** (attempt - 1));
       console.error(`[retry ${attempt}/${MAX_ATTEMPTS}] ${key}: ${errMsg(err)}`);
-      if (attempt < MAX_ATTEMPTS) await sleep(wait);
+      if (attempt < MAX_ATTEMPTS) await sleep(Math.min(30_000, 1500 * 2 ** (attempt - 1)));
     }
   }
   throw lastErr;
 }
 
-/** Server-side copy old→new, verify, delete old. Falls back to local upload if old missing. */
-async function remapOne(cos, Bucket, Region, item, abs, size) {
-  const { key, oldKey } = item;
-  if (await remoteSizeOk(cos, Bucket, Region, key, size)) {
-    // New key already good; still clean old if different
-    if (oldKey && oldKey !== key) {
-      const oldSz = await remoteSize(cos, Bucket, Region, oldKey);
-      if (oldSz != null) {
-        await deleteObject(cos, { Bucket, Region, Key: oldKey });
-        console.log(`[del-old] ${oldKey}`);
-      }
-    }
-    return { skipped: true, via: 'already-new' };
-  }
-
-  if (oldKey && oldKey !== key) {
-    const oldSz = await remoteSize(cos, Bucket, Region, oldKey);
-    if (oldSz === size) {
-      let lastErr;
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        try {
-          const CopySource = `${Bucket}.cos.${Region}.myqcloud.com/${encodeURIComponent(oldKey).replace(/%2F/g, '/')}`;
-          // Tencent copy source path encoding: encode each segment
-          const encodedKey = oldKey
-            .split('/')
-            .map((s) => encodeURIComponent(s))
-            .join('/');
-          await withTimeout(
-            copyObject(cos, {
-              Bucket,
-              Region,
-              Key: key,
-              CopySource: `${Bucket}.cos.${Region}.myqcloud.com/${encodedKey}`,
-              ACL: 'private',
-              MetadataDirective: 'Copy',
-            }),
-            PER_FILE_MS,
-            `copy ${oldKey}`
-          );
-          if (!(await remoteSizeOk(cos, Bucket, Region, key, size))) {
-            throw new Error('size mismatch after copy');
-          }
-          await deleteObject(cos, { Bucket, Region, Key: oldKey });
-          return { skipped: false, via: 'copy' };
-        } catch (err) {
-          lastErr = err;
-          console.error(`[copy-retry ${attempt}/${MAX_ATTEMPTS}] ${oldKey}→${key}: ${errMsg(err)}`);
-          if (attempt < MAX_ATTEMPTS) await sleep(1500 * 2 ** (attempt - 1));
-        }
-      }
-      console.error(`[copy-fail] falling back to upload: ${errMsg(lastErr)}`);
-    }
-  }
-
-  const result = await uploadOne(cos, Bucket, Region, abs, key, size);
-  if (oldKey && oldKey !== key) {
-    const oldSz = await remoteSize(cos, Bucket, Region, oldKey);
-    if (oldSz != null) {
-      await deleteObject(cos, { Bucket, Region, Key: oldKey });
-      console.log(`[del-old] ${oldKey}`);
-    }
-  }
-  return { skipped: result.skipped, via: 'upload' };
-}
-
 async function main() {
   const manifest = buildManifest();
-  console.log(`manifest: ${manifest.length} files (coarse layout)`);
+  console.log(`manifest: ${manifest.length} files (每日三题 + 日积月累 + 学校学习; no 学有所得)`);
 
   if (dryRun) {
-    for (const { local, key, oldKey } of manifest) {
-      console.log(`[dry-run] ${local}`);
-      console.log(`  → ${key}`);
-      if (oldKey && oldKey !== key) console.log(`  old: ${oldKey}`);
+    for (const { local, key } of manifest) {
+      console.log(`[dry-run] ${local} → ${key}`);
     }
     return;
   }
@@ -335,21 +227,18 @@ async function main() {
   const Region = requireEnv('COS_REGION');
   const cos = new COS({ SecretId, SecretKey, Timeout: 120_000 });
 
-  /** @type {{ local: string, key: string, size: number, ok: boolean, error?: string, via?: string }[]} */
+  /** @type {{ local: string, key: string, size: number, ok: boolean, error?: string }[]} */
   const report = [];
 
-  for (const item of manifest) {
-    const { local, key } = item;
+  for (const { local, key } of manifest) {
     const abs = path.join(ROOT, local);
     let size = 0;
     try {
       const st = await fs.stat(abs);
       size = st.size;
-      const result = remapFromFine
-        ? await remapOne(cos, Bucket, Region, item, abs, size)
-        : await uploadOne(cos, Bucket, Region, abs, key, size);
-      report.push({ local, key, size, ok: true, via: result.via || (result.skipped ? 'skip' : 'upload') });
-      console.log(`[ok/${result.via || (result.skipped ? 'skip' : 'upload')}] ${key} (${size} bytes)`);
+      const result = await uploadOne(cos, Bucket, Region, abs, key, size);
+      report.push({ local, key, size, ok: true });
+      console.log(`[ok${result.skipped ? '/skip' : ''}] ${key} (${size} bytes)`);
     } catch (err) {
       report.push({ local, key, size, ok: false, error: errMsg(err) });
       console.error(`[FAIL] ${local}: ${errMsg(err)}`);
@@ -358,7 +247,7 @@ async function main() {
 
   await fs.writeFile(
     reportPath,
-    JSON.stringify({ bucket: Bucket, region: Region, layout: 'coarse', items: report }, null, 2),
+    JSON.stringify({ bucket: Bucket, region: Region, layout: 'meiri+riji+school', items: report }, null, 2),
     'utf8'
   );
   const okCount = report.filter((r) => r.ok).length;
