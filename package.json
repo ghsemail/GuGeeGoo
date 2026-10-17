@@ -19,7 +19,8 @@
     "validate:plant": "node scripts/validate-plant.mjs",
     "verify:plant-3d-touch": "node scripts/verify-plant-3d-touch.mjs",
     "lint:web": "eslint apps/web/src",
-    "verify:game-controls": "node scripts/verify-game-controls.mjs"
+    "verify:game-controls": "node scripts/verify-game-controls.mjs",
+    "sync:cos:photos": "node scripts/sync-cos-photos.mjs"
   },
   "dependencies": {
     "katex": "^0.16.47",
