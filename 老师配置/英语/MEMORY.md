@@ -12,6 +12,7 @@
 
 | 批改 | 成绩 | 备注 |
 |------|------|------|
+| Unit 3 单元听写（5 词，非全单元） | **4/5** | 10-17；错 musical（museicla）；funny/both/unhappy/friendship 首听已掌握；待巩固 +musical（letter、biscuit 未测） |
 | 复习单词听写 Unit 1–2（20 词） | **18/20** | 10-13 晚间、10-13 固定表；错 letter、biscuit（biucte）；chocolate/that's enough/group→已掌握；待巩固 letter、biscuit |
 | 复习单词听写 Unit 1–2（17 词） | **17/17** | 10-13 白天临时词表、无固定表；metal/bottle→已掌握；chocolate/that's enough/group 巩固中 1/2；页末抄写不计分 |
 | 综合练习-第1-2单元-半页专练（27 题） | **25/27** | 单词 Q1–21 全对；错 Q22 slow、Q25 public places→useful；WP-006→MP-010；新增 WP-011 |
@@ -38,7 +39,7 @@
 
 | 项目 | 内容 |
 |------|------|
-| 待巩固 | letter、biscuit 不熟悉 0/2（共 2 词） |
+| 待巩固 | letter、biscuit、musical 不熟悉 0/2（共 3 词） |
 | 固定表 | 10-13 表晚间已听写 **18/20**；下次复习听写前换新表或补抽（须含 letter、biscuit）；10-02 中文提示 2 次待家长确认 |
 | 详情 | `学科学习/英语/五年级/词汇/听写单词本.md` |
 
@@ -148,6 +149,7 @@
 
 | 日期 | 内容 |
 |------|------|
+| 2026-10-17 | Unit 3 单元听写 **4/5**（5 词非全单元）；错 musical；待巩固 3 词（letter、biscuit、musical） |
 | 2026-10-13 | 复习单词听写晚间 **18/20**（10-13 固定表）；错 letter、biscuit；chocolate/that's enough/group→已掌握；待巩固 2 词 |
 | 2026-10-13 | 复习单词听写 **17/17**（白天临时词表）；metal、bottle→已掌握；待巩固 3 词各 1/2；启用新固定表（20 词，见听写单词本） |
 | 2026-10-11 | 家长更正复习单词听写 **20/20**（原 **18/20** 作废）；always/soup 曾对调，事后核对家长认定不算错；whoa→已掌握；待巩固 5 词 |
