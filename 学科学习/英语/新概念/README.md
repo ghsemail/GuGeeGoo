@@ -6,7 +6,7 @@
 |------|------|
 | [课程资料/](./课程资料/) | 原始笔记（`新概念第一册笔记.docx`） |
 | [词汇/](./词汇/README.md) | 单词表、听写总览 |
-| [语法/](./语法/课程索引.md) | 按课语法要点（**语法** 目录，非「讲义」） |
-| [练习/](./练习/README.md) | 按课练习占位与后续 PDF |
+| [语法/](./语法/课程索引.md) | 按课语法要点（`Lesson N.md` 扁平文件） |
+| [练习/](./练习/) | 暂空；练习等做了再补 |
 
-**维护：** 更新 docx 后可在仓库根目录 [`scripts/extract-from-notes.py`](../../../scripts/extract-from-notes.py) 重新生成词汇表与语法/练习骨架。
+**维护：** 更新 docx 后可在仓库根目录 [`scripts/extract-from-notes.py`](../../../scripts/extract-from-notes.py) 重新生成词汇表与语法 MD（不生成按课练习占位）。

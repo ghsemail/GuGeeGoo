@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""从「新概念第一册笔记.docx」生成词汇/语法/练习 MD（可重复运行）。"""
+"""从「新概念第一册笔记.docx」生成词汇/语法 MD（可重复运行；练习目录仅保留 .gitkeep）。"""
 
 from __future__ import annotations
 
 import re
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -218,7 +219,7 @@ def write_dictation_overview(lessons: list[Lesson]) -> None:
     lines = [
         "# 新概念英语 · 第一册 · 听写总览",
         "",
-        "> 顾景源 · 英语 · **全册汇总**（各课听写明细待建：`练习/第N课/第N课-听写.md`）",
+        "> 顾景源 · 英语 · **全册汇总**（各课听写练习待家长拍照补入 [练习/](../练习/)）",
         "> 词库：[单词表.md](./单词表.md)",
         "",
         "**状态：** 尚未开始听写（2026-10-18 建库）。",
@@ -243,20 +244,13 @@ def write_dictation_overview(lessons: list[Lesson]) -> None:
         "",
         "---",
         "",
-        "## 三、各课听写文件",
+        "## 三、各课听写",
         "",
-        "批改时 **同时** 更新：本节「听写记录」「待巩固」+ 对应课 `第N课-听写.md`（待建）。",
+        "按课听写材料尚未录入；词数见 [单词表.md](./单词表.md) 各课小节。补练习后在此表或练习目录中挂链即可。",
         "",
-        "| 课次 | 听写文件 | 单词表范围 | 听写状态 |",
-        "|------|----------|------------|----------|",
+        f"*（笔记共 {len(lessons)} 课次标题。）*",
+        "",
     ]
-    for lesson in lessons:
-        n = lesson.num
-        word_note = f"{len(lesson.words)} 词" if lesson.words else "见笔记"
-        lines.append(
-            f"| 第 {n} 课 | [第{n}课-听写.md](../练习/第{n}课/第{n}课-听写.md)（待建） | {word_note} | 未听写 |"
-        )
-    lines.append("")
     (VOCAB_DIR / "听写单词本.md").write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -276,10 +270,12 @@ def grammar_body(lines: list[str]) -> str:
     return "\n\n".join(out) + "\n"
 
 
+def grammar_lesson_filename(lesson_num: int) -> str:
+    return f"Lesson {lesson_num}.md"
+
+
 def write_grammar(lesson: Lesson) -> None:
-    d = GRAMMAR_DIR / f"第{lesson.num}课"
-    d.mkdir(parents=True, exist_ok=True)
-    path = d / f"第{lesson.num}课-语法.md"
+    path = GRAMMAR_DIR / grammar_lesson_filename(lesson.num)
     content = [
         f"# 第 {lesson.num} 课 · {lesson.title} · 语法",
         "",
@@ -292,47 +288,33 @@ def write_grammar(lesson: Lesson) -> None:
     path.write_text("\n".join(content), encoding="utf-8")
 
 
-def write_practice(lesson: Lesson) -> None:
-    d = PRACTICE_DIR / f"第{lesson.num}课"
-    d.mkdir(parents=True, exist_ok=True)
-    path = d / f"第{lesson.num}课-练习.md"
-    lines = [
-        f"# 第 {lesson.num} 课 · {lesson.title} · 练习",
-        "",
-        "> **状态：** 占位 · 本课系统练习待出",
-        "",
-        "| 材料 | 路径 |",
-        "|------|------|",
-        f"| 词汇 | [单词表.md](../../词汇/单词表.md)（第 {lesson.num} 课） |",
-        f"| 语法 | [第{lesson.num}课-语法.md](../../语法/第{lesson.num}课/第{lesson.num}课-语法.md) |",
-        "",
-        "---",
-        "",
-        "## 说明",
-        "",
-        "本文件为练习占位。确认出题范围后，在此补充听写、选词、句型转换等练习（学生可见内容不含内部编码）。",
-        "",
-    ]
-    if lesson.text:
-        lines.extend(["## 笔记 · 课文（参考）", ""])
-        lines.extend(lesson.text)
-        lines.append("")
-    if lesson.extra_before_vocab and not lesson.words:
-        lines.extend(["## 笔记 · 课内要点（无表格词汇）", ""])
-        for x in lesson.extra_before_vocab[:40]:
-            lines.append(f"- {x}")
-        if len(lesson.extra_before_vocab) > 40:
-            lines.append(f"- …（共 {len(lesson.extra_before_vocab)} 行，见课程资料 docx）")
-        lines.append("")
+def cleanup_legacy_grammar_dirs() -> None:
+    if not GRAMMAR_DIR.is_dir():
+        return
+    for child in GRAMMAR_DIR.iterdir():
+        if child.is_dir() and re.match(r"^第\d+课$", child.name):
+            shutil.rmtree(child)
 
-    path.write_text("\n".join(lines), encoding="utf-8")
+
+def ensure_practice_placeholder() -> None:
+    PRACTICE_DIR.mkdir(parents=True, exist_ok=True)
+    for child in PRACTICE_DIR.iterdir():
+        if child.name == ".gitkeep":
+            continue
+        if child.is_dir():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
+    gitkeep = PRACTICE_DIR / ".gitkeep"
+    if not gitkeep.exists():
+        gitkeep.touch()
 
 
 def write_grammar_index(lessons: list[Lesson]) -> None:
     lines = [
         "# 新概念英语 · 第一册 · 语法索引",
         "",
-        "> 各课语法要点 MD 位于 `语法/第N课/`。",
+        "> 各课语法要点为扁平文件 `语法/Lesson N.md`（N 为课号）。",
         "",
         "| 课次 | 标题 | 语法文件 |",
         "|------|------|----------|",
@@ -340,9 +322,10 @@ def write_grammar_index(lessons: list[Lesson]) -> None:
     for lesson in lessons:
         n = lesson.num
         has = "有" if lesson.grammar else "待补"
+        fname = grammar_lesson_filename(n)
         lines.append(
             f"| 第 {n} 课 | {md_escape_cell(lesson.title)} | "
-            f"[第{n}课-语法.md](./第{n}课/第{n}课-语法.md)（{has}） |"
+            f"[{fname}](./{fname})（{has}） |"
         )
     lines.append("")
     (GRAMMAR_DIR / "课程索引.md").write_text("\n".join(lines), encoding="utf-8")
@@ -359,24 +342,7 @@ def write_readmes() -> None:
                 "| [单词表.md](./单词表.md) | 按课整理的词汇表（来自学习笔记） |",
                 "| [听写单词本.md](./听写单词本.md) | 听写总览骨架（尚未开始听写） |",
                 "",
-                "**同级目录：** [语法](../语法/课程索引.md) · [练习](../练习/README.md) · [课程资料](../课程资料/)",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
-
-    (PRACTICE_DIR / "README.md").write_text(
-        "\n".join(
-            [
-                "# 新概念英语 · 第一册 · 练习",
-                "",
-                "按 **第 N 课** 分子目录；每课含占位练习 MD，确认范围后再出题并生成 PDF（流程同五年级英语练习）。",
-                "",
-                "| 说明 |",
-                "|------|",
-                "| 目录名：`第N课/`（阿拉伯数字，与 Lesson N 对应） |",
-                "| 源文件：`第N课-练习.md`；听写待建 `第N课-听写.md` |",
+                "**同级目录：** [语法](../语法/课程索引.md) · [练习](../练习/) · [课程资料](../课程资料/)",
                 "",
             ]
         ),
@@ -394,10 +360,10 @@ def write_readmes() -> None:
                 "|------|------|",
                 "| [课程资料/](./课程资料/) | 原始笔记（`新概念第一册笔记.docx`） |",
                 "| [词汇/](./词汇/README.md) | 单词表、听写总览 |",
-                "| [语法/](./语法/课程索引.md) | 按课语法要点（**语法** 目录，非「讲义」） |",
-                "| [练习/](./练习/README.md) | 按课练习占位与后续 PDF |",
+                "| [语法/](./语法/课程索引.md) | 按课语法要点（`Lesson N.md` 扁平文件） |",
+                "| [练习/](./练习/) | 暂空；练习拍照补入后再建 |",
                 "",
-                "**维护：** 更新 docx 后可在仓库根目录 [`scripts/extract-from-notes.py`](../../../scripts/extract-from-notes.py) 重新生成词汇表与语法/练习骨架。",
+                "**维护：** 更新 docx 后可在仓库根目录 [`scripts/extract-from-notes.py`](../../../scripts/extract-from-notes.py) 重新生成词汇表与语法 MD（不生成按课练习占位）。",
                 "",
             ]
         ),
@@ -436,9 +402,10 @@ def main() -> None:
     write_grammar_index(lessons)
     write_readmes()
 
+    cleanup_legacy_grammar_dirs()
     for lesson in lessons:
         write_grammar(lesson)
-        write_practice(lesson)
+    ensure_practice_placeholder()
 
     total_words = sum(len(l.words) for l in lessons)
     print(f"lessons={len(lessons)} words={total_words} grammar_sections={sum(1 for l in lessons if l.grammar)}")
