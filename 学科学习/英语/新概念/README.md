@@ -9,4 +9,4 @@
 | [语法/](./语法/课程索引.md) | 按课语法要点（**语法** 目录，非「讲义」） |
 | [练习/](./练习/README.md) | 按课练习占位与后续 PDF |
 
-**维护：** 更新 docx 后可在 `scripts/extract-from-notes.py` 重新生成词汇表与语法/练习骨架。
+**维护：** 更新 docx 后可在仓库根目录 [`scripts/extract-from-notes.py`](../../../scripts/extract-from-notes.py) 重新生成词汇表与语法/练习骨架。

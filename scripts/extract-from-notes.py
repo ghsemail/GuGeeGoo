@@ -7,9 +7,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from docx import Document
-
-ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parent.parent
+ROOT = REPO_ROOT / "学科学习" / "英语" / "新概念"
 DOCX = ROOT / "课程资料" / "新概念第一册笔记.docx"
 VOCAB_DIR = ROOT / "词汇"
 GRAMMAR_DIR = ROOT / "语法"
@@ -138,6 +137,8 @@ def split_sections(lesson: Lesson) -> None:
 
 
 def load_lessons() -> list[Lesson]:
+    from docx import Document
+
     doc = Document(str(DOCX))
     lessons: list[Lesson] = []
     current: Lesson | None = None
@@ -396,7 +397,7 @@ def write_readmes() -> None:
                 "| [语法/](./语法/课程索引.md) | 按课语法要点（**语法** 目录，非「讲义」） |",
                 "| [练习/](./练习/README.md) | 按课练习占位与后续 PDF |",
                 "",
-                "**维护：** 更新 docx 后可在 `scripts/extract-from-notes.py` 重新生成词汇表与语法/练习骨架。",
+                "**维护：** 更新 docx 后可在仓库根目录 [`scripts/extract-from-notes.py`](../../../scripts/extract-from-notes.py) 重新生成词汇表与语法/练习骨架。",
                 "",
             ]
         ),
@@ -405,6 +406,26 @@ def write_readmes() -> None:
 
 
 def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="仅检查 docx 与输出目录路径，不写入文件",
+    )
+    args = parser.parse_args()
+    if args.dry_run:
+        print(f"repo_root={REPO_ROOT}")
+        print(f"nce_root={ROOT}")
+        print(f"docx={DOCX} exists={DOCX.is_file()}")
+        print(f"vocab_dir={VOCAB_DIR}")
+        print(f"grammar_dir={GRAMMAR_DIR}")
+        print(f"practice_dir={PRACTICE_DIR}")
+        if not DOCX.is_file():
+            raise SystemExit(1)
+        return
+
     lessons = load_lessons()
     VOCAB_DIR.mkdir(parents=True, exist_ok=True)
     GRAMMAR_DIR.mkdir(parents=True, exist_ok=True)
