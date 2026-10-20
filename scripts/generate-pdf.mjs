@@ -185,7 +185,13 @@ function mdToHtmlBody(md, baseDir, { wrapQuestions = false, englishCompact = fal
   }
 
   for (let i = 0; i < lines.length; ) {
-    const line = lines[i];
+    const rawLine = lines[i];
+    // 整行 HTML 注释（如 <!-- [WP-M001] -->）须跳过；不可先 escape 再删，否则会印到 PDF
+    if (/^\s*<!--[\s\S]*?-->\s*$/.test(rawLine)) {
+      i++;
+      continue;
+    }
+    const line = rawLine.replace(/<!--[\s\S]*?-->/g, "");
 
     const imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {
@@ -251,8 +257,7 @@ function mdToHtmlBody(md, baseDir, { wrapQuestions = false, englishCompact = fal
       continue;
     }
 
-    let processedLine = richTextFromMarkdownLine(line);
-    processedLine = processedLine.replace(/<!--.*?-->/g, "");
+    const processedLine = richTextFromMarkdownLine(line);
     body.push(`<p>${processedLine}</p>`);
     i++;
   }
