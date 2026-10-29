@@ -12,6 +12,7 @@
 
 | 批改 | 成绩 | 备注 |
 |------|------|------|
+| Unit 3 单元听写（10 词，非全单元） | **7/10** | 10-29；错 musical（musiali）、similar（snnlem）、difference（dirrfents）；unhappy 写对→巩固中 1/2；similar/difference 已掌握退回；待巩固 letter、biscuit、musical、similar、difference 不熟悉，unhappy 巩固中 1/2（6 词） |
 | Unit 3 单元听写（全单元 14 词） | **12/14** | 10-21；错 unhappy（anhappe）、musical（musilar）；er 家长确认写对；tip/similar/plan/openly 首听已掌握；待巩固 letter、biscuit、unhappy、musical（4 词） |
 | Unit 3 单元听写（10 词） | **10/10** | 10-18；全对；musical→巩固中 1/2；parent/difference/rabbit/er/key 首听已掌握；待巩固 letter、biscuit 不熟悉，musical 巩固中 1/2 |
 | Unit 3 单元听写（5 词，非全单元） | **4/5** | 10-17；错 musical（museicla）；funny/both/unhappy/friendship 首听已掌握；待巩固 +musical（letter、biscuit 未测） |
@@ -41,7 +42,7 @@
 
 | 项目 | 内容 |
 |------|------|
-| 待巩固 | letter、biscuit、unhappy、musical 不熟悉 0/2（共 4 词） |
+| 待巩固 | letter、biscuit、musical、similar、difference 不熟悉 0/2；unhappy 巩固中 1/2（共 6 词） |
 | 固定表 | 10-13 表晚间已听写 **18/20**；下次复习听写前换新表或补抽（须含 letter、biscuit）；10-02 中文提示 2 次待家长确认 |
 | 详情 | `学科学习/英语/五年级/词汇/听写单词本.md` |
 
@@ -151,6 +152,7 @@
 
 | 日期 | 内容 |
 |------|------|
+| 2026-10-29 | Unit 3 单单元抽 10 词听写 **7/10**；错 musical/similar/difference；unhappy 升巩固中 1/2；similar/difference 记忆卡片 + 抄写 3 遍；musical 卡片刷新 |
 | 2026-10-22 | 听写规则：报词必须先读「第 N 个」，不可省略编号 |
 | 2026-10-22 | 听写规则：报词过程中禁止把拼写打到文字聊天 |
 | 2026-10-22 | 听写规则：报词后立刻静默、零废话写硬（两遍念完不得追加任何话，未听到「下一个」不报下一词） |
